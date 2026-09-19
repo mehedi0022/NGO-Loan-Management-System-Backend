@@ -22,39 +22,46 @@ import * as userRepository from "../../user/repositories/user.repository.js";
 import { toPublicUserDto } from "../../user/user.dto.js";
 import * as sessionService from "../../session/services/session.service.js";
 
-import type { ChangePasswordInput, ForgotPasswordInput, LoginInput, RegisterInput, ResetPasswordInput } from "../auth.types.js";
+import type {
+  ChangePasswordInput,
+  ForgotPasswordInput,
+  LoginInput,
+  ResetPasswordInput,
+} from "../auth.types.js";
 
-const accountTokenUrl = (path: string, token: string) => `${config.email.appUrl!.replace(/\/$/, "")}${path}?token=${encodeURIComponent(token)}`;
+const accountTokenUrl = (path: string, token: string) =>
+  `${config.email.appUrl!.replace(/\/$/, "")}${path}?token=${encodeURIComponent(token)}`;
 
-const issueAccountToken = async (user: { id: number; email: string; fullName: string | null }, type: accountTokenRepository.AccountTokenType) => {
+const issueAccountToken = async (
+  user: { id: number; email: string; fullName: string | null },
+  type: accountTokenRepository.AccountTokenType,
+) => {
   if (!config.smtp.enabled) return;
   const token = generateSecureToken();
   const now = Temporal.Now.instant();
-  const expiresAt = now.add({ milliseconds: type === "PASSWORD_RESET" ? config.accountToken.passwordResetTtlMs : config.accountToken.emailVerificationTtlMs });
-  await accountTokenRepository.replaceAccountToken({ userId: user.id, type, tokenHash: hashToken(token), expiresAt });
-  const template = type === "PASSWORD_RESET"
-    ? createPasswordResetEmail({ resetUrl: accountTokenUrl("/reset-password", token), recipientName: user.fullName ?? undefined })
-    : createVerificationEmail({ verificationUrl: accountTokenUrl("/verify-email", token), recipientName: user.fullName ?? undefined });
-  await emailService.sendEmail({ to: user.email, ...template });
-};
-
-export const register = async (data: RegisterInput) => {
-  const existingUser = await userRepository.findUserByEmail(data.email);
-
-  if (existingUser) {
-    throw new ConflictError("User already exists with this email");
-  }
-
-  const hashedPassword = await hashPassword(data.password);
-
-  const user = await userRepository.createUser({
-    ...data,
-    password: hashedPassword,
+  const expiresAt = now.add({
+    milliseconds:
+      type === "PASSWORD_RESET"
+        ? config.accountToken.passwordResetTtlMs
+        : config.accountToken.emailVerificationTtlMs,
   });
-
-  await issueAccountToken(user, "EMAIL_VERIFICATION");
-
-  return user;
+  await accountTokenRepository.replaceAccountToken({
+    userId: user.id,
+    type,
+    tokenHash: hashToken(token),
+    expiresAt,
+  });
+  const template =
+    type === "PASSWORD_RESET"
+      ? createPasswordResetEmail({
+          resetUrl: accountTokenUrl("/reset-password", token),
+          recipientName: user.fullName ?? undefined,
+        })
+      : createVerificationEmail({
+          verificationUrl: accountTokenUrl("/verify-email", token),
+          recipientName: user.fullName ?? undefined,
+        });
+  await emailService.sendEmail({ to: user.email, ...template });
 };
 
 export const login = async (data: LoginInput) => {
@@ -109,9 +116,9 @@ export const refreshAccessToken = async (refreshToken: string) => {
   const currentSession = await sessionService.getRefreshSession(refreshToken);
 
   if (
-    !currentSession
-    || currentSession.userId !== payload.userId
-    || currentSession.jti !== payload.jti
+    !currentSession ||
+    currentSession.userId !== payload.userId ||
+    currentSession.jti !== payload.jti
   ) {
     throw new AuthenticationError("Invalid or expired refresh token");
   }
@@ -169,23 +176,45 @@ export const forgotPassword = async (data: ForgotPasswordInput) => {
 };
 
 export const resetPassword = async (data: ResetPasswordInput) => {
-  const userId = await accountTokenRepository.consumePasswordReset({ tokenHash: hashToken(data.token), passwordHash: await hashPassword(data.password), now: Temporal.Now.instant() });
+  const userId = await accountTokenRepository.consumePasswordReset({
+    tokenHash: hashToken(data.token),
+    passwordHash: await hashPassword(data.password),
+    now: Temporal.Now.instant(),
+  });
   if (!userId) throw new AuthenticationError("Invalid or expired reset token");
 };
 
-export const changePassword = async (userId: number, data: ChangePasswordInput) => {
-  const user = await userRepository.findUserByEmail((await userRepository.findUserById(userId))?.email ?? "");
-  if (!user || !await verifyPassword(user.password, data.currentPassword)) throw new AuthenticationError("Current password is incorrect");
-  if (await verifyPassword(user.password, data.newPassword)) throw new ConflictError("New password must be different from the current password");
-  await accountTokenRepository.changePasswordAndRevokeSessions({ userId, passwordHash: await hashPassword(data.newPassword), now: Temporal.Now.instant() });
+export const changePassword = async (
+  userId: number,
+  data: ChangePasswordInput,
+) => {
+  const user = await userRepository.findUserByEmail(
+    (await userRepository.findUserById(userId))?.email ?? "",
+  );
+  if (!user || !(await verifyPassword(user.password, data.currentPassword)))
+    throw new AuthenticationError("Current password is incorrect");
+  if (await verifyPassword(user.password, data.newPassword))
+    throw new ConflictError(
+      "New password must be different from the current password",
+    );
+  await accountTokenRepository.changePasswordAndRevokeSessions({
+    userId,
+    passwordHash: await hashPassword(data.newPassword),
+    now: Temporal.Now.instant(),
+  });
 };
 
 export const resendVerification = async (email: string) => {
   const user = await userRepository.findUserByEmail(email);
-  if (user && !user.emailVerifiedAt) await issueAccountToken(user, "EMAIL_VERIFICATION");
+  if (user && !user.emailVerifiedAt)
+    await issueAccountToken(user, "EMAIL_VERIFICATION");
 };
 
 export const verifyEmail = async (token: string) => {
-  const userId = await accountTokenRepository.consumeEmailVerification({ tokenHash: hashToken(token), now: Temporal.Now.instant() });
-  if (!userId) throw new AuthenticationError("Invalid or expired verification token");
+  const userId = await accountTokenRepository.consumeEmailVerification({
+    tokenHash: hashToken(token),
+    now: Temporal.Now.instant(),
+  });
+  if (!userId)
+    throw new AuthenticationError("Invalid or expired verification token");
 };

@@ -12,9 +12,19 @@ export const getUserById = async (id: number) => {
   return user;
 };
 
+export const createUser = async (data: {
+  userName: string;
+  fullName: string;
+  email: string;
+  password: string;
+  role?: string;
+}) => {
+  return userRepository.createUser(data);
+};
+
 export const updateUser = async (
   id: number,
-  data: { userName?: string | null; fullName?: string | null },
+  data: { userName?: string | null; fullName?: string | null; role?: string },
 ) => {
   const user = await userRepository.updateUserById(id, data);
   if (!user) throw new NotFoundError("User not found");

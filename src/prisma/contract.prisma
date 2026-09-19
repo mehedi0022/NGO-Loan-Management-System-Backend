@@ -1,10 +1,6 @@
 enum UserRole {
   SUPER_ADMIN = "SUPER_ADMIN"
   ADMIN = "ADMIN"
-  USER = "USER"
-  CUSTOMER = "CUSTOMER"
-  MODERATOR = "MODERATOR"
-  AUTHOR = "AUTHOR"
   MANAGER = "MANAGER"
 
   @@type("pg/text@1")
@@ -17,6 +13,21 @@ enum AccountTokenType {
   @@type("pg/text@1")
 }
 
+enum MemberStatus {
+  ACTIVE = "ACTIVE"
+  INACTIVE = "INACTIVE"
+  SUSPENDED = "SUSPENDED"
+
+  @@type("pg/text@1")
+}
+
+enum AddressType {
+  PRESENT = "PRESENT"
+  PERMANENT = "PERMANENT"
+
+  @@type("pg/text@1")
+}
+
 model User {
   id              Int                  @id @default(autoincrement())
   email           String               @unique
@@ -25,7 +36,7 @@ model User {
   password        String
   createdAt       DateTime             @default(now())
   updatedAt       temporal.updatedAt()
-  role            UserRole             @default(USER)
+  role            UserRole             @default(MANAGER)
   emailVerifiedAt DateTime?
 
   sessions        Session[]
@@ -65,4 +76,109 @@ model AccountToken {
 
   @@index([userId, type])
   @@index([expiresAt])
+}
+
+model Member {
+  id           Int                  @id @default(autoincrement())
+  memberId     String?              @unique
+
+  // Personal Information
+  fullName     String
+  fatherName   String
+  motherName   String
+  guardianName String?
+
+  mobileNumber String
+  nidNumber    String?              @unique
+
+  // Optional Information
+  email        String?
+  photoUrl     String?
+  occupation   String?
+
+  // Membership
+  joinDate     DateTime             @default(now())
+  status       MemberStatus         @default(ACTIVE)
+
+  // Additional Information
+  notes        String?
+
+  // Relations
+  addresses    MemberAddress[]
+  guarantors   Guarantor[]
+
+  createdAt    DateTime             @default(now())
+  updatedAt    temporal.updatedAt()
+
+  @@index([memberId])
+  @@index([fullName])
+  @@index([mobileNumber])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MemberAddress {
+  id             Int                  @id @default(autoincrement())
+  memberId       Int
+  type           AddressType
+
+  // Address
+  houseOrHolding String?
+  road           String?
+  village        String
+  postOffice     String
+  union          String?
+  upazila        String
+  district       String
+  division       String?
+
+  // Relations
+  member         Member               @relation(fields:[memberId], references:[id], onDelete: Cascade)
+
+  createdAt      DateTime             @default(now())
+  updatedAt      temporal.updatedAt()
+
+  @@unique([memberId, type])
+  @@index([memberId])
+  @@index([district])
+  @@index([upazila])
+}
+
+model Guarantor {
+  id             Int                  @id @default(autoincrement())
+  memberId       Int
+
+  // Personal Information
+  fullName       String
+  fatherName     String?
+  motherName     String?
+  mobileNumber   String
+  nidNumber      String?
+
+  // Relationship with member
+  relationship   String
+
+  // Address
+  houseOrHolding String?
+  road           String?
+  village        String
+  postOffice     String
+  union          String?
+  upazila        String
+  district       String
+  division       String?
+
+  // Additional Information
+  occupation     String?
+  notes          String?
+
+  // Relations
+  member         Member               @relation(fields:[memberId], references:[id], onDelete: Cascade)
+
+  createdAt      DateTime             @default(now())
+  updatedAt      temporal.updatedAt()
+
+  @@index([memberId])
+  @@index([mobileNumber])
+  @@index([nidNumber])
 }

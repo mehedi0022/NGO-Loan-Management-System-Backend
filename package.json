@@ -22,7 +22,8 @@
     "db:verify": "npx prisma db verify",
     "db:status": "npx prisma migration status",
     "db:plan": "npx prisma migration plan",
-    "db:migrate": "npx prisma db migrate"
+    "db:migrate": "npx prisma db migrate",
+    "seed:admin": "tsx src/prisma/seed-admin.ts"
   },
   "keywords": [],
   "author": "",

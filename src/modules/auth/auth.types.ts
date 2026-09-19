@@ -5,12 +5,10 @@ import {
   loginSchema,
   logoutSchema,
   refreshTokenSchema,
-  registerSchema,
   resetPasswordSchema,
   changePasswordSchema,
 } from "./validations/auth.validation.js";
 
-export type RegisterInput = z.infer<typeof registerSchema>["body"];
 export type LoginInput = z.infer<typeof loginSchema>["body"];
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>["body"];
 export type LogoutInput = z.infer<typeof logoutSchema>["body"];

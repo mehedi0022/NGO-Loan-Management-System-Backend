@@ -36,8 +36,6 @@ export const validate = (schema: ZodType): RequestHandler => {
     }
 
     if (validatedData.query !== undefined) {
-      // Express 5 exposes req.query through a getter, so direct assignment
-      // throws. Install the validated allowlisted query for downstream code.
       Object.defineProperty(req, "query", {
         configurable: true,
         enumerable: true,
