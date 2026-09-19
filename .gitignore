@@ -1,0 +1,22 @@
+node_modules/
+dist/
+coverage/
+uploads/
+/src/generated/prisma/
+
+# Local environment files; public templates stay committed.
+.env
+.env.*
+!.env.example
+!.env.test.example
+
+# Private keys, certificates, and provider credential exports.
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.credentials.json
+service-account*.json
+certs/
+secrets/

@@ -1,0 +1,68 @@
+enum UserRole {
+  SUPER_ADMIN = "SUPER_ADMIN"
+  ADMIN = "ADMIN"
+  USER = "USER"
+  CUSTOMER = "CUSTOMER"
+  MODERATOR = "MODERATOR"
+  AUTHOR = "AUTHOR"
+  MANAGER = "MANAGER"
+
+  @@type("pg/text@1")
+}
+
+enum AccountTokenType {
+  PASSWORD_RESET = "PASSWORD_RESET"
+  EMAIL_VERIFICATION = "EMAIL_VERIFICATION"
+
+  @@type("pg/text@1")
+}
+
+model User {
+  id              Int                  @id @default(autoincrement())
+  email           String               @unique
+  userName        String?
+  fullName        String?
+  password        String
+  createdAt       DateTime             @default(now())
+  updatedAt       temporal.updatedAt()
+  role            UserRole             @default(USER)
+  emailVerifiedAt DateTime?
+
+  sessions        Session[]
+  accountTokens   AccountToken[]
+}
+
+model Session {
+  id                Int       @id @default(autoincrement())
+  userId            Int
+  jti               String    @unique @default(uuid())
+  familyId          String    @default(uuid())
+  refreshTokenHash  String    @unique
+  expiresAt         DateTime
+  revokedAt         DateTime?
+  consumedAt        DateTime?
+  replacedByJti     String?
+  absoluteExpiresAt DateTime
+  rememberMe        Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+
+  user              User      @relation(fields:[userId], references:[id])
+
+  @@index([userId])
+  @@index([familyId])
+}
+
+model AccountToken {
+  id         Int              @id @default(autoincrement())
+  userId     Int
+  type       AccountTokenType
+  tokenHash  String           @unique
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime         @default(now())
+
+  user       User             @relation(fields:[userId], references:[id])
+
+  @@index([userId, type])
+  @@index([expiresAt])
+}
