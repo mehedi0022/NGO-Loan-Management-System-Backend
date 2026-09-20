@@ -1,0 +1,86 @@
+[
+  {
+    "id": "dropCheckConstraint.memberAddress.memberAddress_type_check_60c1240d",
+    "label": "Drop check constraint \"memberAddress_type_check_60c1240d\" on \"memberAddress\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "memberAddress_type_check_60c1240d",
+        "table": "memberAddress"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"memberAddress_type_check_60c1240d\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "memberAddress_type_check_60c1240d",
+          "public",
+          "\"public\".\"memberAddress\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"memberAddress_type_check_60c1240d\"",
+        "sql": "ALTER TABLE \"public\".\"memberAddress\" DROP CONSTRAINT \"memberAddress_type_check_60c1240d\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"memberAddress_type_check_60c1240d\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "memberAddress_type_check_60c1240d",
+          "public",
+          "\"public\".\"memberAddress\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.memberAddress.memberAddress_type_check_4dfe7b6a",
+    "label": "Add check constraint \"memberAddress_type_check_4dfe7b6a\" on \"memberAddress\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "memberAddress_type_check_4dfe7b6a",
+        "table": "memberAddress"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"memberAddress_type_check_4dfe7b6a\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "memberAddress_type_check_4dfe7b6a",
+          "public",
+          "\"public\".\"memberAddress\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"memberAddress_type_check_4dfe7b6a\"",
+        "sql": "ALTER TABLE \"public\".\"memberAddress\" ADD CONSTRAINT \"memberAddress_type_check_4dfe7b6a\" CHECK (\"type\" IN ('PRESENT', 'FATHER_HOME'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"memberAddress_type_check_4dfe7b6a\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "memberAddress_type_check_4dfe7b6a",
+          "public",
+          "\"public\".\"memberAddress\""
+        ]
+      }
+    ]
+  }
+]

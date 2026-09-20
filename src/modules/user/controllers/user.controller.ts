@@ -9,6 +9,20 @@ import {
 import * as userService from "../services/user.service.js";
 
 import type { UserListQuery } from "../validations/user.validation.js";
+import type { AuthenticatedRequest } from "../../../middlewares/auth.middleware.js";
+
+/**
+ * Get current authenticated user
+ */
+export const getMe = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = (req as AuthenticatedRequest).auth;
+
+  const user = await userService.getUserById(userId);
+
+  res
+    .status(200)
+    .json(successResponse("Current user fetched successfully", user));
+});
 
 /**
  * Create user

@@ -10,6 +10,7 @@ import { permissions } from "../../auth/authorization.js";
 import {
   createUser,
   deleteUser,
+  getMe,
   getAllUsers,
   getUserById,
   updateUser,
@@ -24,6 +25,8 @@ import {
 const router = Router();
 
 router.use(requireAuth);
+
+router.get("/me", getMe);
 
 router.get(
   "/",

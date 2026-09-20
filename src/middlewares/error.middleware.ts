@@ -1,5 +1,7 @@
 import type { ErrorRequestHandler } from "express";
-import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+const { JsonWebTokenError, TokenExpiredError } = jwt;
+
 import type { Logger } from "pino";
 import { ZodError } from "zod";
 
@@ -73,7 +75,10 @@ const classifyError = (error: unknown): AppError => {
     return new ValidationError("Validation failed", error.issues);
   }
 
-  if (error instanceof TokenExpiredError || error instanceof JsonWebTokenError) {
+  if (
+    error instanceof TokenExpiredError ||
+    error instanceof JsonWebTokenError
+  ) {
     return new AuthenticationError("Invalid or expired token");
   }
 
@@ -123,7 +128,9 @@ const logError = (
             ? String(originalError.code)
             : publicError.code,
         isOperational: publicError.isOperational,
-        ...(publicError.isOperational && { message: redactText(publicError.message) }),
+        ...(publicError.isOperational && {
+          message: redactText(publicError.message),
+        }),
         ...(nodeEnv === "development" && original?.stack
           ? { stack: redactText(original.stack) }
           : {}),
@@ -136,21 +143,19 @@ const logError = (
   );
 };
 
-export const createErrorHandler = ({
-  nodeEnv = config.nodeEnv,
-  fallbackLogger = logger,
-}: ErrorHandlerOptions = {}): ErrorRequestHandler =>
+export const createErrorHandler =
+  ({
+    nodeEnv = config.nodeEnv,
+    fallbackLogger = logger,
+  }: ErrorHandlerOptions = {}): ErrorRequestHandler =>
   (error: unknown, req, res, next) => {
     const requestLogger = req.log ?? fallbackLogger;
 
     if (res.headersSent) {
-      logError(
-        requestLogger,
-        error,
-        classifyError(error),
-        nodeEnv,
-        { method: req.method, path: req.path },
-      );
+      logError(requestLogger, error, classifyError(error), nodeEnv, {
+        method: req.method,
+        path: req.path,
+      });
       return next(error);
     }
 
@@ -162,22 +167,24 @@ export const createErrorHandler = ({
 
     const responseMessage = redactText(publicError.message);
 
-    res.status(publicError.statusCode).json(errorResponse(responseMessage, publicError.code, {
-      ...(req.id && { requestId: req.id }),
-      ...(publicError instanceof ValidationError &&
-        publicError.details !== undefined && {
-        details: publicError.details,
+    res.status(publicError.statusCode).json(
+      errorResponse(responseMessage, publicError.code, {
+        ...(req.id && { requestId: req.id }),
+        ...(publicError instanceof ValidationError &&
+          publicError.details !== undefined && {
+            details: publicError.details,
+          }),
+        ...(nodeEnv === "development" &&
+          !publicError.isOperational && {
+            debug: {
+              name: error instanceof Error ? error.name : typeof error,
+              message: redactText(
+                error instanceof Error ? error.message : String(error),
+              ),
+            },
+          }),
       }),
-      ...(nodeEnv === "development" &&
-        !publicError.isOperational && {
-          debug: {
-            name: error instanceof Error ? error.name : typeof error,
-            message: redactText(
-              error instanceof Error ? error.message : String(error),
-            ),
-          },
-        }),
-    }));
+    );
   };
 
 export const globalErrorHandler = createErrorHandler();

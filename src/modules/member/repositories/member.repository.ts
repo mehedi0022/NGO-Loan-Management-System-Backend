@@ -5,7 +5,7 @@ import type {
   MemberListQuery,
   UpdateMemberInput,
 } from "../member.types.js";
-
+import { Temporal } from "temporal-polyfill";
 import { pageOffset, paginationMeta } from "../../../utils/pagination.js";
 
 /**
@@ -184,40 +184,91 @@ export const updateMemberId = async (id: number, memberId: string) => {
  * until relation creation is implemented.
  */
 export const createMember = async (data: CreateMemberInput) => {
-  const member = await db.orm.public.Member.select(
-    "id",
-    "memberId",
-    "fullName",
-    "fatherName",
-    "motherName",
-    "guardianName",
-    "mobileNumber",
-    "nidNumber",
-    "email",
-    "photoUrl",
-    "occupation",
-    "joinDate",
-    "status",
-    "notes",
-    "createdAt",
-    "updatedAt",
-  ).create({
-    fullName: data.fullName,
-    fatherName: data.fatherName,
-    motherName: data.motherName,
-    guardianName: data.guardianName,
-    mobileNumber: data.mobileNumber,
-    nidNumber: data.nidNumber,
-    email: data.email,
-    photoUrl: data.photoUrl,
-    occupation: data.occupation,
-    joinDate: data.joinDate,
-    notes: data.notes,
+  return db.transaction(async (tx) => {
+    // 1. Create member
+    const member = await tx.orm.public.Member.select(
+      "id",
+      "memberId",
+      "fullName",
+      "fatherName",
+      "motherName",
+      "guardianName",
+      "mobileNumber",
+      "nidNumber",
+      "email",
+      "photoUrl",
+      "occupation",
+      "joinDate",
+      "status",
+      "notes",
+      "createdAt",
+      "updatedAt",
+    ).create({
+      fullName: data.fullName,
+      fatherName: data.fatherName,
+      motherName: data.motherName,
+      guardianName: data.guardianName,
+      mobileNumber: data.mobileNumber,
+      nidNumber: data.nidNumber,
+      email: data.email,
+      photoUrl: data.photoUrl,
+      occupation: data.occupation,
+
+      joinDate: data.joinDate
+        ? Temporal.Instant.from(data.joinDate.toISOString())
+        : undefined,
+
+      notes: data.notes,
+    });
+
+    // 2. Create addresses
+    // PRESENT required
+    // FATHER_HOME optional
+    for (const address of data.addresses) {
+      await tx.orm.public.MemberAddress.create({
+        memberId: member.id,
+        type: address.type,
+        houseOrHolding: address.houseOrHolding,
+        road: address.road,
+        village: address.village,
+        postOffice: address.postOffice,
+        union: address.union,
+        upazila: address.upazila,
+        district: address.district,
+        division: address.division,
+      });
+    }
+
+    // 3. Create guarantors - optional
+    if (data.guarantors?.length) {
+      for (const guarantor of data.guarantors) {
+        await tx.orm.public.Guarantor.create({
+          memberId: member.id,
+          fullName: guarantor.fullName,
+          fatherName: guarantor.fatherName,
+          motherName: guarantor.motherName,
+          mobileNumber: guarantor.mobileNumber,
+          nidNumber: guarantor.nidNumber,
+          relationship: guarantor.relationship,
+
+          houseOrHolding: guarantor.houseOrHolding,
+          road: guarantor.road,
+          village: guarantor.village,
+          postOffice: guarantor.postOffice,
+          union: guarantor.union,
+          upazila: guarantor.upazila,
+          district: guarantor.district,
+          division: guarantor.division,
+
+          occupation: guarantor.occupation,
+          notes: guarantor.notes,
+        });
+      }
+    }
+
+    return member;
   });
-
-  return member;
 };
-
 /**
  * Update member
  */
@@ -225,10 +276,13 @@ export const updateMemberById = async (id: number, data: UpdateMemberInput) => {
   const {
     addresses: _addresses,
     guarantors: _guarantors,
+    joinDate,
     ...memberData
   } = data;
 
-  return db.orm.public.Member.where({ id })
+  return db.orm.public.Member.where({
+    id,
+  })
     .select(
       "id",
       "memberId",
@@ -247,7 +301,13 @@ export const updateMemberById = async (id: number, data: UpdateMemberInput) => {
       "createdAt",
       "updatedAt",
     )
-    .update(memberData);
+    .update({
+      ...memberData,
+
+      ...(joinDate !== undefined && {
+        joinDate: Temporal.Instant.from(joinDate),
+      }),
+    });
 };
 
 /**

@@ -23,7 +23,7 @@ enum MemberStatus {
 
 enum AddressType {
   PRESENT = "PRESENT"
-  PERMANENT = "PERMANENT"
+  FATHER_HOME = "FATHER_HOME"
 
   @@type("pg/text@1")
 }

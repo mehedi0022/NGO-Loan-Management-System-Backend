@@ -1,5 +1,5 @@
 import { z } from "zod";
-
+import { Temporal } from "temporal-polyfill";
 import { paginationQuerySchema } from "../../../utils/pagination.js";
 
 /**
@@ -22,7 +22,7 @@ const nidNumberSchema = z
  * Address
  */
 const addressSchema = z.object({
-  type: z.enum(["PRESENT", "PERMANENT"]),
+  type: z.enum(["PRESENT", "FATHER_HOME"]),
 
   houseOrHolding: z.string().trim().optional(),
   road: z.string().trim().optional(),
@@ -143,8 +143,25 @@ export const createMemberSchema = z.object({
 
       addresses: z
         .array(addressSchema)
-        .min(1, "At least one address is required")
-        .max(2, "Maximum two addresses are allowed"),
+        .min(1, "Member present address is required")
+        .max(2, "Maximum two addresses are allowed")
+        .refine(
+          (addresses) =>
+            addresses.some((address) => address.type === "PRESENT"),
+          {
+            message: "Member present address is required",
+          },
+        )
+        .refine(
+          (addresses) => {
+            const types = addresses.map((address) => address.type);
+
+            return new Set(types).size === types.length;
+          },
+          {
+            message: "Duplicate address types are not allowed",
+          },
+        ),
 
       guarantors: z.array(guarantorSchema).optional(),
     })
@@ -188,7 +205,10 @@ export const updateMemberSchema = z.object({
 
       occupation: z.string().trim().nullable().optional(),
 
-      joinDate: z.coerce.date().optional(),
+      joinDate: z.iso
+        .datetime()
+        .transform((value) => Temporal.Instant.from(value))
+        .optional(),
 
       status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]).optional(),
 

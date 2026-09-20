@@ -54,8 +54,8 @@
                 "value": "PRESENT"
               },
               {
-                "name": "PERMANENT",
-                "value": "PERMANENT"
+                "name": "FATHER_HOME",
+                "value": "FATHER_HOME"
               }
             ]
           },
@@ -1546,8 +1546,8 @@
             "memberAddress": {
               "checks": [
                 {
-                  "expression": "\"type\" IN ('PRESENT', 'PERMANENT')",
-                  "name": "memberAddress_type_check_60c1240d",
+                  "expression": "\"type\" IN ('PRESENT', 'FATHER_HOME')",
+                  "name": "memberAddress_type_check_4dfe7b6a",
                   "prefix": "memberAddress_type_check"
                 }
               ],
@@ -1921,7 +1921,7 @@
               "kind": "valueSet",
               "values": [
                 "PRESENT",
-                "PERMANENT"
+                "FATHER_HOME"
               ]
             },
             "MemberStatus": {
@@ -1946,7 +1946,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "cacf658175a4532f52aeddb460cff22720dab21913225ecf5c3c4d7cc2d554ef"
+    "storageHash": "70643497f3ebedb52d1710887b632410c3112a7b17aa5c9a2083cca0f6bc534a"
   },
   "execution": {
     "executionHash": "52a48c25b7898c9f18eaf22024874483c06f7300dfb9fbacdc73696b1d76436f",
