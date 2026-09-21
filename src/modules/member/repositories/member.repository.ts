@@ -1,5 +1,5 @@
 import { db } from "../../../prisma/db.js";
-
+import { or } from "@prisma/orm-postgres/orm-client";
 import type {
   CreateMemberInput,
   MemberListQuery,
@@ -15,6 +15,8 @@ export const findAllMembers = async ({
   page,
   limit,
   status,
+  search,
+  district,
   sortBy,
   sortOrder,
 }: MemberListQuery) => {
@@ -37,9 +39,28 @@ export const findAllMembers = async ({
     "updatedAt",
   );
 
-  const filteredMembers = status
-    ? selectedMembers.where({ status })
-    : selectedMembers;
+  let filteredMembers = selectedMembers;
+
+  // Status filter
+  if (status) {
+    filteredMembers = filteredMembers.where({
+      status,
+    });
+  }
+
+  // Search
+  if (search) {
+    const searchTerm = search.trim();
+
+    filteredMembers = filteredMembers.where((member) =>
+      or(
+        member.fullName.ilike(`%${searchTerm}%`),
+        member.memberId.ilike(`%${searchTerm}%`),
+        member.mobileNumber.ilike(`%${searchTerm}%`),
+        member.nidNumber.ilike(`%${searchTerm}%`),
+      ),
+    );
+  }
 
   const offset = pageOffset(page, limit);
 
@@ -107,7 +128,8 @@ export const findAllMembers = async ({
  * Find member by ID
  */
 export const findMemberById = async (id: number) => {
-  return db.orm.public.Member.select(
+  // 1. Member
+  const member = await db.orm.public.Member.select(
     "id",
     "memberId",
     "fullName",
@@ -125,8 +147,67 @@ export const findMemberById = async (id: number) => {
     "createdAt",
     "updatedAt",
   ).first({ id });
-};
 
+  if (!member) {
+    return null;
+  }
+
+  // 2. Address + Guarantor
+  const [addresses, guarantors] = await Promise.all([
+    db.orm.public.MemberAddress.select(
+      "id",
+      "memberId",
+      "type",
+      "houseOrHolding",
+      "road",
+      "village",
+      "postOffice",
+      "union",
+      "upazila",
+      "district",
+      "division",
+      "createdAt",
+      "updatedAt",
+    )
+      .where({
+        memberId: id,
+      })
+      .all(),
+
+    db.orm.public.Guarantor.select(
+      "id",
+      "memberId",
+      "fullName",
+      "fatherName",
+      "motherName",
+      "mobileNumber",
+      "nidNumber",
+      "relationship",
+      "houseOrHolding",
+      "road",
+      "village",
+      "postOffice",
+      "union",
+      "upazila",
+      "district",
+      "division",
+      "occupation",
+      "notes",
+      "createdAt",
+      "updatedAt",
+    )
+      .where({
+        memberId: id,
+      })
+      .all(),
+  ]);
+
+  return {
+    ...member,
+    addresses,
+    guarantors,
+  };
+};
 /**
  * Find member by Member ID
  */
@@ -273,41 +354,157 @@ export const createMember = async (data: CreateMemberInput) => {
  * Update member
  */
 export const updateMemberById = async (id: number, data: UpdateMemberInput) => {
-  const {
-    addresses: _addresses,
-    guarantors: _guarantors,
-    joinDate,
-    ...memberData
-  } = data;
+  const { addresses, guarantors, joinDate, ...memberData } = data;
 
-  return db.orm.public.Member.where({
-    id,
-  })
-    .select(
-      "id",
-      "memberId",
-      "fullName",
-      "fatherName",
-      "motherName",
-      "guardianName",
-      "mobileNumber",
-      "nidNumber",
-      "email",
-      "photoUrl",
-      "occupation",
-      "joinDate",
-      "status",
-      "notes",
-      "createdAt",
-      "updatedAt",
-    )
-    .update({
-      ...memberData,
+  return db.transaction(async (tx) => {
+    // 1. Update basic member information
+    const member = await tx.orm.public.Member.where({
+      id,
+    })
+      .select(
+        "id",
+        "memberId",
+        "fullName",
+        "fatherName",
+        "motherName",
+        "guardianName",
+        "mobileNumber",
+        "nidNumber",
+        "email",
+        "photoUrl",
+        "occupation",
+        "joinDate",
+        "status",
+        "notes",
+        "createdAt",
+        "updatedAt",
+      )
+      .update({
+        ...memberData,
 
-      ...(joinDate !== undefined && {
-        joinDate: Temporal.Instant.from(joinDate),
-      }),
-    });
+        ...(joinDate !== undefined && {
+          joinDate: Temporal.Instant.from(joinDate.toISOString()),
+        }),
+      });
+
+    if (!member) {
+      return null;
+    }
+
+    // 2. Sync addresses only when supplied
+    if (addresses !== undefined) {
+      const existingAddresses = await tx.orm.public.MemberAddress.select(
+        "id",
+        "memberId",
+        "type",
+      )
+        .where({
+          memberId: id,
+        })
+        .all();
+
+      const presentAddress = addresses.find(
+        (address) => address.type === "PRESENT",
+      );
+
+      const fatherAddress = addresses.find(
+        (address) => address.type === "FATHER_HOME",
+      );
+
+      const existingPresent = existingAddresses.find(
+        (address) => address.type === "PRESENT",
+      );
+
+      const existingFather = existingAddresses.find(
+        (address) => address.type === "FATHER_HOME",
+      );
+
+      // PRESENT ADDRESS
+      if (presentAddress) {
+        const { type: _type, ...presentData } = presentAddress;
+
+        if (existingPresent) {
+          await tx.orm.public.MemberAddress.where({
+            id: existingPresent.id,
+          }).update({
+            ...presentData,
+            type: "PRESENT",
+          });
+        } else {
+          await tx.orm.public.MemberAddress.create({
+            memberId: id,
+            type: "PRESENT",
+            ...presentData,
+          });
+        }
+      }
+
+      // FATHER ADDRESS
+      if (fatherAddress) {
+        const { type: _type, ...fatherData } = fatherAddress;
+
+        if (existingFather) {
+          await tx.orm.public.MemberAddress.where({
+            id: existingFather.id,
+          }).update({
+            ...fatherData,
+            type: "FATHER_HOME",
+          });
+        } else {
+          await tx.orm.public.MemberAddress.create({
+            memberId: id,
+            type: "FATHER_HOME",
+            ...fatherData,
+          });
+        }
+      } else if (existingFather) {
+        // Checkbox turned OFF
+        await tx.orm.public.MemberAddress.where({
+          id: existingFather.id,
+        }).delete();
+      }
+    }
+
+    // 3. Sync guarantor only when supplied
+    if (guarantors !== undefined) {
+      const existingGuarantors = await tx.orm.public.Guarantor.select(
+        "id",
+        "memberId",
+      )
+        .where({
+          memberId: id,
+        })
+        .all();
+
+      const incomingGuarantor = guarantors[0];
+
+      const existingGuarantor = existingGuarantors[0];
+
+      if (incomingGuarantor) {
+        if (existingGuarantor) {
+          await tx.orm.public.Guarantor.where({
+            id: existingGuarantor.id,
+          }).update({
+            ...incomingGuarantor,
+          });
+        } else {
+          await tx.orm.public.Guarantor.create({
+            memberId: id,
+            ...incomingGuarantor,
+          });
+        }
+      } else {
+        // Guarantor checkbox turned OFF
+        for (const guarantor of existingGuarantors) {
+          await tx.orm.public.Guarantor.where({
+            id: guarantor.id,
+          }).delete();
+        }
+      }
+    }
+
+    return member;
+  });
 };
 
 /**

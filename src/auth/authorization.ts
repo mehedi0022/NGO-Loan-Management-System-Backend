@@ -17,6 +17,8 @@ export const permissions = {
   loansReadAny: "loans:read:any",
   loansCreate: "loans:create",
   loansUpdateAny: "loans:update:any",
+  loansApprove: "loans:approve:any",
+  loansDisburse: "loans:disburse:any",
 
   // Collections
   collectionsReadAny: "collections:read:any",
@@ -32,12 +34,9 @@ export const permissions = {
   reportsReadAny: "reports:read:any",
 } as const;
 
-export type Permission =
-  (typeof permissions)[keyof typeof permissions];
+export type Permission = (typeof permissions)[keyof typeof permissions];
 
-const rolePermissions: Readonly<
-  Record<UserRole, ReadonlySet<Permission>>
-> = {
+const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
   // Everything
   SUPER_ADMIN: new Set(Object.values(permissions)),
 
@@ -98,7 +97,5 @@ const rolePermissions: Readonly<
   ]),
 };
 
-export const roleHasPermission = (
-  role: UserRole,
-  permission: Permission,
-) => rolePermissions[role].has(permission);
+export const roleHasPermission = (role: UserRole, permission: Permission) =>
+  rolePermissions[role].has(permission);

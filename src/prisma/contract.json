@@ -12,6 +12,18 @@
       "model": "Guarantor",
       "namespace": "public"
     },
+    "loan": {
+      "model": "Loan",
+      "namespace": "public"
+    },
+    "loanInstallment": {
+      "model": "LoanInstallment",
+      "namespace": "public"
+    },
+    "loanPayment": {
+      "model": "LoanPayment",
+      "namespace": "public"
+    },
     "member": {
       "model": "Member",
       "namespace": "public"
@@ -59,6 +71,78 @@
               }
             ]
           },
+          "InstallmentFrequency": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "WEEKLY",
+                "value": "WEEKLY"
+              },
+              {
+                "name": "MONTHLY",
+                "value": "MONTHLY"
+              }
+            ]
+          },
+          "InstallmentStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "PENDING",
+                "value": "PENDING"
+              },
+              {
+                "name": "PARTIAL",
+                "value": "PARTIAL"
+              },
+              {
+                "name": "PAID",
+                "value": "PAID"
+              }
+            ]
+          },
+          "LoanChargeType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "FLAT",
+                "value": "FLAT"
+              },
+              {
+                "name": "PERCENTAGE",
+                "value": "PERCENTAGE"
+              }
+            ]
+          },
+          "LoanStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "PENDING",
+                "value": "PENDING"
+              },
+              {
+                "name": "APPROVED",
+                "value": "APPROVED"
+              },
+              {
+                "name": "ACTIVE",
+                "value": "ACTIVE"
+              },
+              {
+                "name": "COMPLETED",
+                "value": "COMPLETED"
+              },
+              {
+                "name": "REJECTED",
+                "value": "REJECTED"
+              },
+              {
+                "name": "CANCELLED",
+                "value": "CANCELLED"
+              }
+            ]
+          },
           "MemberStatus": {
             "codecId": "pg/text@1",
             "members": [
@@ -73,6 +157,31 @@
               {
                 "name": "SUSPENDED",
                 "value": "SUSPENDED"
+              }
+            ]
+          },
+          "PaymentMethod": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "CASH",
+                "value": "CASH"
+              },
+              {
+                "name": "BANK_TRANSFER",
+                "value": "BANK_TRANSFER"
+              },
+              {
+                "name": "MOBILE_PAYMENT",
+                "value": "MOBILE_PAYMENT"
+              },
+              {
+                "name": "CHEQUE",
+                "value": "CHEQUE"
+              },
+              {
+                "name": "OTHER",
+                "value": "OTHER"
               }
             ]
           },
@@ -156,6 +265,7 @@
             "relations": {
               "user": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "userId"
@@ -344,6 +454,7 @@
             "relations": {
               "member": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "memberId"
@@ -423,6 +534,663 @@
               },
               "namespaceId": "public",
               "table": "guarantor"
+            }
+          },
+          "Loan": {
+            "fields": {
+              "applicationDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "approvedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "approvedById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "chargeAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "chargeType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "LoanChargeType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "chargeValue": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "disbursementDate": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "firstDueDate": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "frequency": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "InstallmentFrequency",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "installmentAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "installmentCount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "loanId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "maturityDate": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "memberId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "notes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "principalAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "purpose": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "rejectedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "rejectedById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "rejectionReason": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "LoanStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "totalPayable": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "approvedBy": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "approvedById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "installments": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "loanId"
+                  ]
+                },
+                "to": {
+                  "model": "LoanInstallment",
+                  "namespace": "public"
+                }
+              },
+              "member": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "memberId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Member",
+                  "namespace": "public"
+                }
+              },
+              "payments": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "loanId"
+                  ]
+                },
+                "to": {
+                  "model": "LoanPayment",
+                  "namespace": "public"
+                }
+              },
+              "rejectedBy": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "rejectedById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "applicationDate": {
+                  "column": "applicationDate"
+                },
+                "approvedAt": {
+                  "column": "approvedAt"
+                },
+                "approvedById": {
+                  "column": "approvedById"
+                },
+                "chargeAmount": {
+                  "column": "chargeAmount"
+                },
+                "chargeType": {
+                  "column": "chargeType"
+                },
+                "chargeValue": {
+                  "column": "chargeValue"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "disbursementDate": {
+                  "column": "disbursementDate"
+                },
+                "firstDueDate": {
+                  "column": "firstDueDate"
+                },
+                "frequency": {
+                  "column": "frequency"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "installmentAmount": {
+                  "column": "installmentAmount"
+                },
+                "installmentCount": {
+                  "column": "installmentCount"
+                },
+                "loanId": {
+                  "column": "loanId"
+                },
+                "maturityDate": {
+                  "column": "maturityDate"
+                },
+                "memberId": {
+                  "column": "memberId"
+                },
+                "notes": {
+                  "column": "notes"
+                },
+                "principalAmount": {
+                  "column": "principalAmount"
+                },
+                "purpose": {
+                  "column": "purpose"
+                },
+                "rejectedAt": {
+                  "column": "rejectedAt"
+                },
+                "rejectedById": {
+                  "column": "rejectedById"
+                },
+                "rejectionReason": {
+                  "column": "rejectionReason"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "totalPayable": {
+                  "column": "totalPayable"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "loan"
+            }
+          },
+          "LoanInstallment": {
+            "fields": {
+              "amount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "dueDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "installmentNo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "loanId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "paidAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "paidAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "InstallmentStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "loan": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "loanId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Loan",
+                  "namespace": "public"
+                }
+              },
+              "payments": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "installmentId"
+                  ]
+                },
+                "to": {
+                  "model": "LoanPayment",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "amount": {
+                  "column": "amount"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "dueDate": {
+                  "column": "dueDate"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "installmentNo": {
+                  "column": "installmentNo"
+                },
+                "loanId": {
+                  "column": "loanId"
+                },
+                "paidAmount": {
+                  "column": "paidAmount"
+                },
+                "paidAt": {
+                  "column": "paidAt"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "loanInstallment"
+            }
+          },
+          "LoanPayment": {
+            "fields": {
+              "amount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "installmentId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "loanId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "notes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "paymentDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "paymentId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "paymentMethod": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "PaymentMethod",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "reference": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "installment": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "installmentId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "LoanInstallment",
+                  "namespace": "public"
+                }
+              },
+              "loan": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "loanId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Loan",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "amount": {
+                  "column": "amount"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "installmentId": {
+                  "column": "installmentId"
+                },
+                "loanId": {
+                  "column": "loanId"
+                },
+                "notes": {
+                  "column": "notes"
+                },
+                "paymentDate": {
+                  "column": "paymentDate"
+                },
+                "paymentId": {
+                  "column": "paymentId"
+                },
+                "paymentMethod": {
+                  "column": "paymentMethod"
+                },
+                "reference": {
+                  "column": "reference"
+                }
+              },
+              "namespaceId": "public",
+              "table": "loanPayment"
             }
           },
           "Member": {
@@ -574,6 +1342,21 @@
                 },
                 "to": {
                   "model": "Guarantor",
+                  "namespace": "public"
+                }
+              },
+              "loans": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "memberId"
+                  ]
+                },
+                "to": {
+                  "model": "Loan",
                   "namespace": "public"
                 }
               }
@@ -736,6 +1519,7 @@
             "relations": {
               "member": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "memberId"
@@ -886,6 +1670,7 @@
             "relations": {
               "user": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "userId"
@@ -1028,6 +1813,36 @@
                 },
                 "to": {
                   "model": "AccountToken",
+                  "namespace": "public"
+                }
+              },
+              "approvedLoans": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "approvedById"
+                  ]
+                },
+                "to": {
+                  "model": "Loan",
+                  "namespace": "public"
+                }
+              },
+              "rejectedLoans": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "rejectedById"
+                  ]
+                },
+                "to": {
+                  "model": "Loan",
                   "namespace": "public"
                 }
               },
@@ -1369,6 +2184,594 @@
                 ]
               },
               "uniques": []
+            },
+            "loan": {
+              "checks": [
+                {
+                  "expression": "\"chargeType\" IN ('FLAT', 'PERCENTAGE')",
+                  "name": "loan_chargeType_check_66e0b4fc",
+                  "prefix": "loan_chargeType_check"
+                },
+                {
+                  "expression": "\"frequency\" IN ('WEEKLY', 'MONTHLY')",
+                  "name": "loan_frequency_check_a03ca8f9",
+                  "prefix": "loan_frequency_check"
+                },
+                {
+                  "expression": "\"status\" IN ('PENDING', 'APPROVED', 'ACTIVE', 'COMPLETED', 'REJECTED', 'CANCELLED')",
+                  "name": "loan_status_check_921c6596",
+                  "prefix": "loan_status_check"
+                }
+              ],
+              "columns": {
+                "applicationDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "approvedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "approvedById": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "chargeAmount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "chargeType": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "LoanChargeType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "chargeValue": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "disbursementDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "firstDueDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "frequency": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "InstallmentFrequency",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "installmentAmount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "installmentCount": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "loanId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "maturityDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "memberId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "notes": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "principalAmount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "purpose": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "rejectedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "rejectedById": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "rejectionReason": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PENDING"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "LoanStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "totalPayable": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "memberId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "loan"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "member"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "approvedById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "loan"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "rejectedById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "loan"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "approvedById"
+                  ],
+                  "name": "loan_approvedById_idx_01ef8410",
+                  "prefix": "loan_approvedById_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "createdAt"
+                  ],
+                  "name": "loan_createdAt_idx_9575dbd7",
+                  "prefix": "loan_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "loanId"
+                  ],
+                  "name": "loan_loanId_idx_d4eddfc5",
+                  "prefix": "loan_loanId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "memberId"
+                  ],
+                  "name": "loan_memberId_idx_76b3c263",
+                  "prefix": "loan_memberId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "rejectedById"
+                  ],
+                  "name": "loan_rejectedById_idx_a6ee2717",
+                  "prefix": "loan_rejectedById_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "loan_status_idx_e98638ab",
+                  "prefix": "loan_status_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "loanId"
+                  ]
+                }
+              ]
+            },
+            "loanInstallment": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('PENDING', 'PARTIAL', 'PAID')",
+                  "name": "loanInstallment_status_check_b0be9e9f",
+                  "prefix": "loanInstallment_status_check"
+                }
+              ],
+              "columns": {
+                "amount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "dueDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "installmentNo": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "loanId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "paidAmount": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "paidAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PENDING"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "InstallmentStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "loanId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "loanInstallment"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "loan"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "dueDate"
+                  ],
+                  "name": "loanInstallment_dueDate_idx_fb527616",
+                  "prefix": "loanInstallment_dueDate_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "loanId"
+                  ],
+                  "name": "loanInstallment_loanId_idx_d4eddfc5",
+                  "prefix": "loanInstallment_loanId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "loanInstallment_status_idx_e98638ab",
+                  "prefix": "loanInstallment_status_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "loanId",
+                    "installmentNo"
+                  ]
+                }
+              ]
+            },
+            "loanPayment": {
+              "checks": [
+                {
+                  "expression": "\"paymentMethod\" IN ('CASH', 'BANK_TRANSFER', 'MOBILE_PAYMENT', 'CHEQUE', 'OTHER')",
+                  "name": "loanPayment_paymentMethod_check_1ac18d5d",
+                  "prefix": "loanPayment_paymentMethod_check"
+                }
+              ],
+              "columns": {
+                "amount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "installmentId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "loanId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "notes": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "paymentDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "paymentId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "paymentMethod": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "CASH"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "PaymentMethod",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "reference": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "loanId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "loanPayment"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "loan"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "installmentId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "loanPayment"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "loanInstallment"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "installmentId"
+                  ],
+                  "name": "loanPayment_installmentId_idx_b38c685f",
+                  "prefix": "loanPayment_installmentId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "loanId"
+                  ],
+                  "name": "loanPayment_loanId_idx_d4eddfc5",
+                  "prefix": "loanPayment_loanId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "paymentDate"
+                  ],
+                  "name": "loanPayment_paymentDate_idx_51c3a9f5",
+                  "prefix": "loanPayment_paymentDate_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "paymentId"
+                  ]
+                }
+              ]
             },
             "member": {
               "checks": [
@@ -1924,12 +3327,55 @@
                 "FATHER_HOME"
               ]
             },
+            "InstallmentFrequency": {
+              "kind": "valueSet",
+              "values": [
+                "WEEKLY",
+                "MONTHLY"
+              ]
+            },
+            "InstallmentStatus": {
+              "kind": "valueSet",
+              "values": [
+                "PENDING",
+                "PARTIAL",
+                "PAID"
+              ]
+            },
+            "LoanChargeType": {
+              "kind": "valueSet",
+              "values": [
+                "FLAT",
+                "PERCENTAGE"
+              ]
+            },
+            "LoanStatus": {
+              "kind": "valueSet",
+              "values": [
+                "PENDING",
+                "APPROVED",
+                "ACTIVE",
+                "COMPLETED",
+                "REJECTED",
+                "CANCELLED"
+              ]
+            },
             "MemberStatus": {
               "kind": "valueSet",
               "values": [
                 "ACTIVE",
                 "INACTIVE",
                 "SUSPENDED"
+              ]
+            },
+            "PaymentMethod": {
+              "kind": "valueSet",
+              "values": [
+                "CASH",
+                "BANK_TRANSFER",
+                "MOBILE_PAYMENT",
+                "CHEQUE",
+                "OTHER"
               ]
             },
             "UserRole": {
@@ -1946,10 +3392,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "70643497f3ebedb52d1710887b632410c3112a7b17aa5c9a2083cca0f6bc534a"
+    "storageHash": "ca024c2f701a1b515b7db42cc5d887705779075540a9aba6ca4a2744ccfd77f5"
   },
   "execution": {
-    "executionHash": "52a48c25b7898c9f18eaf22024874483c06f7300dfb9fbacdc73696b1d76436f",
+    "executionHash": "dd2d0d0033eb9059ec4a62a005cf216cd6d2c344cc42b986b4589e1457dce6c1",
     "mutations": {
       "defaults": [
         {
@@ -1965,6 +3411,36 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "guarantor"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "loan"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "loanInstallment"
           }
         },
         {

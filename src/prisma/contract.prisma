@@ -1,31 +1,75 @@
+// use prisma-8
 enum UserRole {
+  @@type("pg/text@1")
+
   SUPER_ADMIN = "SUPER_ADMIN"
   ADMIN = "ADMIN"
   MANAGER = "MANAGER"
-
-  @@type("pg/text@1")
 }
 
 enum AccountTokenType {
+  @@type("pg/text@1")
+
   PASSWORD_RESET = "PASSWORD_RESET"
   EMAIL_VERIFICATION = "EMAIL_VERIFICATION"
-
-  @@type("pg/text@1")
 }
 
 enum MemberStatus {
+  @@type("pg/text@1")
+
   ACTIVE = "ACTIVE"
   INACTIVE = "INACTIVE"
   SUSPENDED = "SUSPENDED"
-
-  @@type("pg/text@1")
 }
 
 enum AddressType {
+  @@type("pg/text@1")
+
   PRESENT = "PRESENT"
   FATHER_HOME = "FATHER_HOME"
+}
 
+enum InstallmentFrequency {
   @@type("pg/text@1")
+
+  WEEKLY = "WEEKLY"
+  MONTHLY = "MONTHLY"
+}
+
+enum LoanChargeType {
+  @@type("pg/text@1")
+
+  FLAT = "FLAT"
+  PERCENTAGE = "PERCENTAGE"
+}
+
+enum LoanStatus {
+  @@type("pg/text@1")
+
+  PENDING = "PENDING"
+  APPROVED = "APPROVED"
+  ACTIVE = "ACTIVE"
+  COMPLETED = "COMPLETED"
+  REJECTED = "REJECTED"
+  CANCELLED = "CANCELLED"
+}
+
+enum InstallmentStatus {
+  @@type("pg/text@1")
+
+  PENDING = "PENDING"
+  PARTIAL = "PARTIAL"
+  PAID = "PAID"
+}
+
+enum PaymentMethod {
+  @@type("pg/text@1")
+
+  CASH = "CASH"
+  BANK_TRANSFER = "BANK_TRANSFER"
+  MOBILE_PAYMENT = "MOBILE_PAYMENT"
+  CHEQUE = "CHEQUE"
+  OTHER = "OTHER"
 }
 
 model User {
@@ -41,6 +85,8 @@ model User {
 
   sessions        Session[]
   accountTokens   AccountToken[]
+  approvedLoans   Loan[]               @relation("LoanApprovedBy")
+  rejectedLoans   Loan[]               @relation("LoanRejectedBy")
 }
 
 model Session {
@@ -106,6 +152,7 @@ model Member {
   // Relations
   addresses    MemberAddress[]
   guarantors   Guarantor[]
+  loans        Loan[]
 
   createdAt    DateTime             @default(now())
   updatedAt    temporal.updatedAt()
@@ -181,4 +228,97 @@ model Guarantor {
   @@index([memberId])
   @@index([mobileNumber])
   @@index([nidNumber])
+}
+
+model Loan {
+  id                Int                  @id @default(autoincrement())
+  loanId            String?              @unique
+
+  // Member
+  memberId          Int
+  member            Member               @relation(fields:[memberId], references:[id])
+
+  // Amount
+  principalAmount   Decimal
+
+  // Charge
+  chargeType        LoanChargeType
+  chargeValue       Decimal
+  chargeAmount      Decimal
+
+  // Final calculated amount
+  totalPayable      Decimal
+
+  // Installment configuration
+  installmentCount  Int
+  installmentAmount Decimal
+
+  frequency         InstallmentFrequency
+
+  // Dates
+  applicationDate   DateTime             @default(now())
+  disbursementDate  DateTime?
+  firstDueDate      DateTime?
+  maturityDate      DateTime?
+  approvedAt        DateTime?
+  approvedById      Int?
+  approvedBy        User?                @relation("LoanApprovedBy", fields:[approvedById], references:[id])
+  rejectedAt        DateTime?
+  rejectedById      Int?
+  rejectedBy        User?                @relation("LoanRejectedBy", fields:[rejectedById], references:[id])
+  rejectionReason   String?
+
+  // Status
+  status            LoanStatus           @default(PENDING)
+  purpose           String?
+  notes             String?
+  installments      LoanInstallment[]
+  payments          LoanPayment[]
+  createdAt         DateTime             @default(now())
+  updatedAt         temporal.updatedAt()
+
+  @@index([memberId])
+  @@index([loanId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model LoanInstallment {
+  id            Int                  @id @default(autoincrement())
+  loanId        Int
+  loan          Loan                 @relation(fields:[loanId], references:[id], onDelete: Cascade)
+  installmentNo Int
+  dueDate       DateTime
+  amount        Decimal
+  paidAmount    Decimal              @default("0")
+  status        InstallmentStatus    @default(PENDING)
+  paidAt        DateTime?
+  payments      LoanPayment[]
+  createdAt     DateTime             @default(now())
+  updatedAt     temporal.updatedAt()
+
+  @@unique([loanId, installmentNo])
+  @@index([loanId])
+  @@index([dueDate])
+  @@index([status])
+}
+
+model LoanPayment {
+  id            Int              @id @default(autoincrement())
+  paymentId     String?          @unique
+  loanId        Int
+  loan          Loan             @relation(fields:[loanId], references:[id])
+  installmentId Int?
+  installment   LoanInstallment? @relation(fields:[installmentId], references:[id])
+  amount        Decimal
+  paymentDate   DateTime         @default(now())
+  paymentMethod PaymentMethod    @default(CASH)
+  reference     String?
+  notes         String?
+
+  createdAt     DateTime         @default(now())
+
+  @@index([loanId])
+  @@index([installmentId])
+  @@index([paymentDate])
 }

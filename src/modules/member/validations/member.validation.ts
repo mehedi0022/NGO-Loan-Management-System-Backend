@@ -197,7 +197,7 @@ export const updateMemberSchema = z.object({
 
       mobileNumber: mobileNumberSchema.optional(),
 
-      nidNumber: nidNumberSchema.nullable().optional(),
+      nidNumber: nidNumberSchema,
 
       email: z.email("Invalid email address").nullable().optional(),
 
@@ -205,10 +205,7 @@ export const updateMemberSchema = z.object({
 
       occupation: z.string().trim().nullable().optional(),
 
-      joinDate: z.iso
-        .datetime()
-        .transform((value) => Temporal.Instant.from(value))
-        .optional(),
+      joinDate: z.coerce.date().optional(),
 
       status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]).optional(),
 

@@ -1,4 +1,4 @@
-import { NotFoundError } from "../../../errors/AppError.js";
+import { ConflictError, NotFoundError } from "../../../errors/AppError.js";
 
 import * as memberRepository from "../repositories/member.repository.js";
 
@@ -8,7 +8,10 @@ import type {
   UpdateMemberInput,
 } from "../member.types.js";
 
-import { toPublicMemberDto } from "../mappers/member.mapper.js";
+import {
+  toPublicMemberDto,
+  toMemberDetailsDto,
+} from "../mappers/member.mapper.js";
 
 /**
  * Get all members
@@ -28,20 +31,32 @@ export const getAllMembers = async (query: MemberListQuery) => {
 export const getMemberById = async (id: number) => {
   const member = await memberRepository.findMemberById(id);
 
+  console.log("Member:", member);
+
   if (!member) {
     throw new NotFoundError("Member not found");
   }
 
-  return toPublicMemberDto(member);
+  return toMemberDetailsDto(member);
 };
 
 /**
  * Create member
  */
 export const createMember = async (data: CreateMemberInput) => {
+  if (data.nidNumber) {
+    const existingMember = await memberRepository.findMemberByNid(
+      data.nidNumber,
+    );
+
+    if (existingMember) {
+      throw new ConflictError("A member with this NID already exists");
+    }
+  }
+
   const member = await memberRepository.createMember(data);
 
-  const memberId = `MEM-${String(member.id).padStart(6, "0")}`;
+  const memberId = `AC-${String(member.id).padStart(5, "0")}`;
 
   const updatedMember = await memberRepository.updateMemberId(
     member.id,
@@ -65,13 +80,32 @@ export const updateMember = async (id: number, data: UpdateMemberInput) => {
     throw new NotFoundError("Member not found");
   }
 
-  const member = await memberRepository.updateMemberById(id, data);
+  // NID uniqueness
+  if (data.nidNumber && data.nidNumber !== existingMember.nidNumber) {
+    const memberWithNid = await memberRepository.findMemberByNid(
+      data.nidNumber,
+    );
+
+    if (memberWithNid && memberWithNid.id !== id) {
+      throw new ConflictError("A member with this NID already exists");
+    }
+  }
+
+  const updatedMember = await memberRepository.updateMemberById(id, data);
+
+  if (!updatedMember) {
+    throw new NotFoundError("Member not found");
+  }
+
+  // Fetch again because updateMemberById()
+  // only returns Member scalar fields.
+  const member = await memberRepository.findMemberById(id);
 
   if (!member) {
     throw new NotFoundError("Member not found");
   }
 
-  return toPublicMemberDto(member);
+  return toMemberDetailsDto(member);
 };
 
 /**
