@@ -569,7 +569,7 @@ export const createBatchCollections = async (
           collectionDate: data.collectionDate,
           allowAdvance: data.allowAdvance,
 
-          paymentMethod: data.paymentMethod,
+          paymentMethod: item.paymentMethod ?? data.paymentMethod,
 
           reference: data.reference,
 

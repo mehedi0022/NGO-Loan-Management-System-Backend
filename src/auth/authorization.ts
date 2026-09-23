@@ -1,6 +1,9 @@
 import type { UserRole } from "./roles.js";
 
 export const permissions = {
+  // Dashboard
+  dashboardRead: "dashboard:read",
+
   // Users
   usersReadAny: "users:read:any",
   usersCreate: "users:create",
@@ -42,6 +45,9 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
 
   // Almost everything except destructive/sensitive operations
   ADMIN: new Set([
+    // Dashboard
+    permissions.dashboardRead,
+
     // Users
     permissions.usersReadAny,
     permissions.usersCreate,
@@ -73,6 +79,9 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
 
   // Daily operational access
   MANAGER: new Set([
+    // Dashboard
+    permissions.dashboardRead,
+
     // Members
     permissions.membersReadAny,
     permissions.membersCreate,

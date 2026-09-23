@@ -126,11 +126,11 @@ const validateCollectionItem = (data: CollectionItem, ctx: z.RefinementCtx) => {
   }
 };
 
-/**
- * Reusable collection item schema.
- */
-const collectionItemSchema = z
-  .object(collectionItemShape)
+const batchCollectionItemSchema = z
+  .object({
+    ...collectionItemShape,
+    paymentMethod: paymentMethod.optional(),
+  })
   .strict()
   .superRefine(validateCollectionItem);
 
@@ -164,8 +164,8 @@ export const createCollectionSchema = z.object({
  *
  * Used by the daily installment collection sheet.
  *
- * Common collectionDate/paymentMethod are shared
- * across all selected rows.
+ * collectionDate is shared across all selected rows. paymentMethod acts as
+ * the batch default and can be overridden by an individual item.
  */
 export const batchCollectionSchema = z.object({
   body: z
@@ -179,7 +179,7 @@ export const batchCollectionSchema = z.object({
 
       notes: z.string().trim().max(2000).optional(),
 
-      items: z.array(collectionItemSchema).min(1).max(500),
+      items: z.array(batchCollectionItemSchema).min(1).max(500),
     })
     .strict()
     .superRefine((data, ctx) => {
