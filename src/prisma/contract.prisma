@@ -72,6 +72,27 @@ enum PaymentMethod {
   OTHER = "OTHER"
 }
 
+enum SavingsAccountStatus {
+  @@type("pg/text@1")
+
+  ACTIVE = "ACTIVE"
+  CLOSED = "CLOSED"
+}
+
+enum SavingsType {
+  @@type("pg/text@1")
+
+  GENERAL = "GENERAL"
+  SPECIAL = "SPECIAL"
+}
+
+enum SavingsTransactionType {
+  @@type("pg/text@1")
+
+  DEPOSIT = "DEPOSIT"
+  WITHDRAWAL = "WITHDRAWAL"
+}
+
 model User {
   id              Int                  @id @default(autoincrement())
   email           String               @unique
@@ -83,6 +104,8 @@ model User {
   role            UserRole             @default(MANAGER)
   emailVerifiedAt DateTime?
 
+  collections     Collection[]
+  processedSavingsTransactions SavingsTransaction[] @relation("SavingsTransactionProcessedBy")
   sessions        Session[]
   accountTokens   AccountToken[]
   approvedLoans   Loan[]               @relation("LoanApprovedBy")
@@ -125,37 +148,40 @@ model AccountToken {
 }
 
 model Member {
-  id           Int                  @id @default(autoincrement())
-  memberId     String?              @unique
+  id             Int                  @id @default(autoincrement())
+  memberId       String?              @unique
 
   // Personal Information
-  fullName     String
-  fatherName   String
-  motherName   String
-  guardianName String?
+  fullName       String
+  fatherName     String
+  motherName     String
+  guardianName   String?
 
-  mobileNumber String
-  nidNumber    String?              @unique
+  mobileNumber   String
+  nidNumber      String?              @unique
 
   // Optional Information
-  email        String?
-  photoUrl     String?
-  occupation   String?
+  email          String?
+  photoUrl       String?
+  occupation     String?
 
   // Membership
-  joinDate     DateTime             @default(now())
-  status       MemberStatus         @default(ACTIVE)
+  joinDate       DateTime             @default(now())
+  status         MemberStatus         @default(ACTIVE)
 
   // Additional Information
-  notes        String?
+  notes          String?
 
   // Relations
-  addresses    MemberAddress[]
-  guarantors   Guarantor[]
-  loans        Loan[]
+  addresses      MemberAddress[]
+  guarantors     Guarantor[]
+  loans          Loan[]
 
-  createdAt    DateTime             @default(now())
-  updatedAt    temporal.updatedAt()
+  savingsAccount SavingsAccount?
+  collections    Collection[]
+
+  createdAt      DateTime             @default(now())
+  updatedAt      temporal.updatedAt()
 
   @@index([memberId])
   @@index([fullName])
@@ -316,9 +342,107 @@ model LoanPayment {
   reference     String?
   notes         String?
 
+  collectionId  Int?
+  collection    Collection?      @relation(fields:[collectionId], references:[id])
+
   createdAt     DateTime         @default(now())
 
+  @@index([collectionId])
   @@index([loanId])
   @@index([installmentId])
   @@index([paymentDate])
+}
+
+model SavingsAccount {
+  id                    Int                  @id @default(autoincrement())
+  accountId             String?              @unique
+
+  memberId              Int                  @unique
+  member                Member               @relation(fields:[memberId], references:[id])
+
+  generalSavingsBalance Decimal              @default("0")
+  specialSavingsBalance Decimal              @default("0")
+
+  status                SavingsAccountStatus @default(ACTIVE)
+
+  openedAt              DateTime             @default(now())
+  closedAt              DateTime?
+  notes                 String?
+
+  transactions          SavingsTransaction[]
+
+  createdAt             DateTime             @default(now())
+  updatedAt             temporal.updatedAt()
+
+  @@index([accountId])
+  @@index([status])
+}
+
+model SavingsTransaction {
+  id               Int                    @id @default(autoincrement())
+  transactionId    String?                @unique
+
+  savingsAccountId Int
+  savingsAccount   SavingsAccount         @relation(fields:[savingsAccountId], references:[id])
+
+  collectionId     Int?
+  collection       Collection?            @relation(fields:[collectionId], references:[id])
+
+  processedById    Int?
+  processedBy      User?                  @relation("SavingsTransactionProcessedBy", fields:[processedById], references:[id])
+
+  savingsType      SavingsType
+  type             SavingsTransactionType
+
+  amount           Decimal
+
+  balanceBefore    Decimal
+  balanceAfter     Decimal
+
+  transactionDate  DateTime               @default(now())
+
+  paymentMethod    PaymentMethod          @default(CASH)
+  reference        String?
+  notes            String?
+
+  createdAt        DateTime               @default(now())
+
+  @@index([savingsAccountId])
+  @@index([collectionId])
+  @@index([processedById])
+  @@index([savingsType])
+  @@index([type])
+  @@index([transactionDate])
+}
+
+model Collection {
+  id                  Int                  @id @default(autoincrement())
+  collectionId        String?              @unique
+
+  memberId            Int
+  member              Member               @relation(fields:[memberId], references:[id])
+
+  collectedById       Int
+  collectedBy         User                 @relation(fields:[collectedById], references:[id])
+
+    loanCollectionAmount  Decimal  @default("0")
+  generalSavingsAmount  Decimal  @default("0")
+  specialSavingsAmount  Decimal  @default("0")
+  totalAmount           Decimal  @default("0")
+
+  collectionDate      DateTime             @default(now())
+  paymentMethod       PaymentMethod        @default(CASH)
+
+  reference           String?
+  notes               String?
+
+  loanPayments        LoanPayment[]
+  savingsTransactions SavingsTransaction[]
+
+  createdAt           DateTime             @default(now())
+  updatedAt           temporal.updatedAt()
+
+  @@index([memberId])
+  @@index([collectionId])
+  @@index([collectionDate])
 }

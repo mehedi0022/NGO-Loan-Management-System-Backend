@@ -2,7 +2,10 @@ import type {
   PublicMemberDto,
   MemberAddressDto,
   GuarantorDto,
+  MemberLoanDto,
+  MemberLoanInstallmentDto,
   MemberDetailsDto,
+  MemberSavingsAccountDto,
 } from "../member.dto.js";
 
 export const toPublicMemberDto = (
@@ -61,10 +64,59 @@ export const toGuarantorDto = (guarantor: GuarantorDto): GuarantorDto => ({
   notes: guarantor.notes,
 });
 
+const toMemberLoanInstallmentDto = (
+  installment: MemberLoanInstallmentDto,
+): MemberLoanInstallmentDto => ({
+  id: installment.id,
+  loanId: installment.loanId,
+  installmentNo: installment.installmentNo,
+  dueDate: installment.dueDate,
+  amount: installment.amount,
+  paidAmount: installment.paidAmount,
+  status: installment.status,
+  paidAt: installment.paidAt,
+});
+
+const toMemberLoanDto = (loan: MemberLoanDto): MemberLoanDto => ({
+  id: loan.id,
+  loanId: loan.loanId,
+  memberId: loan.memberId,
+  principalAmount: loan.principalAmount,
+  totalPayable: loan.totalPayable,
+  installmentCount: loan.installmentCount,
+  frequency: loan.frequency,
+  applicationDate: loan.applicationDate,
+  disbursementDate: loan.disbursementDate,
+  firstDueDate: loan.firstDueDate,
+  maturityDate: loan.maturityDate,
+  status: loan.status,
+  installments: loan.installments
+    .map(toMemberLoanInstallmentDto)
+    .sort((left, right) => left.installmentNo - right.installmentNo),
+});
+
+const toMemberSavingsAccountDto = (
+  account: MemberSavingsAccountDto,
+): MemberSavingsAccountDto => ({
+  id: account.id,
+  accountId: account.accountId,
+  generalSavingsBalance: account.generalSavingsBalance,
+  specialSavingsBalance: account.specialSavingsBalance,
+  status: account.status,
+  openedAt: account.openedAt,
+  closedAt: account.closedAt,
+});
+
 export const toMemberDetailsDto = (
   member: MemberDetailsDto,
 ): MemberDetailsDto => ({
   ...toPublicMemberDto(member),
   addresses: member.addresses.map(toMemberAddressDto),
   guarantors: member.guarantors.map(toGuarantorDto),
+  loans: member.loans
+    .map(toMemberLoanDto)
+    .sort((left, right) => right.id - left.id),
+  savingsAccount: member.savingsAccount
+    ? toMemberSavingsAccountDto(member.savingsAccount)
+    : null,
 });

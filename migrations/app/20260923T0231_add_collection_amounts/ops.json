@@ -1,0 +1,170 @@
+[
+  {
+    "id": "column.public.collection.generalSavingsAmount",
+    "label": "Add column \"generalSavingsAmount\" to \"collection\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "generalSavingsAmount",
+        "table": "collection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"generalSavingsAmount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "collection",
+          "generalSavingsAmount"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"generalSavingsAmount\"",
+        "sql": "ALTER TABLE \"public\".\"collection\" ADD COLUMN \"generalSavingsAmount\" numeric DEFAULT '0'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"generalSavingsAmount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "collection",
+          "generalSavingsAmount"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.collection.loanCollectionAmount",
+    "label": "Add column \"loanCollectionAmount\" to \"collection\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "loanCollectionAmount",
+        "table": "collection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"loanCollectionAmount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "collection",
+          "loanCollectionAmount"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"loanCollectionAmount\"",
+        "sql": "ALTER TABLE \"public\".\"collection\" ADD COLUMN \"loanCollectionAmount\" numeric DEFAULT '0'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"loanCollectionAmount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "collection",
+          "loanCollectionAmount"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.collection.specialSavingsAmount",
+    "label": "Add column \"specialSavingsAmount\" to \"collection\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "specialSavingsAmount",
+        "table": "collection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"specialSavingsAmount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "collection",
+          "specialSavingsAmount"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"specialSavingsAmount\"",
+        "sql": "ALTER TABLE \"public\".\"collection\" ADD COLUMN \"specialSavingsAmount\" numeric DEFAULT '0'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"specialSavingsAmount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "collection",
+          "specialSavingsAmount"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.collection.totalAmount",
+    "label": "Add column \"totalAmount\" to \"collection\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "totalAmount",
+        "table": "collection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"totalAmount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "collection",
+          "totalAmount"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"totalAmount\"",
+        "sql": "ALTER TABLE \"public\".\"collection\" ADD COLUMN \"totalAmount\" numeric DEFAULT '0'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"totalAmount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "collection",
+          "totalAmount"
+        ]
+      }
+    ]
+  }
+]

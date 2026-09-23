@@ -8,6 +8,10 @@
       "model": "AccountToken",
       "namespace": "public"
     },
+    "collection": {
+      "model": "Collection",
+      "namespace": "public"
+    },
     "guarantor": {
       "model": "Guarantor",
       "namespace": "public"
@@ -30,6 +34,14 @@
     },
     "memberAddress": {
       "model": "MemberAddress",
+      "namespace": "public"
+    },
+    "savingsAccount": {
+      "model": "SavingsAccount",
+      "namespace": "public"
+    },
+    "savingsTransaction": {
+      "model": "SavingsTransaction",
       "namespace": "public"
     },
     "session": {
@@ -185,6 +197,45 @@
               }
             ]
           },
+          "SavingsAccountStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "ACTIVE",
+                "value": "ACTIVE"
+              },
+              {
+                "name": "CLOSED",
+                "value": "CLOSED"
+              }
+            ]
+          },
+          "SavingsTransactionType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "DEPOSIT",
+                "value": "DEPOSIT"
+              },
+              {
+                "name": "WITHDRAWAL",
+                "value": "WITHDRAWAL"
+              }
+            ]
+          },
+          "SavingsType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "GENERAL",
+                "value": "GENERAL"
+              },
+              {
+                "name": "SPECIAL",
+                "value": "SPECIAL"
+              }
+            ]
+          },
           "UserRole": {
             "codecId": "pg/text@1",
             "members": [
@@ -306,6 +357,226 @@
               },
               "namespaceId": "public",
               "table": "accountToken"
+            }
+          },
+          "Collection": {
+            "fields": {
+              "collectedById": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "collectionDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "collectionId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "generalSavingsAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "loanCollectionAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "memberId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "notes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "paymentMethod": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "PaymentMethod",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "reference": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "specialSavingsAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "totalAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "collectedBy": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "collectedById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "loanPayments": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "collectionId"
+                  ]
+                },
+                "to": {
+                  "model": "LoanPayment",
+                  "namespace": "public"
+                }
+              },
+              "member": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "memberId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Member",
+                  "namespace": "public"
+                }
+              },
+              "savingsTransactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "collectionId"
+                  ]
+                },
+                "to": {
+                  "model": "SavingsTransaction",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "collectedById": {
+                  "column": "collectedById"
+                },
+                "collectionDate": {
+                  "column": "collectionDate"
+                },
+                "collectionId": {
+                  "column": "collectionId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "generalSavingsAmount": {
+                  "column": "generalSavingsAmount"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "loanCollectionAmount": {
+                  "column": "loanCollectionAmount"
+                },
+                "memberId": {
+                  "column": "memberId"
+                },
+                "notes": {
+                  "column": "notes"
+                },
+                "paymentMethod": {
+                  "column": "paymentMethod"
+                },
+                "reference": {
+                  "column": "reference"
+                },
+                "specialSavingsAmount": {
+                  "column": "specialSavingsAmount"
+                },
+                "totalAmount": {
+                  "column": "totalAmount"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "collection"
             }
           },
           "Guarantor": {
@@ -1052,6 +1323,13 @@
                   "kind": "scalar"
                 }
               },
+              "collectionId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -1123,6 +1401,22 @@
               }
             },
             "relations": {
+              "collection": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "collectionId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Collection",
+                  "namespace": "public"
+                }
+              },
               "installment": {
                 "cardinality": "N:1",
                 "nullable": true,
@@ -1160,6 +1454,9 @@
               "fields": {
                 "amount": {
                   "column": "amount"
+                },
+                "collectionId": {
+                  "column": "collectionId"
                 },
                 "createdAt": {
                   "column": "createdAt"
@@ -1330,6 +1627,21 @@
                   "namespace": "public"
                 }
               },
+              "collections": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "memberId"
+                  ]
+                },
+                "to": {
+                  "model": "Collection",
+                  "namespace": "public"
+                }
+              },
               "guarantors": {
                 "cardinality": "1:N",
                 "on": {
@@ -1357,6 +1669,22 @@
                 },
                 "to": {
                   "model": "Loan",
+                  "namespace": "public"
+                }
+              },
+              "savingsAccount": {
+                "cardinality": "1:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "memberId"
+                  ]
+                },
+                "to": {
+                  "model": "SavingsAccount",
                   "namespace": "public"
                 }
               }
@@ -1578,6 +1906,393 @@
               },
               "namespaceId": "public",
               "table": "memberAddress"
+            }
+          },
+          "SavingsAccount": {
+            "fields": {
+              "accountId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "closedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "generalSavingsBalance": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "memberId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "notes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "openedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "specialSavingsBalance": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SavingsAccountStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "member": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "memberId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Member",
+                  "namespace": "public"
+                }
+              },
+              "transactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "savingsAccountId"
+                  ]
+                },
+                "to": {
+                  "model": "SavingsTransaction",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "accountId": {
+                  "column": "accountId"
+                },
+                "closedAt": {
+                  "column": "closedAt"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "generalSavingsBalance": {
+                  "column": "generalSavingsBalance"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "memberId": {
+                  "column": "memberId"
+                },
+                "notes": {
+                  "column": "notes"
+                },
+                "openedAt": {
+                  "column": "openedAt"
+                },
+                "specialSavingsBalance": {
+                  "column": "specialSavingsBalance"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "savingsAccount"
+            }
+          },
+          "SavingsTransaction": {
+            "fields": {
+              "amount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "balanceAfter": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "balanceBefore": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "collectionId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "notes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "paymentMethod": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "PaymentMethod",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "processedById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "reference": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "savingsAccountId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "savingsType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SavingsType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "transactionDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "transactionId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SavingsTransactionType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              }
+            },
+            "relations": {
+              "collection": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "collectionId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Collection",
+                  "namespace": "public"
+                }
+              },
+              "processedBy": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "processedById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "savingsAccount": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "savingsAccountId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "SavingsAccount",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "amount": {
+                  "column": "amount"
+                },
+                "balanceAfter": {
+                  "column": "balanceAfter"
+                },
+                "balanceBefore": {
+                  "column": "balanceBefore"
+                },
+                "collectionId": {
+                  "column": "collectionId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "notes": {
+                  "column": "notes"
+                },
+                "paymentMethod": {
+                  "column": "paymentMethod"
+                },
+                "processedById": {
+                  "column": "processedById"
+                },
+                "reference": {
+                  "column": "reference"
+                },
+                "savingsAccountId": {
+                  "column": "savingsAccountId"
+                },
+                "savingsType": {
+                  "column": "savingsType"
+                },
+                "transactionDate": {
+                  "column": "transactionDate"
+                },
+                "transactionId": {
+                  "column": "transactionId"
+                },
+                "type": {
+                  "column": "type"
+                }
+              },
+              "namespaceId": "public",
+              "table": "savingsTransaction"
             }
           },
           "Session": {
@@ -1831,6 +2546,36 @@
                   "namespace": "public"
                 }
               },
+              "collections": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "collectedById"
+                  ]
+                },
+                "to": {
+                  "model": "Collection",
+                  "namespace": "public"
+                }
+              },
+              "processedSavingsTransactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "processedById"
+                  ]
+                },
+                "to": {
+                  "model": "SavingsTransaction",
+                  "namespace": "public"
+                }
+              },
               "rejectedLoans": {
                 "cardinality": "1:N",
                 "on": {
@@ -2018,6 +2763,205 @@
                 {
                   "columns": [
                     "tokenHash"
+                  ]
+                }
+              ]
+            },
+            "collection": {
+              "checks": [
+                {
+                  "expression": "\"paymentMethod\" IN ('CASH', 'BANK_TRANSFER', 'MOBILE_PAYMENT', 'CHEQUE', 'OTHER')",
+                  "name": "collection_paymentMethod_check_1ac18d5d",
+                  "prefix": "collection_paymentMethod_check"
+                }
+              ],
+              "columns": {
+                "collectedById": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "collectionDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "collectionId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "generalSavingsAmount": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "loanCollectionAmount": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "memberId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "notes": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "paymentMethod": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "CASH"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "PaymentMethod",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "reference": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "specialSavingsAmount": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "totalAmount": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "memberId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "collection"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "member"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "collectedById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "collection"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "collectedById"
+                  ],
+                  "name": "collection_collectedById_idx_e043e5df",
+                  "prefix": "collection_collectedById_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "collectionDate"
+                  ],
+                  "name": "collection_collectionDate_idx_79668a7e",
+                  "prefix": "collection_collectionDate_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "collectionId"
+                  ],
+                  "name": "collection_collectionId_idx_b344fc1a",
+                  "prefix": "collection_collectionId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "memberId"
+                  ],
+                  "name": "collection_memberId_idx_76b3c263",
+                  "prefix": "collection_memberId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "collectionId"
                   ]
                 }
               ]
@@ -2632,6 +3576,11 @@
                   "nativeType": "numeric",
                   "nullable": false
                 },
+                "collectionId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
                 "createdAt": {
                   "codecId": "pg/timestamptz-temporal@1",
                   "default": {
@@ -2732,9 +3681,33 @@
                     "namespaceId": "public",
                     "tableName": "loanInstallment"
                   }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "collectionId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "loanPayment"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "collection"
+                  }
                 }
               ],
               "indexes": [
+                {
+                  "columns": [
+                    "collectionId"
+                  ],
+                  "name": "loanPayment_collectionId_idx_b344fc1a",
+                  "prefix": "loanPayment_collectionId_idx",
+                  "unique": false
+                },
                 {
                   "columns": [
                     "installmentId"
@@ -3094,6 +4067,397 @@
                 }
               ]
             },
+            "savingsAccount": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('ACTIVE', 'CLOSED')",
+                  "name": "savingsAccount_status_check_f94a3a5d",
+                  "prefix": "savingsAccount_status_check"
+                }
+              ],
+              "columns": {
+                "accountId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "closedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "generalSavingsBalance": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "memberId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "notes": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "openedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "specialSavingsBalance": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "ACTIVE"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SavingsAccountStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "memberId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "savingsAccount"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "member"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "accountId"
+                  ],
+                  "name": "savingsAccount_accountId_idx_cbfb3085",
+                  "prefix": "savingsAccount_accountId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "savingsAccount_status_idx_e98638ab",
+                  "prefix": "savingsAccount_status_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "accountId"
+                  ]
+                },
+                {
+                  "columns": [
+                    "memberId"
+                  ]
+                }
+              ]
+            },
+            "savingsTransaction": {
+              "checks": [
+                {
+                  "expression": "\"paymentMethod\" IN ('CASH', 'BANK_TRANSFER', 'MOBILE_PAYMENT', 'CHEQUE', 'OTHER')",
+                  "name": "savingsTransaction_paymentMethod_check_1ac18d5d",
+                  "prefix": "savingsTransaction_paymentMethod_check"
+                },
+                {
+                  "expression": "\"savingsType\" IN ('GENERAL', 'SPECIAL')",
+                  "name": "savingsTransaction_savingsType_check_5a4888a3",
+                  "prefix": "savingsTransaction_savingsType_check"
+                },
+                {
+                  "expression": "\"type\" IN ('DEPOSIT', 'WITHDRAWAL')",
+                  "name": "savingsTransaction_type_check_e2220677",
+                  "prefix": "savingsTransaction_type_check"
+                }
+              ],
+              "columns": {
+                "amount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "balanceAfter": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "balanceBefore": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "collectionId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "notes": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "paymentMethod": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "CASH"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "PaymentMethod",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "processedById": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "reference": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "savingsAccountId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "savingsType": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SavingsType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "transactionDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "transactionId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SavingsTransactionType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "savingsAccountId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "savingsTransaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "savingsAccount"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "collectionId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "savingsTransaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "collection"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "processedById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "savingsTransaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "collectionId"
+                  ],
+                  "name": "savingsTransaction_collectionId_idx_b344fc1a",
+                  "prefix": "savingsTransaction_collectionId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "processedById"
+                  ],
+                  "name": "savingsTransaction_processedById_idx_92dfd8d4",
+                  "prefix": "savingsTransaction_processedById_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "savingsAccountId"
+                  ],
+                  "name": "savingsTransaction_savingsAccountId_idx_ff57156a",
+                  "prefix": "savingsTransaction_savingsAccountId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "savingsType"
+                  ],
+                  "name": "savingsTransaction_savingsType_idx_dc620691",
+                  "prefix": "savingsTransaction_savingsType_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "transactionDate"
+                  ],
+                  "name": "savingsTransaction_transactionDate_idx_b449edf8",
+                  "prefix": "savingsTransaction_transactionDate_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "type"
+                  ],
+                  "name": "savingsTransaction_type_idx_b6b604ea",
+                  "prefix": "savingsTransaction_type_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "transactionId"
+                  ]
+                }
+              ]
+            },
             "session": {
               "columns": {
                 "absoluteExpiresAt": {
@@ -3378,6 +4742,27 @@
                 "OTHER"
               ]
             },
+            "SavingsAccountStatus": {
+              "kind": "valueSet",
+              "values": [
+                "ACTIVE",
+                "CLOSED"
+              ]
+            },
+            "SavingsTransactionType": {
+              "kind": "valueSet",
+              "values": [
+                "DEPOSIT",
+                "WITHDRAWAL"
+              ]
+            },
+            "SavingsType": {
+              "kind": "valueSet",
+              "values": [
+                "GENERAL",
+                "SPECIAL"
+              ]
+            },
             "UserRole": {
               "kind": "valueSet",
               "values": [
@@ -3392,12 +4777,27 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "ca024c2f701a1b515b7db42cc5d887705779075540a9aba6ca4a2744ccfd77f5"
+    "storageHash": "24939d32cc6d246f96345af59c83c8dc2d6989646349d56ce880cfad58309ddf"
   },
   "execution": {
-    "executionHash": "dd2d0d0033eb9059ec4a62a005cf216cd6d2c344cc42b986b4589e1457dce6c1",
+    "executionHash": "b043feca7c87dcfd650a10e8c347863cfc3ff3dac0f8dbd2f7fd85c12f724ae6",
     "mutations": {
       "defaults": [
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "collection"
+          }
+        },
         {
           "onCreate": {
             "id": "instantNow",
@@ -3471,6 +4871,21 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "memberAddress"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "savingsAccount"
           }
         },
         {

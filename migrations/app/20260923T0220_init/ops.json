@@ -1,0 +1,3307 @@
+[
+  {
+    "id": "schema.public",
+    "label": "Create schema \"public\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Create schema \"public\"",
+        "sql": "CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "table.accountToken",
+    "label": "Create table \"accountToken\"",
+    "summary": "Creates table \"accountToken\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "accountToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"accountToken\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountToken\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"accountToken\"",
+        "sql": "CREATE TABLE \"public\".\"accountToken\" (\n  \"consumedAt\" timestamptz,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"expiresAt\" timestamptz NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"tokenHash\" text NOT NULL,\n  \"type\" text NOT NULL,\n  \"userId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"accountToken_type_check_ac18db37\" CHECK (\"type\" IN ('PASSWORD_RESET', 'EMAIL_VERIFICATION'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"accountToken\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountToken\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.collection",
+    "label": "Create table \"collection\"",
+    "summary": "Creates table \"collection\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "collection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"collection\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"collection\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"collection\"",
+        "sql": "CREATE TABLE \"public\".\"collection\" (\n  \"collectedById\" int4 NOT NULL,\n  \"collectionDate\" timestamptz DEFAULT (now()) NOT NULL,\n  \"collectionId\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"memberId\" int4 NOT NULL,\n  \"notes\" text,\n  \"paymentMethod\" text DEFAULT 'CASH' NOT NULL,\n  \"reference\" text,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"collection_paymentMethod_check_1ac18d5d\" CHECK (\"paymentMethod\" IN ('CASH', 'BANK_TRANSFER', 'MOBILE_PAYMENT', 'CHEQUE', 'OTHER'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"collection\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"collection\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.guarantor",
+    "label": "Create table \"guarantor\"",
+    "summary": "Creates table \"guarantor\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "guarantor"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"guarantor\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"guarantor\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"guarantor\"",
+        "sql": "CREATE TABLE \"public\".\"guarantor\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"district\" text NOT NULL,\n  \"division\" text,\n  \"fatherName\" text,\n  \"fullName\" text NOT NULL,\n  \"houseOrHolding\" text,\n  \"id\" SERIAL NOT NULL,\n  \"memberId\" int4 NOT NULL,\n  \"mobileNumber\" text NOT NULL,\n  \"motherName\" text,\n  \"nidNumber\" text,\n  \"notes\" text,\n  \"occupation\" text,\n  \"postOffice\" text NOT NULL,\n  \"relationship\" text NOT NULL,\n  \"road\" text,\n  \"union\" text,\n  \"upazila\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"village\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"guarantor\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"guarantor\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.loan",
+    "label": "Create table \"loan\"",
+    "summary": "Creates table \"loan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "loan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"loan\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"loan\"",
+        "sql": "CREATE TABLE \"public\".\"loan\" (\n  \"applicationDate\" timestamptz DEFAULT (now()) NOT NULL,\n  \"approvedAt\" timestamptz,\n  \"approvedById\" int4,\n  \"chargeAmount\" numeric NOT NULL,\n  \"chargeType\" text NOT NULL,\n  \"chargeValue\" numeric NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"disbursementDate\" timestamptz,\n  \"firstDueDate\" timestamptz,\n  \"frequency\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"installmentAmount\" numeric NOT NULL,\n  \"installmentCount\" int4 NOT NULL,\n  \"loanId\" text,\n  \"maturityDate\" timestamptz,\n  \"memberId\" int4 NOT NULL,\n  \"notes\" text,\n  \"principalAmount\" numeric NOT NULL,\n  \"purpose\" text,\n  \"rejectedAt\" timestamptz,\n  \"rejectedById\" int4,\n  \"rejectionReason\" text,\n  \"status\" text DEFAULT 'PENDING' NOT NULL,\n  \"totalPayable\" numeric NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"loan_chargeType_check_66e0b4fc\" CHECK (\"chargeType\" IN ('FLAT', 'PERCENTAGE')),\n  CONSTRAINT \"loan_frequency_check_a03ca8f9\" CHECK (\"frequency\" IN ('WEEKLY', 'MONTHLY')),\n  CONSTRAINT \"loan_status_check_921c6596\" CHECK (\"status\" IN ('PENDING', 'APPROVED', 'ACTIVE', 'COMPLETED', 'REJECTED', 'CANCELLED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"loan\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.loanInstallment",
+    "label": "Create table \"loanInstallment\"",
+    "summary": "Creates table \"loanInstallment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "loanInstallment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"loanInstallment\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanInstallment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"loanInstallment\"",
+        "sql": "CREATE TABLE \"public\".\"loanInstallment\" (\n  \"amount\" numeric NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"dueDate\" timestamptz NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"installmentNo\" int4 NOT NULL,\n  \"loanId\" int4 NOT NULL,\n  \"paidAmount\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"paidAt\" timestamptz,\n  \"status\" text DEFAULT 'PENDING' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"loanInstallment_status_check_b0be9e9f\" CHECK (\"status\" IN ('PENDING', 'PARTIAL', 'PAID'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"loanInstallment\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanInstallment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.loanPayment",
+    "label": "Create table \"loanPayment\"",
+    "summary": "Creates table \"loanPayment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "loanPayment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"loanPayment\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanPayment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"loanPayment\"",
+        "sql": "CREATE TABLE \"public\".\"loanPayment\" (\n  \"amount\" numeric NOT NULL,\n  \"collectionId\" int4,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"installmentId\" int4,\n  \"loanId\" int4 NOT NULL,\n  \"notes\" text,\n  \"paymentDate\" timestamptz DEFAULT (now()) NOT NULL,\n  \"paymentId\" text,\n  \"paymentMethod\" text DEFAULT 'CASH' NOT NULL,\n  \"reference\" text,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"loanPayment_paymentMethod_check_1ac18d5d\" CHECK (\"paymentMethod\" IN ('CASH', 'BANK_TRANSFER', 'MOBILE_PAYMENT', 'CHEQUE', 'OTHER'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"loanPayment\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanPayment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.member",
+    "label": "Create table \"member\"",
+    "summary": "Creates table \"member\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "member"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"member\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"member\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"member\"",
+        "sql": "CREATE TABLE \"public\".\"member\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"email\" text,\n  \"fatherName\" text NOT NULL,\n  \"fullName\" text NOT NULL,\n  \"guardianName\" text,\n  \"id\" SERIAL NOT NULL,\n  \"joinDate\" timestamptz DEFAULT (now()) NOT NULL,\n  \"memberId\" text,\n  \"mobileNumber\" text NOT NULL,\n  \"motherName\" text NOT NULL,\n  \"nidNumber\" text,\n  \"notes\" text,\n  \"occupation\" text,\n  \"photoUrl\" text,\n  \"status\" text DEFAULT 'ACTIVE' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"member_status_check_a34ffd8e\" CHECK (\"status\" IN ('ACTIVE', 'INACTIVE', 'SUSPENDED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"member\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"member\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.memberAddress",
+    "label": "Create table \"memberAddress\"",
+    "summary": "Creates table \"memberAddress\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "memberAddress"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"memberAddress\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"memberAddress\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"memberAddress\"",
+        "sql": "CREATE TABLE \"public\".\"memberAddress\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"district\" text NOT NULL,\n  \"division\" text,\n  \"houseOrHolding\" text,\n  \"id\" SERIAL NOT NULL,\n  \"memberId\" int4 NOT NULL,\n  \"postOffice\" text NOT NULL,\n  \"road\" text,\n  \"type\" text NOT NULL,\n  \"union\" text,\n  \"upazila\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"village\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"memberAddress_type_check_4dfe7b6a\" CHECK (\"type\" IN ('PRESENT', 'FATHER_HOME'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"memberAddress\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"memberAddress\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.savingsAccount",
+    "label": "Create table \"savingsAccount\"",
+    "summary": "Creates table \"savingsAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "savingsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"savingsAccount\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsAccount\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"savingsAccount\"",
+        "sql": "CREATE TABLE \"public\".\"savingsAccount\" (\n  \"accountId\" text,\n  \"closedAt\" timestamptz,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"generalSavingsBalance\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"memberId\" int4 NOT NULL,\n  \"notes\" text,\n  \"openedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"specialSavingsBalance\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"status\" text DEFAULT 'ACTIVE' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"savingsAccount_status_check_f94a3a5d\" CHECK (\"status\" IN ('ACTIVE', 'CLOSED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"savingsAccount\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsAccount\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.savingsTransaction",
+    "label": "Create table \"savingsTransaction\"",
+    "summary": "Creates table \"savingsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "savingsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"savingsTransaction\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"savingsTransaction\"",
+        "sql": "CREATE TABLE \"public\".\"savingsTransaction\" (\n  \"amount\" numeric NOT NULL,\n  \"balanceAfter\" numeric NOT NULL,\n  \"balanceBefore\" numeric NOT NULL,\n  \"collectionId\" int4,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"notes\" text,\n  \"paymentMethod\" text DEFAULT 'CASH' NOT NULL,\n  \"reference\" text,\n  \"savingsAccountId\" int4 NOT NULL,\n  \"savingsType\" text NOT NULL,\n  \"transactionDate\" timestamptz DEFAULT (now()) NOT NULL,\n  \"transactionId\" text,\n  \"type\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"savingsTransaction_paymentMethod_check_1ac18d5d\" CHECK (\"paymentMethod\" IN ('CASH', 'BANK_TRANSFER', 'MOBILE_PAYMENT', 'CHEQUE', 'OTHER')),\n  CONSTRAINT \"savingsTransaction_savingsType_check_5a4888a3\" CHECK (\"savingsType\" IN ('GENERAL', 'SPECIAL')),\n  CONSTRAINT \"savingsTransaction_type_check_e2220677\" CHECK (\"type\" IN ('DEPOSIT', 'WITHDRAWAL'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"savingsTransaction\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.session",
+    "label": "Create table \"session\"",
+    "summary": "Creates table \"session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"session\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"session\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"session\"",
+        "sql": "CREATE TABLE \"public\".\"session\" (\n  \"absoluteExpiresAt\" timestamptz NOT NULL,\n  \"consumedAt\" timestamptz,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"expiresAt\" timestamptz NOT NULL,\n  \"familyId\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"jti\" text NOT NULL,\n  \"refreshTokenHash\" text NOT NULL,\n  \"rememberMe\" bool DEFAULT false NOT NULL,\n  \"replacedByJti\" text,\n  \"revokedAt\" timestamptz,\n  \"userId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"session\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"session\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.user",
+    "label": "Create table \"user\"",
+    "summary": "Creates table \"user\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"user\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"user\"",
+        "sql": "CREATE TABLE \"public\".\"user\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"email\" text NOT NULL,\n  \"emailVerifiedAt\" timestamptz,\n  \"fullName\" text,\n  \"id\" SERIAL NOT NULL,\n  \"password\" text NOT NULL,\n  \"role\" text DEFAULT 'MANAGER' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userName\" text,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"user_role_check_25d457a5\" CHECK (\"role\" IN ('SUPER_ADMIN', 'ADMIN', 'MANAGER'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"user\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.accountToken.accountToken_tokenHash_key",
+    "label": "Add unique constraint on \"accountToken\" (tokenHash)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "accountToken_tokenHash_key",
+        "table": "accountToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"accountToken_tokenHash_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "accountToken_tokenHash_key",
+          "public",
+          "\"public\".\"accountToken\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"accountToken_tokenHash_key\"",
+        "sql": "ALTER TABLE \"public\".\"accountToken\" ADD CONSTRAINT \"accountToken_tokenHash_key\" UNIQUE (\"tokenHash\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"accountToken_tokenHash_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "accountToken_tokenHash_key",
+          "public",
+          "\"public\".\"accountToken\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.collection.collection_collectionId_key",
+    "label": "Add unique constraint on \"collection\" (collectionId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "collection_collectionId_key",
+        "table": "collection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"collection_collectionId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "collection_collectionId_key",
+          "public",
+          "\"public\".\"collection\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"collection_collectionId_key\"",
+        "sql": "ALTER TABLE \"public\".\"collection\" ADD CONSTRAINT \"collection_collectionId_key\" UNIQUE (\"collectionId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"collection_collectionId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "collection_collectionId_key",
+          "public",
+          "\"public\".\"collection\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.loan.loan_loanId_key",
+    "label": "Add unique constraint on \"loan\" (loanId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "loan_loanId_key",
+        "table": "loan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"loan_loanId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loan_loanId_key",
+          "public",
+          "\"public\".\"loan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"loan_loanId_key\"",
+        "sql": "ALTER TABLE \"public\".\"loan\" ADD CONSTRAINT \"loan_loanId_key\" UNIQUE (\"loanId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"loan_loanId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loan_loanId_key",
+          "public",
+          "\"public\".\"loan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.loanInstallment.loanInstallment_loanId_installmentNo_key",
+    "label": "Add unique constraint on \"loanInstallment\" (loanId, installmentNo)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "loanInstallment_loanId_installmentNo_key",
+        "table": "loanInstallment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"loanInstallment_loanId_installmentNo_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loanInstallment_loanId_installmentNo_key",
+          "public",
+          "\"public\".\"loanInstallment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"loanInstallment_loanId_installmentNo_key\"",
+        "sql": "ALTER TABLE \"public\".\"loanInstallment\" ADD CONSTRAINT \"loanInstallment_loanId_installmentNo_key\" UNIQUE (\"loanId\", \"installmentNo\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"loanInstallment_loanId_installmentNo_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loanInstallment_loanId_installmentNo_key",
+          "public",
+          "\"public\".\"loanInstallment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.loanPayment.loanPayment_paymentId_key",
+    "label": "Add unique constraint on \"loanPayment\" (paymentId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "loanPayment_paymentId_key",
+        "table": "loanPayment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"loanPayment_paymentId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loanPayment_paymentId_key",
+          "public",
+          "\"public\".\"loanPayment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"loanPayment_paymentId_key\"",
+        "sql": "ALTER TABLE \"public\".\"loanPayment\" ADD CONSTRAINT \"loanPayment_paymentId_key\" UNIQUE (\"paymentId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"loanPayment_paymentId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loanPayment_paymentId_key",
+          "public",
+          "\"public\".\"loanPayment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.member.member_memberId_key",
+    "label": "Add unique constraint on \"member\" (memberId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "member_memberId_key",
+        "table": "member"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"member_memberId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "member_memberId_key",
+          "public",
+          "\"public\".\"member\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"member_memberId_key\"",
+        "sql": "ALTER TABLE \"public\".\"member\" ADD CONSTRAINT \"member_memberId_key\" UNIQUE (\"memberId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"member_memberId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "member_memberId_key",
+          "public",
+          "\"public\".\"member\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.member.member_nidNumber_key",
+    "label": "Add unique constraint on \"member\" (nidNumber)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "member_nidNumber_key",
+        "table": "member"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"member_nidNumber_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "member_nidNumber_key",
+          "public",
+          "\"public\".\"member\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"member_nidNumber_key\"",
+        "sql": "ALTER TABLE \"public\".\"member\" ADD CONSTRAINT \"member_nidNumber_key\" UNIQUE (\"nidNumber\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"member_nidNumber_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "member_nidNumber_key",
+          "public",
+          "\"public\".\"member\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.memberAddress.memberAddress_memberId_type_key",
+    "label": "Add unique constraint on \"memberAddress\" (memberId, type)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "memberAddress_memberId_type_key",
+        "table": "memberAddress"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"memberAddress_memberId_type_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "memberAddress_memberId_type_key",
+          "public",
+          "\"public\".\"memberAddress\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"memberAddress_memberId_type_key\"",
+        "sql": "ALTER TABLE \"public\".\"memberAddress\" ADD CONSTRAINT \"memberAddress_memberId_type_key\" UNIQUE (\"memberId\", \"type\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"memberAddress_memberId_type_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "memberAddress_memberId_type_key",
+          "public",
+          "\"public\".\"memberAddress\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.savingsAccount.savingsAccount_accountId_key",
+    "label": "Add unique constraint on \"savingsAccount\" (accountId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "savingsAccount_accountId_key",
+        "table": "savingsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"savingsAccount_accountId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsAccount_accountId_key",
+          "public",
+          "\"public\".\"savingsAccount\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"savingsAccount_accountId_key\"",
+        "sql": "ALTER TABLE \"public\".\"savingsAccount\" ADD CONSTRAINT \"savingsAccount_accountId_key\" UNIQUE (\"accountId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"savingsAccount_accountId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsAccount_accountId_key",
+          "public",
+          "\"public\".\"savingsAccount\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.savingsAccount.savingsAccount_memberId_key",
+    "label": "Add unique constraint on \"savingsAccount\" (memberId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "savingsAccount_memberId_key",
+        "table": "savingsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"savingsAccount_memberId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsAccount_memberId_key",
+          "public",
+          "\"public\".\"savingsAccount\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"savingsAccount_memberId_key\"",
+        "sql": "ALTER TABLE \"public\".\"savingsAccount\" ADD CONSTRAINT \"savingsAccount_memberId_key\" UNIQUE (\"memberId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"savingsAccount_memberId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsAccount_memberId_key",
+          "public",
+          "\"public\".\"savingsAccount\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.savingsTransaction.savingsTransaction_transactionId_key",
+    "label": "Add unique constraint on \"savingsTransaction\" (transactionId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "savingsTransaction_transactionId_key",
+        "table": "savingsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"savingsTransaction_transactionId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsTransaction_transactionId_key",
+          "public",
+          "\"public\".\"savingsTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"savingsTransaction_transactionId_key\"",
+        "sql": "ALTER TABLE \"public\".\"savingsTransaction\" ADD CONSTRAINT \"savingsTransaction_transactionId_key\" UNIQUE (\"transactionId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"savingsTransaction_transactionId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsTransaction_transactionId_key",
+          "public",
+          "\"public\".\"savingsTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.session.session_jti_key",
+    "label": "Add unique constraint on \"session\" (jti)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "session_jti_key",
+        "table": "session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"session_jti_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "session_jti_key",
+          "public",
+          "\"public\".\"session\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"session_jti_key\"",
+        "sql": "ALTER TABLE \"public\".\"session\" ADD CONSTRAINT \"session_jti_key\" UNIQUE (\"jti\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"session_jti_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "session_jti_key",
+          "public",
+          "\"public\".\"session\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.session.session_refreshTokenHash_key",
+    "label": "Add unique constraint on \"session\" (refreshTokenHash)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "session_refreshTokenHash_key",
+        "table": "session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"session_refreshTokenHash_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "session_refreshTokenHash_key",
+          "public",
+          "\"public\".\"session\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"session_refreshTokenHash_key\"",
+        "sql": "ALTER TABLE \"public\".\"session\" ADD CONSTRAINT \"session_refreshTokenHash_key\" UNIQUE (\"refreshTokenHash\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"session_refreshTokenHash_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "session_refreshTokenHash_key",
+          "public",
+          "\"public\".\"session\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.user.user_email_key",
+    "label": "Add unique constraint on \"user\" (email)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "user_email_key",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"user_email_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_email_key",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"user_email_key\"",
+        "sql": "ALTER TABLE \"public\".\"user\" ADD CONSTRAINT \"user_email_key\" UNIQUE (\"email\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"user_email_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_email_key",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.accountToken.accountToken_expiresAt_idx_6b6b8c10",
+    "label": "Create index \"accountToken_expiresAt_idx_6b6b8c10\" on \"accountToken\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "accountToken_expiresAt_idx_6b6b8c10",
+        "table": "accountToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"accountToken_expiresAt_idx_6b6b8c10\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountToken_expiresAt_idx_6b6b8c10\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"accountToken_expiresAt_idx_6b6b8c10\"",
+        "sql": "CREATE INDEX \"accountToken_expiresAt_idx_6b6b8c10\" ON \"public\".\"accountToken\" (\"expiresAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"accountToken_expiresAt_idx_6b6b8c10\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountToken_expiresAt_idx_6b6b8c10\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.accountToken.accountToken_userId_idx_a489d58a",
+    "label": "Create index \"accountToken_userId_idx_a489d58a\" on \"accountToken\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "accountToken_userId_idx_a489d58a",
+        "table": "accountToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"accountToken_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountToken_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"accountToken_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"accountToken_userId_idx_a489d58a\" ON \"public\".\"accountToken\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"accountToken_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountToken_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.accountToken.accountToken_userId_type_idx_59b0b5ce",
+    "label": "Create index \"accountToken_userId_type_idx_59b0b5ce\" on \"accountToken\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "accountToken_userId_type_idx_59b0b5ce",
+        "table": "accountToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"accountToken_userId_type_idx_59b0b5ce\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountToken_userId_type_idx_59b0b5ce\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"accountToken_userId_type_idx_59b0b5ce\"",
+        "sql": "CREATE INDEX \"accountToken_userId_type_idx_59b0b5ce\" ON \"public\".\"accountToken\" (\"userId\", \"type\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"accountToken_userId_type_idx_59b0b5ce\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountToken_userId_type_idx_59b0b5ce\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.collection.collection_collectedById_idx_e043e5df",
+    "label": "Create index \"collection_collectedById_idx_e043e5df\" on \"collection\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "collection_collectedById_idx_e043e5df",
+        "table": "collection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"collection_collectedById_idx_e043e5df\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"collection_collectedById_idx_e043e5df\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"collection_collectedById_idx_e043e5df\"",
+        "sql": "CREATE INDEX \"collection_collectedById_idx_e043e5df\" ON \"public\".\"collection\" (\"collectedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"collection_collectedById_idx_e043e5df\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"collection_collectedById_idx_e043e5df\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.collection.collection_collectionDate_idx_79668a7e",
+    "label": "Create index \"collection_collectionDate_idx_79668a7e\" on \"collection\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "collection_collectionDate_idx_79668a7e",
+        "table": "collection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"collection_collectionDate_idx_79668a7e\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"collection_collectionDate_idx_79668a7e\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"collection_collectionDate_idx_79668a7e\"",
+        "sql": "CREATE INDEX \"collection_collectionDate_idx_79668a7e\" ON \"public\".\"collection\" (\"collectionDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"collection_collectionDate_idx_79668a7e\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"collection_collectionDate_idx_79668a7e\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.collection.collection_collectionId_idx_b344fc1a",
+    "label": "Create index \"collection_collectionId_idx_b344fc1a\" on \"collection\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "collection_collectionId_idx_b344fc1a",
+        "table": "collection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"collection_collectionId_idx_b344fc1a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"collection_collectionId_idx_b344fc1a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"collection_collectionId_idx_b344fc1a\"",
+        "sql": "CREATE INDEX \"collection_collectionId_idx_b344fc1a\" ON \"public\".\"collection\" (\"collectionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"collection_collectionId_idx_b344fc1a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"collection_collectionId_idx_b344fc1a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.collection.collection_memberId_idx_76b3c263",
+    "label": "Create index \"collection_memberId_idx_76b3c263\" on \"collection\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "collection_memberId_idx_76b3c263",
+        "table": "collection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"collection_memberId_idx_76b3c263\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"collection_memberId_idx_76b3c263\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"collection_memberId_idx_76b3c263\"",
+        "sql": "CREATE INDEX \"collection_memberId_idx_76b3c263\" ON \"public\".\"collection\" (\"memberId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"collection_memberId_idx_76b3c263\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"collection_memberId_idx_76b3c263\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.guarantor.guarantor_memberId_idx_76b3c263",
+    "label": "Create index \"guarantor_memberId_idx_76b3c263\" on \"guarantor\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "guarantor_memberId_idx_76b3c263",
+        "table": "guarantor"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"guarantor_memberId_idx_76b3c263\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"guarantor_memberId_idx_76b3c263\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"guarantor_memberId_idx_76b3c263\"",
+        "sql": "CREATE INDEX \"guarantor_memberId_idx_76b3c263\" ON \"public\".\"guarantor\" (\"memberId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"guarantor_memberId_idx_76b3c263\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"guarantor_memberId_idx_76b3c263\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.guarantor.guarantor_mobileNumber_idx_5f22dea3",
+    "label": "Create index \"guarantor_mobileNumber_idx_5f22dea3\" on \"guarantor\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "guarantor_mobileNumber_idx_5f22dea3",
+        "table": "guarantor"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"guarantor_mobileNumber_idx_5f22dea3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"guarantor_mobileNumber_idx_5f22dea3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"guarantor_mobileNumber_idx_5f22dea3\"",
+        "sql": "CREATE INDEX \"guarantor_mobileNumber_idx_5f22dea3\" ON \"public\".\"guarantor\" (\"mobileNumber\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"guarantor_mobileNumber_idx_5f22dea3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"guarantor_mobileNumber_idx_5f22dea3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.guarantor.guarantor_nidNumber_idx_54ca31cd",
+    "label": "Create index \"guarantor_nidNumber_idx_54ca31cd\" on \"guarantor\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "guarantor_nidNumber_idx_54ca31cd",
+        "table": "guarantor"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"guarantor_nidNumber_idx_54ca31cd\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"guarantor_nidNumber_idx_54ca31cd\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"guarantor_nidNumber_idx_54ca31cd\"",
+        "sql": "CREATE INDEX \"guarantor_nidNumber_idx_54ca31cd\" ON \"public\".\"guarantor\" (\"nidNumber\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"guarantor_nidNumber_idx_54ca31cd\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"guarantor_nidNumber_idx_54ca31cd\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.loan.loan_approvedById_idx_01ef8410",
+    "label": "Create index \"loan_approvedById_idx_01ef8410\" on \"loan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "loan_approvedById_idx_01ef8410",
+        "table": "loan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"loan_approvedById_idx_01ef8410\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loan_approvedById_idx_01ef8410\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"loan_approvedById_idx_01ef8410\"",
+        "sql": "CREATE INDEX \"loan_approvedById_idx_01ef8410\" ON \"public\".\"loan\" (\"approvedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"loan_approvedById_idx_01ef8410\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loan_approvedById_idx_01ef8410\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.loan.loan_createdAt_idx_9575dbd7",
+    "label": "Create index \"loan_createdAt_idx_9575dbd7\" on \"loan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "loan_createdAt_idx_9575dbd7",
+        "table": "loan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"loan_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loan_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"loan_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"loan_createdAt_idx_9575dbd7\" ON \"public\".\"loan\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"loan_createdAt_idx_9575dbd7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loan_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.loan.loan_loanId_idx_d4eddfc5",
+    "label": "Create index \"loan_loanId_idx_d4eddfc5\" on \"loan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "loan_loanId_idx_d4eddfc5",
+        "table": "loan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"loan_loanId_idx_d4eddfc5\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loan_loanId_idx_d4eddfc5\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"loan_loanId_idx_d4eddfc5\"",
+        "sql": "CREATE INDEX \"loan_loanId_idx_d4eddfc5\" ON \"public\".\"loan\" (\"loanId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"loan_loanId_idx_d4eddfc5\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loan_loanId_idx_d4eddfc5\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.loan.loan_memberId_idx_76b3c263",
+    "label": "Create index \"loan_memberId_idx_76b3c263\" on \"loan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "loan_memberId_idx_76b3c263",
+        "table": "loan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"loan_memberId_idx_76b3c263\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loan_memberId_idx_76b3c263\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"loan_memberId_idx_76b3c263\"",
+        "sql": "CREATE INDEX \"loan_memberId_idx_76b3c263\" ON \"public\".\"loan\" (\"memberId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"loan_memberId_idx_76b3c263\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loan_memberId_idx_76b3c263\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.loan.loan_rejectedById_idx_a6ee2717",
+    "label": "Create index \"loan_rejectedById_idx_a6ee2717\" on \"loan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "loan_rejectedById_idx_a6ee2717",
+        "table": "loan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"loan_rejectedById_idx_a6ee2717\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loan_rejectedById_idx_a6ee2717\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"loan_rejectedById_idx_a6ee2717\"",
+        "sql": "CREATE INDEX \"loan_rejectedById_idx_a6ee2717\" ON \"public\".\"loan\" (\"rejectedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"loan_rejectedById_idx_a6ee2717\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loan_rejectedById_idx_a6ee2717\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.loan.loan_status_idx_e98638ab",
+    "label": "Create index \"loan_status_idx_e98638ab\" on \"loan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "loan_status_idx_e98638ab",
+        "table": "loan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"loan_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loan_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"loan_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"loan_status_idx_e98638ab\" ON \"public\".\"loan\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"loan_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loan_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.loanInstallment.loanInstallment_dueDate_idx_fb527616",
+    "label": "Create index \"loanInstallment_dueDate_idx_fb527616\" on \"loanInstallment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "loanInstallment_dueDate_idx_fb527616",
+        "table": "loanInstallment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"loanInstallment_dueDate_idx_fb527616\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanInstallment_dueDate_idx_fb527616\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"loanInstallment_dueDate_idx_fb527616\"",
+        "sql": "CREATE INDEX \"loanInstallment_dueDate_idx_fb527616\" ON \"public\".\"loanInstallment\" (\"dueDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"loanInstallment_dueDate_idx_fb527616\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanInstallment_dueDate_idx_fb527616\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.loanInstallment.loanInstallment_loanId_idx_d4eddfc5",
+    "label": "Create index \"loanInstallment_loanId_idx_d4eddfc5\" on \"loanInstallment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "loanInstallment_loanId_idx_d4eddfc5",
+        "table": "loanInstallment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"loanInstallment_loanId_idx_d4eddfc5\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanInstallment_loanId_idx_d4eddfc5\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"loanInstallment_loanId_idx_d4eddfc5\"",
+        "sql": "CREATE INDEX \"loanInstallment_loanId_idx_d4eddfc5\" ON \"public\".\"loanInstallment\" (\"loanId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"loanInstallment_loanId_idx_d4eddfc5\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanInstallment_loanId_idx_d4eddfc5\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.loanInstallment.loanInstallment_status_idx_e98638ab",
+    "label": "Create index \"loanInstallment_status_idx_e98638ab\" on \"loanInstallment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "loanInstallment_status_idx_e98638ab",
+        "table": "loanInstallment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"loanInstallment_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanInstallment_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"loanInstallment_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"loanInstallment_status_idx_e98638ab\" ON \"public\".\"loanInstallment\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"loanInstallment_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanInstallment_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.loanPayment.loanPayment_collectionId_idx_b344fc1a",
+    "label": "Create index \"loanPayment_collectionId_idx_b344fc1a\" on \"loanPayment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "loanPayment_collectionId_idx_b344fc1a",
+        "table": "loanPayment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"loanPayment_collectionId_idx_b344fc1a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanPayment_collectionId_idx_b344fc1a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"loanPayment_collectionId_idx_b344fc1a\"",
+        "sql": "CREATE INDEX \"loanPayment_collectionId_idx_b344fc1a\" ON \"public\".\"loanPayment\" (\"collectionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"loanPayment_collectionId_idx_b344fc1a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanPayment_collectionId_idx_b344fc1a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.loanPayment.loanPayment_installmentId_idx_b38c685f",
+    "label": "Create index \"loanPayment_installmentId_idx_b38c685f\" on \"loanPayment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "loanPayment_installmentId_idx_b38c685f",
+        "table": "loanPayment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"loanPayment_installmentId_idx_b38c685f\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanPayment_installmentId_idx_b38c685f\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"loanPayment_installmentId_idx_b38c685f\"",
+        "sql": "CREATE INDEX \"loanPayment_installmentId_idx_b38c685f\" ON \"public\".\"loanPayment\" (\"installmentId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"loanPayment_installmentId_idx_b38c685f\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanPayment_installmentId_idx_b38c685f\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.loanPayment.loanPayment_loanId_idx_d4eddfc5",
+    "label": "Create index \"loanPayment_loanId_idx_d4eddfc5\" on \"loanPayment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "loanPayment_loanId_idx_d4eddfc5",
+        "table": "loanPayment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"loanPayment_loanId_idx_d4eddfc5\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanPayment_loanId_idx_d4eddfc5\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"loanPayment_loanId_idx_d4eddfc5\"",
+        "sql": "CREATE INDEX \"loanPayment_loanId_idx_d4eddfc5\" ON \"public\".\"loanPayment\" (\"loanId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"loanPayment_loanId_idx_d4eddfc5\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanPayment_loanId_idx_d4eddfc5\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.loanPayment.loanPayment_paymentDate_idx_51c3a9f5",
+    "label": "Create index \"loanPayment_paymentDate_idx_51c3a9f5\" on \"loanPayment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "loanPayment_paymentDate_idx_51c3a9f5",
+        "table": "loanPayment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"loanPayment_paymentDate_idx_51c3a9f5\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanPayment_paymentDate_idx_51c3a9f5\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"loanPayment_paymentDate_idx_51c3a9f5\"",
+        "sql": "CREATE INDEX \"loanPayment_paymentDate_idx_51c3a9f5\" ON \"public\".\"loanPayment\" (\"paymentDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"loanPayment_paymentDate_idx_51c3a9f5\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"loanPayment_paymentDate_idx_51c3a9f5\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.member.member_createdAt_idx_9575dbd7",
+    "label": "Create index \"member_createdAt_idx_9575dbd7\" on \"member\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "member_createdAt_idx_9575dbd7",
+        "table": "member"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"member_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"member_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"member_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"member_createdAt_idx_9575dbd7\" ON \"public\".\"member\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"member_createdAt_idx_9575dbd7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"member_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.member.member_fullName_idx_08c13ff8",
+    "label": "Create index \"member_fullName_idx_08c13ff8\" on \"member\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "member_fullName_idx_08c13ff8",
+        "table": "member"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"member_fullName_idx_08c13ff8\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"member_fullName_idx_08c13ff8\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"member_fullName_idx_08c13ff8\"",
+        "sql": "CREATE INDEX \"member_fullName_idx_08c13ff8\" ON \"public\".\"member\" (\"fullName\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"member_fullName_idx_08c13ff8\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"member_fullName_idx_08c13ff8\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.member.member_memberId_idx_76b3c263",
+    "label": "Create index \"member_memberId_idx_76b3c263\" on \"member\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "member_memberId_idx_76b3c263",
+        "table": "member"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"member_memberId_idx_76b3c263\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"member_memberId_idx_76b3c263\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"member_memberId_idx_76b3c263\"",
+        "sql": "CREATE INDEX \"member_memberId_idx_76b3c263\" ON \"public\".\"member\" (\"memberId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"member_memberId_idx_76b3c263\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"member_memberId_idx_76b3c263\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.member.member_mobileNumber_idx_5f22dea3",
+    "label": "Create index \"member_mobileNumber_idx_5f22dea3\" on \"member\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "member_mobileNumber_idx_5f22dea3",
+        "table": "member"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"member_mobileNumber_idx_5f22dea3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"member_mobileNumber_idx_5f22dea3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"member_mobileNumber_idx_5f22dea3\"",
+        "sql": "CREATE INDEX \"member_mobileNumber_idx_5f22dea3\" ON \"public\".\"member\" (\"mobileNumber\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"member_mobileNumber_idx_5f22dea3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"member_mobileNumber_idx_5f22dea3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.member.member_status_idx_e98638ab",
+    "label": "Create index \"member_status_idx_e98638ab\" on \"member\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "member_status_idx_e98638ab",
+        "table": "member"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"member_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"member_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"member_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"member_status_idx_e98638ab\" ON \"public\".\"member\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"member_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"member_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.memberAddress.memberAddress_district_idx_1728c727",
+    "label": "Create index \"memberAddress_district_idx_1728c727\" on \"memberAddress\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "memberAddress_district_idx_1728c727",
+        "table": "memberAddress"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"memberAddress_district_idx_1728c727\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"memberAddress_district_idx_1728c727\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"memberAddress_district_idx_1728c727\"",
+        "sql": "CREATE INDEX \"memberAddress_district_idx_1728c727\" ON \"public\".\"memberAddress\" (\"district\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"memberAddress_district_idx_1728c727\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"memberAddress_district_idx_1728c727\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.memberAddress.memberAddress_memberId_idx_76b3c263",
+    "label": "Create index \"memberAddress_memberId_idx_76b3c263\" on \"memberAddress\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "memberAddress_memberId_idx_76b3c263",
+        "table": "memberAddress"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"memberAddress_memberId_idx_76b3c263\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"memberAddress_memberId_idx_76b3c263\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"memberAddress_memberId_idx_76b3c263\"",
+        "sql": "CREATE INDEX \"memberAddress_memberId_idx_76b3c263\" ON \"public\".\"memberAddress\" (\"memberId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"memberAddress_memberId_idx_76b3c263\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"memberAddress_memberId_idx_76b3c263\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.memberAddress.memberAddress_upazila_idx_d1e4cc72",
+    "label": "Create index \"memberAddress_upazila_idx_d1e4cc72\" on \"memberAddress\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "memberAddress_upazila_idx_d1e4cc72",
+        "table": "memberAddress"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"memberAddress_upazila_idx_d1e4cc72\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"memberAddress_upazila_idx_d1e4cc72\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"memberAddress_upazila_idx_d1e4cc72\"",
+        "sql": "CREATE INDEX \"memberAddress_upazila_idx_d1e4cc72\" ON \"public\".\"memberAddress\" (\"upazila\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"memberAddress_upazila_idx_d1e4cc72\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"memberAddress_upazila_idx_d1e4cc72\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.savingsAccount.savingsAccount_accountId_idx_cbfb3085",
+    "label": "Create index \"savingsAccount_accountId_idx_cbfb3085\" on \"savingsAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "savingsAccount_accountId_idx_cbfb3085",
+        "table": "savingsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"savingsAccount_accountId_idx_cbfb3085\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsAccount_accountId_idx_cbfb3085\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"savingsAccount_accountId_idx_cbfb3085\"",
+        "sql": "CREATE INDEX \"savingsAccount_accountId_idx_cbfb3085\" ON \"public\".\"savingsAccount\" (\"accountId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"savingsAccount_accountId_idx_cbfb3085\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsAccount_accountId_idx_cbfb3085\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.savingsAccount.savingsAccount_status_idx_e98638ab",
+    "label": "Create index \"savingsAccount_status_idx_e98638ab\" on \"savingsAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "savingsAccount_status_idx_e98638ab",
+        "table": "savingsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"savingsAccount_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsAccount_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"savingsAccount_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"savingsAccount_status_idx_e98638ab\" ON \"public\".\"savingsAccount\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"savingsAccount_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsAccount_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.savingsTransaction.savingsTransaction_collectionId_idx_b344fc1a",
+    "label": "Create index \"savingsTransaction_collectionId_idx_b344fc1a\" on \"savingsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "savingsTransaction_collectionId_idx_b344fc1a",
+        "table": "savingsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"savingsTransaction_collectionId_idx_b344fc1a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsTransaction_collectionId_idx_b344fc1a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"savingsTransaction_collectionId_idx_b344fc1a\"",
+        "sql": "CREATE INDEX \"savingsTransaction_collectionId_idx_b344fc1a\" ON \"public\".\"savingsTransaction\" (\"collectionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"savingsTransaction_collectionId_idx_b344fc1a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsTransaction_collectionId_idx_b344fc1a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.savingsTransaction.savingsTransaction_savingsAccountId_idx_ff57156a",
+    "label": "Create index \"savingsTransaction_savingsAccountId_idx_ff57156a\" on \"savingsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "savingsTransaction_savingsAccountId_idx_ff57156a",
+        "table": "savingsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"savingsTransaction_savingsAccountId_idx_ff57156a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsTransaction_savingsAccountId_idx_ff57156a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"savingsTransaction_savingsAccountId_idx_ff57156a\"",
+        "sql": "CREATE INDEX \"savingsTransaction_savingsAccountId_idx_ff57156a\" ON \"public\".\"savingsTransaction\" (\"savingsAccountId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"savingsTransaction_savingsAccountId_idx_ff57156a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsTransaction_savingsAccountId_idx_ff57156a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.savingsTransaction.savingsTransaction_savingsType_idx_dc620691",
+    "label": "Create index \"savingsTransaction_savingsType_idx_dc620691\" on \"savingsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "savingsTransaction_savingsType_idx_dc620691",
+        "table": "savingsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"savingsTransaction_savingsType_idx_dc620691\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsTransaction_savingsType_idx_dc620691\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"savingsTransaction_savingsType_idx_dc620691\"",
+        "sql": "CREATE INDEX \"savingsTransaction_savingsType_idx_dc620691\" ON \"public\".\"savingsTransaction\" (\"savingsType\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"savingsTransaction_savingsType_idx_dc620691\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsTransaction_savingsType_idx_dc620691\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.savingsTransaction.savingsTransaction_transactionDate_idx_b449edf8",
+    "label": "Create index \"savingsTransaction_transactionDate_idx_b449edf8\" on \"savingsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "savingsTransaction_transactionDate_idx_b449edf8",
+        "table": "savingsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"savingsTransaction_transactionDate_idx_b449edf8\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsTransaction_transactionDate_idx_b449edf8\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"savingsTransaction_transactionDate_idx_b449edf8\"",
+        "sql": "CREATE INDEX \"savingsTransaction_transactionDate_idx_b449edf8\" ON \"public\".\"savingsTransaction\" (\"transactionDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"savingsTransaction_transactionDate_idx_b449edf8\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsTransaction_transactionDate_idx_b449edf8\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.savingsTransaction.savingsTransaction_type_idx_b6b604ea",
+    "label": "Create index \"savingsTransaction_type_idx_b6b604ea\" on \"savingsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "savingsTransaction_type_idx_b6b604ea",
+        "table": "savingsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"savingsTransaction_type_idx_b6b604ea\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsTransaction_type_idx_b6b604ea\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"savingsTransaction_type_idx_b6b604ea\"",
+        "sql": "CREATE INDEX \"savingsTransaction_type_idx_b6b604ea\" ON \"public\".\"savingsTransaction\" (\"type\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"savingsTransaction_type_idx_b6b604ea\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsTransaction_type_idx_b6b604ea\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.session.session_familyId_idx_3d03045e",
+    "label": "Create index \"session_familyId_idx_3d03045e\" on \"session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "session_familyId_idx_3d03045e",
+        "table": "session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"session_familyId_idx_3d03045e\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"session_familyId_idx_3d03045e\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"session_familyId_idx_3d03045e\"",
+        "sql": "CREATE INDEX \"session_familyId_idx_3d03045e\" ON \"public\".\"session\" (\"familyId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"session_familyId_idx_3d03045e\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"session_familyId_idx_3d03045e\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.session.session_userId_idx_a489d58a",
+    "label": "Create index \"session_userId_idx_a489d58a\" on \"session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "session_userId_idx_a489d58a",
+        "table": "session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"session_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"session_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"session_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"session_userId_idx_a489d58a\" ON \"public\".\"session\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"session_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"session_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.accountToken.accountToken_userId_fkey",
+    "label": "Add foreign key \"accountToken_userId_fkey\" on \"accountToken\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "accountToken_userId_fkey",
+        "table": "accountToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"accountToken_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "accountToken_userId_fkey",
+          "public",
+          "\"public\".\"accountToken\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"accountToken_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"accountToken\"\nADD CONSTRAINT \"accountToken_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"accountToken_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "accountToken_userId_fkey",
+          "public",
+          "\"public\".\"accountToken\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.collection.collection_memberId_fkey",
+    "label": "Add foreign key \"collection_memberId_fkey\" on \"collection\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "collection_memberId_fkey",
+        "table": "collection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"collection_memberId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "collection_memberId_fkey",
+          "public",
+          "\"public\".\"collection\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"collection_memberId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"collection\"\nADD CONSTRAINT \"collection_memberId_fkey\"\nFOREIGN KEY (\"memberId\")\nREFERENCES \"public\".\"member\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"collection_memberId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "collection_memberId_fkey",
+          "public",
+          "\"public\".\"collection\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.collection.collection_collectedById_fkey",
+    "label": "Add foreign key \"collection_collectedById_fkey\" on \"collection\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "collection_collectedById_fkey",
+        "table": "collection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"collection_collectedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "collection_collectedById_fkey",
+          "public",
+          "\"public\".\"collection\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"collection_collectedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"collection\"\nADD CONSTRAINT \"collection_collectedById_fkey\"\nFOREIGN KEY (\"collectedById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"collection_collectedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "collection_collectedById_fkey",
+          "public",
+          "\"public\".\"collection\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.guarantor.guarantor_memberId_fkey",
+    "label": "Add foreign key \"guarantor_memberId_fkey\" on \"guarantor\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "guarantor_memberId_fkey",
+        "table": "guarantor"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"guarantor_memberId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "guarantor_memberId_fkey",
+          "public",
+          "\"public\".\"guarantor\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"guarantor_memberId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"guarantor\"\nADD CONSTRAINT \"guarantor_memberId_fkey\"\nFOREIGN KEY (\"memberId\")\nREFERENCES \"public\".\"member\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"guarantor_memberId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "guarantor_memberId_fkey",
+          "public",
+          "\"public\".\"guarantor\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.loan.loan_memberId_fkey",
+    "label": "Add foreign key \"loan_memberId_fkey\" on \"loan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "loan_memberId_fkey",
+        "table": "loan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"loan_memberId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loan_memberId_fkey",
+          "public",
+          "\"public\".\"loan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"loan_memberId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"loan\"\nADD CONSTRAINT \"loan_memberId_fkey\"\nFOREIGN KEY (\"memberId\")\nREFERENCES \"public\".\"member\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"loan_memberId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loan_memberId_fkey",
+          "public",
+          "\"public\".\"loan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.loan.loan_approvedById_fkey",
+    "label": "Add foreign key \"loan_approvedById_fkey\" on \"loan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "loan_approvedById_fkey",
+        "table": "loan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"loan_approvedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loan_approvedById_fkey",
+          "public",
+          "\"public\".\"loan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"loan_approvedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"loan\"\nADD CONSTRAINT \"loan_approvedById_fkey\"\nFOREIGN KEY (\"approvedById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"loan_approvedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loan_approvedById_fkey",
+          "public",
+          "\"public\".\"loan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.loan.loan_rejectedById_fkey",
+    "label": "Add foreign key \"loan_rejectedById_fkey\" on \"loan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "loan_rejectedById_fkey",
+        "table": "loan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"loan_rejectedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loan_rejectedById_fkey",
+          "public",
+          "\"public\".\"loan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"loan_rejectedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"loan\"\nADD CONSTRAINT \"loan_rejectedById_fkey\"\nFOREIGN KEY (\"rejectedById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"loan_rejectedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loan_rejectedById_fkey",
+          "public",
+          "\"public\".\"loan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.loanInstallment.loanInstallment_loanId_fkey",
+    "label": "Add foreign key \"loanInstallment_loanId_fkey\" on \"loanInstallment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "loanInstallment_loanId_fkey",
+        "table": "loanInstallment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"loanInstallment_loanId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loanInstallment_loanId_fkey",
+          "public",
+          "\"public\".\"loanInstallment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"loanInstallment_loanId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"loanInstallment\"\nADD CONSTRAINT \"loanInstallment_loanId_fkey\"\nFOREIGN KEY (\"loanId\")\nREFERENCES \"public\".\"loan\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"loanInstallment_loanId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loanInstallment_loanId_fkey",
+          "public",
+          "\"public\".\"loanInstallment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.loanPayment.loanPayment_loanId_fkey",
+    "label": "Add foreign key \"loanPayment_loanId_fkey\" on \"loanPayment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "loanPayment_loanId_fkey",
+        "table": "loanPayment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"loanPayment_loanId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loanPayment_loanId_fkey",
+          "public",
+          "\"public\".\"loanPayment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"loanPayment_loanId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"loanPayment\"\nADD CONSTRAINT \"loanPayment_loanId_fkey\"\nFOREIGN KEY (\"loanId\")\nREFERENCES \"public\".\"loan\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"loanPayment_loanId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loanPayment_loanId_fkey",
+          "public",
+          "\"public\".\"loanPayment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.loanPayment.loanPayment_installmentId_fkey",
+    "label": "Add foreign key \"loanPayment_installmentId_fkey\" on \"loanPayment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "loanPayment_installmentId_fkey",
+        "table": "loanPayment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"loanPayment_installmentId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loanPayment_installmentId_fkey",
+          "public",
+          "\"public\".\"loanPayment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"loanPayment_installmentId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"loanPayment\"\nADD CONSTRAINT \"loanPayment_installmentId_fkey\"\nFOREIGN KEY (\"installmentId\")\nREFERENCES \"public\".\"loanInstallment\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"loanPayment_installmentId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loanPayment_installmentId_fkey",
+          "public",
+          "\"public\".\"loanPayment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.loanPayment.loanPayment_collectionId_fkey",
+    "label": "Add foreign key \"loanPayment_collectionId_fkey\" on \"loanPayment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "loanPayment_collectionId_fkey",
+        "table": "loanPayment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"loanPayment_collectionId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loanPayment_collectionId_fkey",
+          "public",
+          "\"public\".\"loanPayment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"loanPayment_collectionId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"loanPayment\"\nADD CONSTRAINT \"loanPayment_collectionId_fkey\"\nFOREIGN KEY (\"collectionId\")\nREFERENCES \"public\".\"collection\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"loanPayment_collectionId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "loanPayment_collectionId_fkey",
+          "public",
+          "\"public\".\"loanPayment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.memberAddress.memberAddress_memberId_fkey",
+    "label": "Add foreign key \"memberAddress_memberId_fkey\" on \"memberAddress\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "memberAddress_memberId_fkey",
+        "table": "memberAddress"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"memberAddress_memberId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "memberAddress_memberId_fkey",
+          "public",
+          "\"public\".\"memberAddress\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"memberAddress_memberId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"memberAddress\"\nADD CONSTRAINT \"memberAddress_memberId_fkey\"\nFOREIGN KEY (\"memberId\")\nREFERENCES \"public\".\"member\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"memberAddress_memberId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "memberAddress_memberId_fkey",
+          "public",
+          "\"public\".\"memberAddress\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.savingsAccount.savingsAccount_memberId_fkey",
+    "label": "Add foreign key \"savingsAccount_memberId_fkey\" on \"savingsAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "savingsAccount_memberId_fkey",
+        "table": "savingsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"savingsAccount_memberId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsAccount_memberId_fkey",
+          "public",
+          "\"public\".\"savingsAccount\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"savingsAccount_memberId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"savingsAccount\"\nADD CONSTRAINT \"savingsAccount_memberId_fkey\"\nFOREIGN KEY (\"memberId\")\nREFERENCES \"public\".\"member\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"savingsAccount_memberId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsAccount_memberId_fkey",
+          "public",
+          "\"public\".\"savingsAccount\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.savingsTransaction.savingsTransaction_savingsAccountId_fkey",
+    "label": "Add foreign key \"savingsTransaction_savingsAccountId_fkey\" on \"savingsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "savingsTransaction_savingsAccountId_fkey",
+        "table": "savingsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"savingsTransaction_savingsAccountId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsTransaction_savingsAccountId_fkey",
+          "public",
+          "\"public\".\"savingsTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"savingsTransaction_savingsAccountId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"savingsTransaction\"\nADD CONSTRAINT \"savingsTransaction_savingsAccountId_fkey\"\nFOREIGN KEY (\"savingsAccountId\")\nREFERENCES \"public\".\"savingsAccount\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"savingsTransaction_savingsAccountId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsTransaction_savingsAccountId_fkey",
+          "public",
+          "\"public\".\"savingsTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.savingsTransaction.savingsTransaction_collectionId_fkey",
+    "label": "Add foreign key \"savingsTransaction_collectionId_fkey\" on \"savingsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "savingsTransaction_collectionId_fkey",
+        "table": "savingsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"savingsTransaction_collectionId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsTransaction_collectionId_fkey",
+          "public",
+          "\"public\".\"savingsTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"savingsTransaction_collectionId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"savingsTransaction\"\nADD CONSTRAINT \"savingsTransaction_collectionId_fkey\"\nFOREIGN KEY (\"collectionId\")\nREFERENCES \"public\".\"collection\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"savingsTransaction_collectionId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsTransaction_collectionId_fkey",
+          "public",
+          "\"public\".\"savingsTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.session.session_userId_fkey",
+    "label": "Add foreign key \"session_userId_fkey\" on \"session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "session_userId_fkey",
+        "table": "session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"session_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "session_userId_fkey",
+          "public",
+          "\"public\".\"session\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"session_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"session\"\nADD CONSTRAINT \"session_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"session_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "session_userId_fkey",
+          "public",
+          "\"public\".\"session\""
+        ]
+      }
+    ]
+  }
+]

@@ -1,7 +1,12 @@
 import { db } from "../../../prisma/db.js";
 import { Temporal } from "temporal-polyfill";
 
-import type { CreateLoanInput, DisburseLoanInput, LoanListQuery, UpdateLoanInput } from "../loan.types.js";
+import type {
+  CreateLoanInput,
+  DisburseLoanInput,
+  LoanListQuery,
+  UpdateLoanInput,
+} from "../loan.types.js";
 import { pageOffset, paginationMeta } from "../../../utils/pagination.js";
 import { generateInstallmentSchedule } from "../utils/installment-schedule.util.js";
 
@@ -28,10 +33,7 @@ export const createLoan = async (data: CreateLoanRepositoryInput) => {
   });
 };
 
-export const updateLoanId = async (
-  id: number,
-  loanId: string,
-) => {
+export const updateLoanId = async (id: number, loanId: string) => {
   return db.orm.public.Loan.where({
     id,
   })
@@ -165,9 +167,7 @@ export const findAllLoans = async ({
       default:
         return filteredLoans.orderBy([
           (loan) =>
-            sortOrder === "asc"
-              ? loan.createdAt.asc()
-              : loan.createdAt.desc(),
+            sortOrder === "asc" ? loan.createdAt.asc() : loan.createdAt.desc(),
           (loan) => loan.id.desc(),
         ]);
     }
@@ -232,27 +232,81 @@ export const findLoanById = async (id: number) => {
     .first({ id });
 };
 
-type UpdateLoanRepositoryInput = UpdateLoanInput & { chargeAmount?: number; totalPayable?: number; installmentAmount?: number };
-
-export const updatePendingLoanById = async (id: number, data: UpdateLoanRepositoryInput) => {
-  return db.orm.public.Loan.where({ id, status: "PENDING" }).select(
-    "id", "loanId", "memberId", "principalAmount", "chargeType", "chargeValue", "chargeAmount", "totalPayable", "installmentCount", "installmentAmount", "frequency", "applicationDate", "disbursementDate", "firstDueDate", "maturityDate", "status", "purpose", "notes", "createdAt", "updatedAt",
-  ).update({
-    ...(data.memberId !== undefined && { memberId: data.memberId }),
-    ...(data.principalAmount !== undefined && { principalAmount: data.principalAmount.toFixed(2) }),
-    ...(data.chargeType !== undefined && { chargeType: data.chargeType }),
-    ...(data.chargeValue !== undefined && { chargeValue: data.chargeValue.toFixed(2) }),
-    ...(data.chargeAmount !== undefined && { chargeAmount: data.chargeAmount.toFixed(2) }),
-    ...(data.totalPayable !== undefined && { totalPayable: data.totalPayable.toFixed(2) }),
-    ...(data.installmentCount !== undefined && { installmentCount: data.installmentCount }),
-    ...(data.installmentAmount !== undefined && { installmentAmount: data.installmentAmount.toFixed(2) }),
-    ...(data.frequency !== undefined && { frequency: data.frequency }),
-    ...(data.purpose !== undefined && { purpose: data.purpose }),
-    ...(data.notes !== undefined && { notes: data.notes }),
-  });
+type UpdateLoanRepositoryInput = UpdateLoanInput & {
+  chargeAmount?: number;
+  totalPayable?: number;
+  installmentAmount?: number;
 };
 
-export const transitionPendingLoan = async (id: number, data: { status: "APPROVED" | "REJECTED"; approvedById?: number; rejectedById?: number; rejectionReason?: string }) => db.orm.public.Loan.where({ id, status: "PENDING" }).update({ ...data, ...(data.status === "APPROVED" ? { approvedAt: Temporal.Now.instant() } : { rejectedAt: Temporal.Now.instant() }) });
+export const updatePendingLoanById = async (
+  id: number,
+  data: UpdateLoanRepositoryInput,
+) => {
+  return db.orm.public.Loan.where({ id, status: "PENDING" })
+    .select(
+      "id",
+      "loanId",
+      "memberId",
+      "principalAmount",
+      "chargeType",
+      "chargeValue",
+      "chargeAmount",
+      "totalPayable",
+      "installmentCount",
+      "installmentAmount",
+      "frequency",
+      "applicationDate",
+      "disbursementDate",
+      "firstDueDate",
+      "maturityDate",
+      "status",
+      "purpose",
+      "notes",
+      "createdAt",
+      "updatedAt",
+    )
+    .update({
+      ...(data.memberId !== undefined && { memberId: data.memberId }),
+      ...(data.principalAmount !== undefined && {
+        principalAmount: data.principalAmount.toFixed(2),
+      }),
+      ...(data.chargeType !== undefined && { chargeType: data.chargeType }),
+      ...(data.chargeValue !== undefined && {
+        chargeValue: data.chargeValue.toFixed(2),
+      }),
+      ...(data.chargeAmount !== undefined && {
+        chargeAmount: data.chargeAmount.toFixed(2),
+      }),
+      ...(data.totalPayable !== undefined && {
+        totalPayable: data.totalPayable.toFixed(2),
+      }),
+      ...(data.installmentCount !== undefined && {
+        installmentCount: data.installmentCount,
+      }),
+      ...(data.installmentAmount !== undefined && {
+        installmentAmount: data.installmentAmount.toFixed(2),
+      }),
+      ...(data.frequency !== undefined && { frequency: data.frequency }),
+      ...(data.purpose !== undefined && { purpose: data.purpose }),
+      ...(data.notes !== undefined && { notes: data.notes }),
+    });
+};
+
+export const transitionPendingLoan = async (
+  id: number,
+  data: {
+    status: "APPROVED" | "REJECTED";
+    approvedById?: number;
+    rejectedById?: number;
+    rejectionReason?: string;
+  },
+) =>
+  db.orm.public.Loan.where({ id, status: "PENDING" }).update({
+    ...data,
+    ...(data.status === "APPROVED"
+      ? { approvedAt: Temporal.Now.instant() }
+      : { rejectedAt: Temporal.Now.instant() }),
+  });
 
 const dateToPlainDate = (date: Date) =>
   Temporal.PlainDate.from(date.toISOString().slice(0, 10));

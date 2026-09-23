@@ -7,7 +7,10 @@ import {
 } from "../../../utils/api-response.js";
 
 import * as memberService from "../services/member.service.js";
-import type { MemberListQuery } from "../member.types.js";
+import type {
+  MemberFinancialHistoryQuery,
+  MemberListQuery,
+} from "../member.types.js";
 
 /**
  * Create member
@@ -70,6 +73,57 @@ export const updateMember = asyncHandler(
     res
       .status(200)
       .json(successResponse("Member updated successfully", member));
+  },
+);
+
+export const getMemberLoanPayments = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await memberService.getMemberLoanPayments(
+      Number(req.params.id),
+      req.query as unknown as MemberFinancialHistoryQuery,
+    );
+
+    res
+      .status(200)
+      .json(
+        paginatedResponse(
+          "Member loan payments fetched successfully",
+          result.payments,
+          result.meta,
+        ),
+      );
+  },
+);
+
+export const getMemberSavingsTransactions = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await memberService.getMemberSavingsTransactions(
+      Number(req.params.id),
+      req.query as unknown as MemberFinancialHistoryQuery,
+    );
+
+    res
+      .status(200)
+      .json(
+        paginatedResponse(
+          "Member savings transactions fetched successfully",
+          result.transactions,
+          result.meta,
+        ),
+      );
+  },
+);
+
+export const uploadMemberPhoto = asyncHandler(
+  async (req: Request, res: Response) => {
+    const member = await memberService.uploadMemberPhoto(
+      Number(req.params.id),
+      req.file,
+    );
+
+    res
+      .status(200)
+      .json(successResponse("Member profile photo uploaded successfully", member));
   },
 );
 

@@ -1,0 +1,125 @@
+[
+  {
+    "id": "column.public.savingsTransaction.processedById",
+    "label": "Add column \"processedById\" to \"savingsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "processedById",
+        "table": "savingsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"processedById\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "savingsTransaction",
+          "processedById"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"processedById\"",
+        "sql": "ALTER TABLE \"public\".\"savingsTransaction\" ADD COLUMN \"processedById\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"processedById\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "savingsTransaction",
+          "processedById"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.savingsTransaction.savingsTransaction_processedById_idx_92dfd8d4",
+    "label": "Create index \"savingsTransaction_processedById_idx_92dfd8d4\" on \"savingsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "savingsTransaction_processedById_idx_92dfd8d4",
+        "table": "savingsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"savingsTransaction_processedById_idx_92dfd8d4\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsTransaction_processedById_idx_92dfd8d4\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"savingsTransaction_processedById_idx_92dfd8d4\"",
+        "sql": "CREATE INDEX \"savingsTransaction_processedById_idx_92dfd8d4\" ON \"public\".\"savingsTransaction\" (\"processedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"savingsTransaction_processedById_idx_92dfd8d4\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsTransaction_processedById_idx_92dfd8d4\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.savingsTransaction.savingsTransaction_processedById_fkey",
+    "label": "Add foreign key \"savingsTransaction_processedById_fkey\" on \"savingsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "savingsTransaction_processedById_fkey",
+        "table": "savingsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"savingsTransaction_processedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsTransaction_processedById_fkey",
+          "public",
+          "\"public\".\"savingsTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"savingsTransaction_processedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"savingsTransaction\"\nADD CONSTRAINT \"savingsTransaction_processedById_fkey\"\nFOREIGN KEY (\"processedById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"savingsTransaction_processedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsTransaction_processedById_fkey",
+          "public",
+          "\"public\".\"savingsTransaction\""
+        ]
+      }
+    ]
+  }
+]

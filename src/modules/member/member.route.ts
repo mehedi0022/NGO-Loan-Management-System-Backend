@@ -4,19 +4,24 @@ import { requireAuth } from "../../middlewares/auth.middleware.js";
 import { requirePermission } from "../../middlewares/authorization.middleware.js";
 import { validate } from "../../middlewares/validate.middleware.js";
 import { permissions } from "../../auth/authorization.js";
+import { imageUpload } from "../upload/upload.middleware.js";
 
 import {
   createMember,
   deleteMember,
   getAllMembers,
   getMemberById,
+  getMemberLoanPayments,
+  getMemberSavingsTransactions,
   updateMember,
+  uploadMemberPhoto,
 } from "./controllers/member.controller.js";
 
 import {
   createMemberSchema,
   memberIdSchema,
   memberListQuerySchema,
+  memberFinancialHistorySchema,
   updateMemberSchema,
 } from "./validations/member.validation.js";
 
@@ -40,6 +45,20 @@ router.get(
 /**
  * Get member by ID
  */
+router.get(
+  "/:id/loan-payments",
+  validate(memberFinancialHistorySchema),
+  requirePermission(permissions.collectionsReadAny),
+  getMemberLoanPayments,
+);
+
+router.get(
+  "/:id/savings-transactions",
+  validate(memberFinancialHistorySchema),
+  requirePermission(permissions.savingsReadAny),
+  getMemberSavingsTransactions,
+);
+
 router.get(
   "/:id",
   validate(memberIdSchema),
@@ -65,6 +84,14 @@ router.patch(
   validate(updateMemberSchema),
   requirePermission(permissions.membersUpdateAny),
   updateMember,
+);
+
+router.post(
+  "/:id/photo",
+  validate(memberIdSchema),
+  requirePermission(permissions.membersUpdateAny),
+  imageUpload.single("photo"),
+  uploadMemberPhoto,
 );
 
 /**

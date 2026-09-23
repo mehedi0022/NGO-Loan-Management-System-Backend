@@ -1,10 +1,12 @@
-import { ConflictError, NotFoundError } from "../../../errors/AppError.js";
+import { ConflictError, NotFoundError, ValidationError } from "../../../errors/AppError.js";
 
 import * as memberRepository from "../repositories/member.repository.js";
+import { uploadService } from "../../upload/upload.module.js";
 
 import type {
   CreateMemberInput,
   MemberListQuery,
+  MemberFinancialHistoryQuery,
   UpdateMemberInput,
 } from "../member.types.js";
 
@@ -106,6 +108,51 @@ export const updateMember = async (id: number, data: UpdateMemberInput) => {
   }
 
   return toMemberDetailsDto(member);
+};
+
+export const getMemberLoanPayments = async (
+  id: number,
+  query: MemberFinancialHistoryQuery,
+) => {
+  const result = await memberRepository.findMemberLoanPayments(id, query);
+  if (!result) throw new NotFoundError("Member not found");
+  return result;
+};
+
+export const getMemberSavingsTransactions = async (
+  id: number,
+  query: MemberFinancialHistoryQuery,
+) => {
+  const result = await memberRepository.findMemberSavingsTransactions(
+    id,
+    query,
+  );
+  if (!result) throw new NotFoundError("Member not found");
+  return result;
+};
+
+export const uploadMemberPhoto = async (
+  id: number,
+  file: Express.Multer.File | undefined,
+) => {
+  if (!file) {
+    throw new ValidationError("Profile photo is required");
+  }
+
+  const member = await memberRepository.findMemberById(id);
+  if (!member) {
+    throw new NotFoundError("Member not found");
+  }
+
+  const stored = await uploadService.upload(file, "members");
+  const updatedMember = await memberRepository.updateMemberPhotoUrl(id, stored.url);
+
+  if (!updatedMember) {
+    await uploadService.delete(stored.key).catch(() => undefined);
+    throw new NotFoundError("Member not found");
+  }
+
+  return getMemberById(id);
 };
 
 /**

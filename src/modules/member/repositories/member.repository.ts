@@ -3,6 +3,7 @@ import { or } from "@prisma/orm-postgres/orm-client";
 import type {
   CreateMemberInput,
   MemberListQuery,
+  MemberFinancialHistoryQuery,
   UpdateMemberInput,
 } from "../member.types.js";
 import { Temporal } from "temporal-polyfill";
@@ -146,7 +147,48 @@ export const findMemberById = async (id: number) => {
     "notes",
     "createdAt",
     "updatedAt",
-  ).first({ id });
+  )
+    .include("loans", (loans) =>
+      loans
+        .select(
+          "id",
+          "loanId",
+          "memberId",
+          "principalAmount",
+          "totalPayable",
+          "installmentCount",
+          "frequency",
+          "applicationDate",
+          "disbursementDate",
+          "firstDueDate",
+          "maturityDate",
+          "status",
+        )
+        .include("installments", (installments) =>
+          installments.select(
+            "id",
+            "loanId",
+            "installmentNo",
+            "dueDate",
+            "amount",
+            "paidAmount",
+            "status",
+            "paidAt",
+          ),
+        ),
+    )
+    .include("savingsAccount", (account) =>
+      account.select(
+        "id",
+        "accountId",
+        "generalSavingsBalance",
+        "specialSavingsBalance",
+        "status",
+        "openedAt",
+        "closedAt",
+      ),
+    )
+    .first({ id });
 
   if (!member) {
     return null;
@@ -506,6 +548,131 @@ export const updateMemberById = async (id: number, data: UpdateMemberInput) => {
     return member;
   });
 };
+
+export const findMemberLoanPayments = async (
+  memberId: number,
+  { page, limit, sortOrder }: MemberFinancialHistoryQuery,
+) => {
+  const member = await db.orm.public.Member.select("id")
+    .include("loans", (loans) => loans.select("id"))
+    .first({ id: memberId });
+
+  if (!member) return null;
+
+  const loanIds = member.loans.map((loan) => loan.id);
+  if (!loanIds.length) {
+    return { payments: [], meta: paginationMeta(page, limit, 0) };
+  }
+
+  const selectedPayments = db.orm.public.LoanPayment.select(
+    "id",
+    "paymentId",
+    "loanId",
+    "installmentId",
+    "amount",
+    "paymentDate",
+    "paymentMethod",
+    "reference",
+    "notes",
+    "createdAt",
+  )
+    .include("loan", (loan) => loan.select("id", "loanId"))
+    .include("installment", (installment) =>
+      installment.select("id", "installmentNo"),
+    )
+    .where((payment) => payment.loanId.in(loanIds));
+
+  const paymentsQuery = selectedPayments.orderBy([
+    (payment) =>
+      sortOrder === "asc"
+        ? payment.paymentDate.asc()
+        : payment.paymentDate.desc(),
+    (payment) =>
+      sortOrder === "asc" ? payment.id.asc() : payment.id.desc(),
+  ]);
+
+  const [{ total }, payments] = await Promise.all([
+    selectedPayments.aggregate((aggregate) => ({ total: aggregate.count() })),
+    paymentsQuery.offset(pageOffset(page, limit)).limit(limit).all(),
+  ]);
+
+  return { payments, meta: paginationMeta(page, limit, total) };
+};
+
+export const findMemberSavingsTransactions = async (
+  memberId: number,
+  { page, limit, sortOrder }: MemberFinancialHistoryQuery,
+) => {
+  const member = await db.orm.public.Member.select("id")
+    .include("savingsAccount", (account) => account.select("id"))
+    .first({ id: memberId });
+
+  if (!member) return null;
+
+  if (!member.savingsAccount) {
+    return { transactions: [], meta: paginationMeta(page, limit, 0) };
+  }
+
+  const selectedTransactions = db.orm.public.SavingsTransaction.select(
+    "id",
+    "transactionId",
+    "savingsAccountId",
+    "collectionId",
+    "processedById",
+    "savingsType",
+    "type",
+    "amount",
+    "balanceBefore",
+    "balanceAfter",
+    "transactionDate",
+    "paymentMethod",
+    "reference",
+    "notes",
+    "createdAt",
+  )
+    .include("processedBy", (user) => user.select("id", "userName", "fullName"))
+    .where({ savingsAccountId: member.savingsAccount.id });
+
+  const transactionsQuery = selectedTransactions.orderBy([
+    (transaction) =>
+      sortOrder === "asc"
+        ? transaction.transactionDate.asc()
+        : transaction.transactionDate.desc(),
+    (transaction) =>
+      sortOrder === "asc" ? transaction.id.asc() : transaction.id.desc(),
+  ]);
+
+  const [{ total }, transactions] = await Promise.all([
+    selectedTransactions.aggregate((aggregate) => ({
+      total: aggregate.count(),
+    })),
+    transactionsQuery.offset(pageOffset(page, limit)).limit(limit).all(),
+  ]);
+
+  return { transactions, meta: paginationMeta(page, limit, total) };
+};
+
+export const updateMemberPhotoUrl = async (id: number, photoUrl: string) =>
+  db.orm.public.Member.where({ id })
+    .select(
+      "id",
+      "memberId",
+      "fullName",
+      "fatherName",
+      "motherName",
+      "guardianName",
+      "mobileNumber",
+      "nidNumber",
+      "email",
+      "photoUrl",
+      "occupation",
+      "joinDate",
+      "status",
+      "notes",
+      "createdAt",
+      "updatedAt",
+    )
+    .update({ photoUrl });
 
 /**
  * Delete member

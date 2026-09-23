@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'24939d32cc6d246f96345af59c83c8dc2d6989646349d56ce880cfad58309ddf'>;
+  StorageHashBase<'1af527ba56404b48cbc785f0b32e2758591ed8bc41145e3a7ead18324a4446b5'>;
 export type ExecutionHash =
   ExecutionHashBase<'b043feca7c87dcfd650a10e8c347863cfc3ff3dac0f8dbd2f7fd85c12f724ae6'>;
 export type ProfileHash =
@@ -256,10 +256,6 @@ export type FieldOutputTypes = {
       readonly collectionId: CodecTypes['pg/text@1']['output'] | null;
       readonly memberId: CodecTypes['pg/int4@1']['output'];
       readonly collectedById: CodecTypes['pg/int4@1']['output'];
-      readonly loanCollectionAmount: CodecTypes['pg/numeric@1']['output'];
-      readonly generalSavingsAmount: CodecTypes['pg/numeric@1']['output'];
-      readonly specialSavingsAmount: CodecTypes['pg/numeric@1']['output'];
-      readonly totalAmount: CodecTypes['pg/numeric@1']['output'];
       readonly collectionDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'MOBILE_PAYMENT' | 'CHEQUE' | 'OTHER';
       readonly reference: CodecTypes['pg/text@1']['output'] | null;
@@ -392,7 +388,6 @@ export type FieldOutputTypes = {
       readonly transactionId: CodecTypes['pg/text@1']['output'] | null;
       readonly savingsAccountId: CodecTypes['pg/int4@1']['output'];
       readonly collectionId: CodecTypes['pg/int4@1']['output'] | null;
-      readonly processedById: CodecTypes['pg/int4@1']['output'] | null;
       readonly savingsType: 'GENERAL' | 'SPECIAL';
       readonly type: 'DEPOSIT' | 'WITHDRAWAL';
       readonly amount: CodecTypes['pg/numeric@1']['output'];
@@ -447,10 +442,6 @@ export type FieldInputTypes = {
       readonly collectionId: CodecTypes['pg/text@1']['input'] | null;
       readonly memberId: CodecTypes['pg/int4@1']['input'];
       readonly collectedById: CodecTypes['pg/int4@1']['input'];
-      readonly loanCollectionAmount: CodecTypes['pg/numeric@1']['input'];
-      readonly generalSavingsAmount: CodecTypes['pg/numeric@1']['input'];
-      readonly specialSavingsAmount: CodecTypes['pg/numeric@1']['input'];
-      readonly totalAmount: CodecTypes['pg/numeric@1']['input'];
       readonly collectionDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'MOBILE_PAYMENT' | 'CHEQUE' | 'OTHER';
       readonly reference: CodecTypes['pg/text@1']['input'] | null;
@@ -583,7 +574,6 @@ export type FieldInputTypes = {
       readonly transactionId: CodecTypes['pg/text@1']['input'] | null;
       readonly savingsAccountId: CodecTypes['pg/int4@1']['input'];
       readonly collectionId: CodecTypes['pg/int4@1']['input'] | null;
-      readonly processedById: CodecTypes['pg/int4@1']['input'] | null;
       readonly savingsType: 'GENERAL' | 'SPECIAL';
       readonly type: 'DEPOSIT' | 'WITHDRAWAL';
       readonly amount: CodecTypes['pg/numeric@1']['input'];
@@ -638,15 +628,11 @@ export type StorageColumnTypes = {
       readonly collectionDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly collectionId: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly generalSavingsAmount: CodecTypes['pg/numeric@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly loanCollectionAmount: CodecTypes['pg/numeric@1']['output'];
       readonly memberId: CodecTypes['pg/int4@1']['output'];
       readonly notes: CodecTypes['pg/text@1']['output'] | null;
       readonly paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'MOBILE_PAYMENT' | 'CHEQUE' | 'OTHER';
       readonly reference: CodecTypes['pg/text@1']['output'] | null;
-      readonly specialSavingsAmount: CodecTypes['pg/numeric@1']['output'];
-      readonly totalAmount: CodecTypes['pg/numeric@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
     readonly guarantor: {
@@ -778,7 +764,6 @@ export type StorageColumnTypes = {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly notes: CodecTypes['pg/text@1']['output'] | null;
       readonly paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'MOBILE_PAYMENT' | 'CHEQUE' | 'OTHER';
-      readonly processedById: CodecTypes['pg/int4@1']['output'] | null;
       readonly reference: CodecTypes['pg/text@1']['output'] | null;
       readonly savingsAccountId: CodecTypes['pg/int4@1']['output'];
       readonly savingsType: 'GENERAL' | 'SPECIAL';
@@ -829,15 +814,11 @@ export type StorageColumnInputTypes = {
       readonly collectionDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly collectionId: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly generalSavingsAmount: CodecTypes['pg/numeric@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly loanCollectionAmount: CodecTypes['pg/numeric@1']['input'];
       readonly memberId: CodecTypes['pg/int4@1']['input'];
       readonly notes: CodecTypes['pg/text@1']['input'] | null;
       readonly paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'MOBILE_PAYMENT' | 'CHEQUE' | 'OTHER';
       readonly reference: CodecTypes['pg/text@1']['input'] | null;
-      readonly specialSavingsAmount: CodecTypes['pg/numeric@1']['input'];
-      readonly totalAmount: CodecTypes['pg/numeric@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
     readonly guarantor: {
@@ -969,7 +950,6 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly notes: CodecTypes['pg/text@1']['input'] | null;
       readonly paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'MOBILE_PAYMENT' | 'CHEQUE' | 'OTHER';
-      readonly processedById: CodecTypes['pg/int4@1']['input'] | null;
       readonly reference: CodecTypes['pg/text@1']['input'] | null;
       readonly savingsAccountId: CodecTypes['pg/int4@1']['input'];
       readonly savingsType: 'GENERAL' | 'SPECIAL';
@@ -1019,16 +999,10 @@ export namespace Models {
     accountTokens: public_AccountToken[];
     approvedLoans: public_Loan[];
     collections: public_Collection[];
-    processedSavingsTransactions: public_SavingsTransaction[];
     rejectedLoans: public_Loan[];
     sessions: public_Session[];
     readonly [RelationKeys]?:
-      | 'accountTokens'
-      | 'approvedLoans'
-      | 'collections'
-      | 'processedSavingsTransactions'
-      | 'rejectedLoans'
-      | 'sessions';
+      'accountTokens' | 'approvedLoans' | 'collections' | 'rejectedLoans' | 'sessions';
   };
   export type public_Session = {
     id: CodecTypes['pg/int4@1']['output'];
@@ -1209,7 +1183,6 @@ export namespace Models {
     transactionId: CodecTypes['pg/text@1']['output'] | null;
     savingsAccountId: CodecTypes['pg/int4@1']['output'];
     collectionId: CodecTypes['pg/int4@1']['output'] | null;
-    processedById: CodecTypes['pg/int4@1']['output'] | null;
     savingsType: 'GENERAL' | 'SPECIAL';
     type: 'DEPOSIT' | 'WITHDRAWAL';
     amount: CodecTypes['pg/numeric@1']['output'];
@@ -1221,19 +1194,14 @@ export namespace Models {
     notes: CodecTypes['pg/text@1']['output'] | null;
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     collection: public_Collection | null;
-    processedBy: public_User | null;
     savingsAccount: public_SavingsAccount;
-    readonly [RelationKeys]?: 'collection' | 'processedBy' | 'savingsAccount';
+    readonly [RelationKeys]?: 'collection' | 'savingsAccount';
   };
   export type public_Collection = {
     id: CodecTypes['pg/int4@1']['output'];
     collectionId: CodecTypes['pg/text@1']['output'] | null;
     memberId: CodecTypes['pg/int4@1']['output'];
     collectedById: CodecTypes['pg/int4@1']['output'];
-    loanCollectionAmount: CodecTypes['pg/numeric@1']['output'];
-    generalSavingsAmount: CodecTypes['pg/numeric@1']['output'];
-    specialSavingsAmount: CodecTypes['pg/numeric@1']['output'];
-    totalAmount: CodecTypes['pg/numeric@1']['output'];
     collectionDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
     paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'MOBILE_PAYMENT' | 'CHEQUE' | 'OTHER';
     reference: CodecTypes['pg/text@1']['output'] | null;
@@ -1388,42 +1356,6 @@ type ContractBase = Omit<
                   readonly nativeType: 'int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
-                };
-                readonly loanCollectionAmount: {
-                  readonly nativeType: 'numeric';
-                  readonly codecId: 'pg/numeric@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
-                  };
-                };
-                readonly generalSavingsAmount: {
-                  readonly nativeType: 'numeric';
-                  readonly codecId: 'pg/numeric@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
-                  };
-                };
-                readonly specialSavingsAmount: {
-                  readonly nativeType: 'numeric';
-                  readonly codecId: 'pg/numeric@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
-                  };
-                };
-                readonly totalAmount: {
-                  readonly nativeType: 'numeric';
-                  readonly codecId: 'pg/numeric@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
-                  };
                 };
                 readonly collectionDate: {
                   readonly nativeType: 'timestamptz';
@@ -2495,11 +2427,6 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
                 };
-                readonly processedById: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: true;
-                };
                 readonly savingsType: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
@@ -2573,12 +2500,6 @@ type ContractBase = Omit<
                   readonly unique: false;
                 },
                 {
-                  readonly name: 'savingsTransaction_processedById_idx_92dfd8d4';
-                  readonly prefix: 'savingsTransaction_processedById_idx';
-                  readonly columns: readonly ['processedById'];
-                  readonly unique: false;
-                },
-                {
                   readonly name: 'savingsTransaction_savingsType_idx_dc620691';
                   readonly prefix: 'savingsTransaction_savingsType_idx';
                   readonly columns: readonly ['savingsType'];
@@ -2619,18 +2540,6 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'collection';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'savingsTransaction';
-                    readonly columns: readonly ['processedById'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'user';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -2999,22 +2908,6 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
-              readonly loanCollectionAmount: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
-              };
-              readonly generalSavingsAmount: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
-              };
-              readonly specialSavingsAmount: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
-              };
-              readonly totalAmount: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
-              };
               readonly collectionDate: {
                 readonly nullable: false;
                 readonly type: {
@@ -3102,10 +2995,6 @@ type ContractBase = Omit<
                 readonly collectionId: { readonly column: 'collectionId' };
                 readonly memberId: { readonly column: 'memberId' };
                 readonly collectedById: { readonly column: 'collectedById' };
-                readonly loanCollectionAmount: { readonly column: 'loanCollectionAmount' };
-                readonly generalSavingsAmount: { readonly column: 'generalSavingsAmount' };
-                readonly specialSavingsAmount: { readonly column: 'specialSavingsAmount' };
-                readonly totalAmount: { readonly column: 'totalAmount' };
                 readonly collectionDate: { readonly column: 'collectionDate' };
                 readonly paymentMethod: { readonly column: 'paymentMethod' };
                 readonly reference: { readonly column: 'reference' };
@@ -4027,10 +3916,6 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
-              readonly processedById: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
               readonly savingsType: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -4091,15 +3976,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['id'];
                 };
               };
-              readonly processedBy: {
-                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
-                readonly cardinality: 'N:1';
-                readonly nullable: true;
-                readonly on: {
-                  readonly localFields: readonly ['processedById'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
               readonly savingsAccount: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -4121,7 +3997,6 @@ type ContractBase = Omit<
                 readonly transactionId: { readonly column: 'transactionId' };
                 readonly savingsAccountId: { readonly column: 'savingsAccountId' };
                 readonly collectionId: { readonly column: 'collectionId' };
-                readonly processedById: { readonly column: 'processedById' };
                 readonly savingsType: { readonly column: 'savingsType' };
                 readonly type: { readonly column: 'type' };
                 readonly amount: { readonly column: 'amount' };
@@ -4308,17 +4183,6 @@ type ContractBase = Omit<
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['collectedById'];
-                };
-              };
-              readonly processedSavingsTransactions: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'SavingsTransaction';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['processedById'];
                 };
               };
               readonly rejectedLoans: {

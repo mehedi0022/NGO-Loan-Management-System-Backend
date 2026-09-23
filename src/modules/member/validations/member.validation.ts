@@ -179,6 +179,13 @@ export const memberIdSchema = z.object({
   params: memberIdParams,
 });
 
+export const memberFinancialHistorySchema = z.object({
+  params: memberIdParams,
+  query: paginationQuerySchema
+    .pick({ page: true, limit: true, sortOrder: true })
+    .strict(),
+});
+
 /**
  * Update Member
  */
