@@ -43,6 +43,10 @@ export const authenticate: RequestHandler = async (req, _res, next) => {
       throw new AuthenticationError("Authenticated user no longer exists");
     }
 
+    if (!user.isActive) {
+      throw new AuthenticationError("Account is inactive");
+    }
+
     req.auth = {
       userId: user.id,
       role: user.role,

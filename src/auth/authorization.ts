@@ -8,7 +8,9 @@ export const permissions = {
   usersReadAny: "users:read:any",
   usersCreate: "users:create",
   usersUpdateAny: "users:update:any",
-  usersDeleteAny: "users:delete:any",
+  usersChangeRole: "users:change-role:any",
+  usersChangeStatus: "users:change-status:any",
+  usersResetPassword: "users:reset-password:any",
 
   // Members
   membersReadAny: "members:read:any",
@@ -52,6 +54,8 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.usersReadAny,
     permissions.usersCreate,
     permissions.usersUpdateAny,
+    permissions.usersChangeStatus,
+    permissions.usersResetPassword,
 
     // Members
     permissions.membersReadAny,
@@ -108,3 +112,6 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
 
 export const roleHasPermission = (role: UserRole, permission: Permission) =>
   rolePermissions[role].has(permission);
+
+export const getPermissionsForRole = (role: UserRole): Permission[] =>
+  [...rolePermissions[role]];

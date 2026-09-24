@@ -2,7 +2,7 @@ import argon2 from "argon2";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({
-  user: null as null | { id: number; email: string; fullName: string | null; password: string; emailVerifiedAt: string | null },
+  user: null as null | { id: number; email: string; fullName: string | null; password: string; isActive: boolean; emailVerifiedAt: string | null },
   replaceAccountToken: vi.fn(),
   consumePasswordReset: vi.fn(),
   consumeEmailVerification: vi.fn(),
@@ -28,6 +28,7 @@ vi.mock("../../src/config/env.js", () => ({
 vi.mock("../../src/modules/user/repositories/user.repository.js", () => ({
   findUserByEmail: vi.fn(async (email: string) => state.user?.email === email ? state.user : null),
   findUserById: vi.fn(async (id: number) => state.user?.id === id ? { id, email: state.user.email } : null),
+  findAuthorizationUserById: vi.fn(async (id: number) => state.user?.id === id ? { id, role: "MANAGER", isActive: state.user.isActive } : null),
   createUser: vi.fn(),
 }));
 
@@ -50,6 +51,7 @@ beforeEach(async () => {
     email: "member@example.test",
     fullName: "Member",
     password: await argon2.hash("Password1!"),
+    isActive: true,
     emailVerifiedAt: null,
   };
   state.replaceAccountToken.mockReset().mockResolvedValue({ id: 1 });
@@ -60,6 +62,18 @@ beforeEach(async () => {
 });
 
 describe("account lifecycle service", () => {
+  it("does not authenticate an inactive account", async () => {
+    state.user!.isActive = false;
+
+    await expect(
+      authService.login({
+        email: "member@example.test",
+        password: "Password1!",
+        rememberMe: false,
+      }),
+    ).rejects.toThrow("Invalid email or password");
+  });
+
   it("does not issue a reset token for an unknown email", async () => {
     await authService.forgotPassword({ email: "unknown@example.test" });
     expect(state.replaceAccountToken).not.toHaveBeenCalled();
@@ -119,7 +133,7 @@ describe("account lifecycle service", () => {
   });
 
   it("does not resend verification for an already verified account", async () => {
-    state.user.emailVerifiedAt = "2026-09-07T00:00:00Z";
+    state.user!.emailVerifiedAt = "2026-09-07T00:00:00Z";
     await authService.resendVerification("member@example.test");
     expect(state.replaceAccountToken).not.toHaveBeenCalled();
   });

@@ -19,7 +19,7 @@ import { createVerificationEmail } from "../../email/templates/verification.temp
 import * as accountTokenRepository from "../repositories/account-token.repository.js";
 
 import * as userRepository from "../../user/repositories/user.repository.js";
-import { toPublicUserDto } from "../../user/user.dto.js";
+import { toAuthenticatedUserDto } from "../../user/user.dto.js";
 import * as sessionService from "../../session/services/session.service.js";
 
 import type {
@@ -71,6 +71,10 @@ export const login = async (data: LoginInput) => {
     throw new AuthenticationError("Invalid email or password");
   }
 
+  if (!user.isActive) {
+    throw new AuthenticationError("Invalid email or password");
+  }
+
   const isPasswordValid = await verifyPassword(user.password, data.password);
 
   if (!isPasswordValid) {
@@ -96,7 +100,7 @@ export const login = async (data: LoginInput) => {
   });
 
   return {
-    user: toPublicUserDto(user),
+    user: toAuthenticatedUserDto(user),
     accessToken,
     refreshToken: refresh.token,
     refreshExpiresAt: window.expiresAt,
@@ -120,6 +124,14 @@ export const refreshAccessToken = async (refreshToken: string) => {
     currentSession.userId !== payload.userId ||
     currentSession.jti !== payload.jti
   ) {
+    throw new AuthenticationError("Invalid or expired refresh token");
+  }
+
+  const authorizationUser =
+    await userRepository.findAuthorizationUserById(payload.userId);
+
+  if (!authorizationUser?.isActive) {
+    await sessionService.revokeAllUserSessions(payload.userId);
     throw new AuthenticationError("Invalid or expired refresh token");
   }
 

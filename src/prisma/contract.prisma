@@ -102,6 +102,7 @@ model User {
   createdAt       DateTime             @default(now())
   updatedAt       temporal.updatedAt()
   role            UserRole             @default(MANAGER)
+  isActive        Boolean              @default(true)
   emailVerifiedAt DateTime?
 
   collections     Collection[]

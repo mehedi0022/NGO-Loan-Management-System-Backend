@@ -17,7 +17,7 @@ import type { AuthenticatedRequest } from "../../../middlewares/auth.middleware.
 export const getMe = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = (req as AuthenticatedRequest).auth;
 
-  const user = await userService.getUserById(userId);
+  const user = await userService.getCurrentUser(userId);
 
   res
     .status(200)
@@ -28,7 +28,7 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
  * Create user
  */
 export const createUser = asyncHandler(async (req: Request, res: Response) => {
-  const user = await userService.createUser(req.body);
+  const user = await userService.createUser(req.auth!.role, req.body);
 
   res.status(201).json(successResponse("User created successfully", user));
 });
@@ -65,16 +65,53 @@ export const getUserById = asyncHandler(async (req: Request, res: Response) => {
  * Update user
  */
 export const updateUser = asyncHandler(async (req: Request, res: Response) => {
-  const user = await userService.updateUser(Number(req.params.id), req.body);
+  const user = await userService.updateUser(
+    req.auth!,
+    Number(req.params.id),
+    req.body,
+  );
 
   res.status(200).json(successResponse("User updated successfully", user));
 });
 
-/**
- * Delete user
- */
-export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
-  await userService.deleteUser(Number(req.params.id));
+export const changeUserRole = asyncHandler(
+  async (req: Request, res: Response) => {
+    const user = await userService.changeUserRole(
+      req.auth!,
+      Number(req.params.id),
+      req.body.role,
+    );
 
-  res.status(204).send();
-});
+    res.status(200).json(successResponse("User role updated successfully", user));
+  },
+);
+
+export const changeUserStatus = asyncHandler(
+  async (req: Request, res: Response) => {
+    const user = await userService.changeUserStatus(
+      req.auth!,
+      Number(req.params.id),
+      req.body.isActive,
+    );
+
+    res.status(200).json(successResponse("User status updated successfully", user));
+  },
+);
+
+export const resetUserPassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    await userService.resetUserPassword(
+      req.auth!,
+      Number(req.params.id),
+      req.body.newPassword,
+    );
+
+    res.status(200).json(
+      successResponse(
+        "User password reset successfully. Existing sessions were revoked.",
+        null,
+      ),
+    );
+  },
+);
+
