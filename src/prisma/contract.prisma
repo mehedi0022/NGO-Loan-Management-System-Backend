@@ -5,6 +5,7 @@ enum UserRole {
   SUPER_ADMIN = "SUPER_ADMIN"
   ADMIN = "ADMIN"
   MANAGER = "MANAGER"
+  FIELD_OFFICER = "FIELD_OFFICER"
 }
 
 enum AccountTokenType {
@@ -20,6 +21,25 @@ enum MemberStatus {
   ACTIVE = "ACTIVE"
   INACTIVE = "INACTIVE"
   SUSPENDED = "SUSPENDED"
+}
+
+enum SomitiDay {
+  @@type("pg/text@1")
+
+  SATURDAY = "SATURDAY"
+  SUNDAY = "SUNDAY"
+  MONDAY = "MONDAY"
+  TUESDAY = "TUESDAY"
+  WEDNESDAY = "WEDNESDAY"
+  THURSDAY = "THURSDAY"
+  FRIDAY = "FRIDAY"
+}
+
+enum SomitiStatus {
+  @@type("pg/text@1")
+
+  ACTIVE = "ACTIVE"
+  INACTIVE = "INACTIVE"
 }
 
 enum AddressType {
@@ -111,6 +131,7 @@ model User {
   accountTokens   AccountToken[]
   approvedLoans   Loan[]               @relation("LoanApprovedBy")
   rejectedLoans   Loan[]               @relation("LoanRejectedBy")
+  assignedSomities Somiti[]            @relation("SomitiFieldOfficer")
 }
 
 model Session {
@@ -148,6 +169,36 @@ model AccountToken {
   @@index([expiresAt])
 }
 
+model Somiti {
+  id             Int          @id @default(autoincrement())
+  somitiId       String?      @unique
+  name           String
+  code           String?      @unique
+  meetingDay     SomitiDay    @default(SUNDAY)
+  meetingTime    String?
+
+  fieldOfficerId Int?
+  fieldOfficer   User?        @relation("SomitiFieldOfficer", fields:[fieldOfficerId], references:[id])
+
+  village        String?
+  union          String?
+  upazila        String?
+  district       String?
+
+  status         SomitiStatus @default(ACTIVE)
+
+  members        Member[]
+
+  createdAt      DateTime     @default(now())
+  updatedAt      temporal.updatedAt()
+
+  @@index([somitiId])
+  @@index([name])
+  @@index([fieldOfficerId])
+  @@index([status])
+  @@index([meetingDay])
+}
+
 model Member {
   id             Int                  @id @default(autoincrement())
   memberId       String?              @unique
@@ -170,6 +221,10 @@ model Member {
   joinDate       DateTime             @default(now())
   status         MemberStatus         @default(ACTIVE)
 
+  // Somiti
+  somitiId       Int?
+  somiti         Somiti?              @relation(fields:[somitiId], references:[id])
+
   // Additional Information
   notes          String?
 
@@ -188,6 +243,7 @@ model Member {
   @@index([fullName])
   @@index([mobileNumber])
   @@index([status])
+  @@index([somitiId])
   @@index([createdAt])
 }
 

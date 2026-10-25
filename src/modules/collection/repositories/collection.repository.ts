@@ -606,7 +606,11 @@ export const createBatchCollections = async (
 /**
  * GET /collections/installments
  */
-export const findDueInstallments = async (dueDate: Date) => {
+export const findDueInstallments = async (
+  dueDate: Date,
+  somitiId?: number,
+  fieldOfficerId?: number,
+) => {
   const date = toInstant(dueDate);
 
   const installments = await db.orm.public.LoanInstallment.select(
@@ -622,13 +626,25 @@ export const findDueInstallments = async (dueDate: Date) => {
       loan
         .select("id", "loanId", "status")
         .include("member", (member) =>
-          member.select(
-            "id",
-            "memberId",
-            "fullName",
-            "mobileNumber",
-            "photoUrl",
-          ),
+          member
+            .select(
+              "id",
+              "memberId",
+              "fullName",
+              "mobileNumber",
+              "photoUrl",
+              "somitiId",
+            )
+            .include("somiti", (somiti) =>
+              somiti.select(
+                "id",
+                "somitiId",
+                "name",
+                "code",
+                "meetingDay",
+                "fieldOfficerId",
+              ),
+            ),
         ),
     )
     .where({
@@ -637,11 +653,25 @@ export const findDueInstallments = async (dueDate: Date) => {
     .orderBy((installment) => installment.installmentNo.asc())
     .all();
 
-  return installments.filter(
-    (installment) =>
-      installment.loan?.status === "ACTIVE" &&
-      (installment.status === "PENDING" || installment.status === "PARTIAL"),
-  );
+  return installments.filter((installment) => {
+    if (installment.loan?.status !== "ACTIVE") return false;
+    if (installment.status !== "PENDING" && installment.status !== "PARTIAL") {
+      return false;
+    }
+
+    if (somitiId && installment.loan?.member?.somitiId !== somitiId) {
+      return false;
+    }
+
+    if (
+      fieldOfficerId &&
+      installment.loan?.member?.somiti?.fieldOfficerId !== fieldOfficerId
+    ) {
+      return false;
+    }
+
+    return true;
+  });
 };
 
 /**
@@ -649,12 +679,15 @@ export const findDueInstallments = async (dueDate: Date) => {
  */
 export const findCollections = async (filters: {
   memberId?: number;
+  somitiId?: number;
+  collectedById?: number;
   fromDate?: Date;
   toDate?: Date;
   page: number;
   limit: number;
 }) => {
-  const { memberId, fromDate, toDate, page, limit } = filters;
+  const { memberId, somitiId, collectedById, fromDate, toDate, page, limit } =
+    filters;
 
   let query = db.orm.public.Collection.select(
     "id",
@@ -669,15 +702,34 @@ export const findCollections = async (filters: {
     "reference",
     "notes",
     "createdAt",
-  ).include("member", (member) =>
-    member.select("id", "memberId", "fullName", "mobileNumber", "photoUrl"),
-  ).include("collectedBy", (user) =>
-    user.select("id", "userName", "fullName"),
-  );
+  )
+    .include("member", (member) =>
+      member
+        .select(
+          "id",
+          "memberId",
+          "fullName",
+          "mobileNumber",
+          "photoUrl",
+          "somitiId",
+        )
+        .include("somiti", (somiti) =>
+          somiti.select("id", "somitiId", "name", "code"),
+        ),
+    )
+    .include("collectedBy", (user) =>
+      user.select("id", "userName", "fullName"),
+    );
 
   if (memberId) {
     query = query.where({
       memberId,
+    });
+  }
+
+  if (collectedById) {
+    query = query.where({
+      collectedById,
     });
   }
 

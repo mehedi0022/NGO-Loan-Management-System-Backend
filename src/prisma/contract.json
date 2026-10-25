@@ -48,6 +48,10 @@
       "model": "Session",
       "namespace": "public"
     },
+    "somiti": {
+      "model": "Somiti",
+      "namespace": "public"
+    },
     "user": {
       "model": "User",
       "namespace": "public"
@@ -236,6 +240,52 @@
               }
             ]
           },
+          "SomitiDay": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "SATURDAY",
+                "value": "SATURDAY"
+              },
+              {
+                "name": "SUNDAY",
+                "value": "SUNDAY"
+              },
+              {
+                "name": "MONDAY",
+                "value": "MONDAY"
+              },
+              {
+                "name": "TUESDAY",
+                "value": "TUESDAY"
+              },
+              {
+                "name": "WEDNESDAY",
+                "value": "WEDNESDAY"
+              },
+              {
+                "name": "THURSDAY",
+                "value": "THURSDAY"
+              },
+              {
+                "name": "FRIDAY",
+                "value": "FRIDAY"
+              }
+            ]
+          },
+          "SomitiStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "ACTIVE",
+                "value": "ACTIVE"
+              },
+              {
+                "name": "INACTIVE",
+                "value": "INACTIVE"
+              }
+            ]
+          },
           "UserRole": {
             "codecId": "pg/text@1",
             "members": [
@@ -250,6 +300,10 @@
               {
                 "name": "MANAGER",
                 "value": "MANAGER"
+              },
+              {
+                "name": "FIELD_OFFICER",
+                "value": "FIELD_OFFICER"
               }
             ]
           }
@@ -1590,6 +1644,13 @@
                   "kind": "scalar"
                 }
               },
+              "somitiId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "status": {
                 "nullable": false,
                 "type": {
@@ -1687,6 +1748,22 @@
                   "model": "SavingsAccount",
                   "namespace": "public"
                 }
+              },
+              "somiti": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "somitiId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Somiti",
+                  "namespace": "public"
+                }
               }
             },
             "storage": {
@@ -1732,6 +1809,9 @@
                 },
                 "photoUrl": {
                   "column": "photoUrl"
+                },
+                "somitiId": {
+                  "column": "somitiId"
                 },
                 "status": {
                   "column": "status"
@@ -2443,6 +2523,201 @@
               "table": "session"
             }
           },
+          "Somiti": {
+            "fields": {
+              "code": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "district": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "fieldOfficerId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "meetingDay": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SomitiDay",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "meetingTime": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "somitiId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SomitiStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "union": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "upazila": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "village": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "fieldOfficer": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "fieldOfficerId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "members": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "somitiId"
+                  ]
+                },
+                "to": {
+                  "model": "Member",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "code": {
+                  "column": "code"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "district": {
+                  "column": "district"
+                },
+                "fieldOfficerId": {
+                  "column": "fieldOfficerId"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "meetingDay": {
+                  "column": "meetingDay"
+                },
+                "meetingTime": {
+                  "column": "meetingTime"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "somitiId": {
+                  "column": "somitiId"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "union": {
+                  "column": "union"
+                },
+                "upazila": {
+                  "column": "upazila"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "village": {
+                  "column": "village"
+                }
+              },
+              "namespaceId": "public",
+              "table": "somiti"
+            }
+          },
           "User": {
             "fields": {
               "createdAt": {
@@ -2550,6 +2825,21 @@
                 },
                 "to": {
                   "model": "Loan",
+                  "namespace": "public"
+                }
+              },
+              "assignedSomities": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "fieldOfficerId"
+                  ]
+                },
+                "to": {
+                  "model": "Somiti",
                   "namespace": "public"
                 }
               },
@@ -3847,6 +4137,11 @@
                   "nativeType": "text",
                   "nullable": true
                 },
+                "somitiId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
                 "status": {
                   "codecId": "pg/text@1",
                   "default": {
@@ -3868,7 +4163,24 @@
                   "nullable": false
                 }
               },
-              "foreignKeys": [],
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "somitiId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "member"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "somiti"
+                  }
+                }
+              ],
               "indexes": [
                 {
                   "columns": [
@@ -3900,6 +4212,14 @@
                   ],
                   "name": "member_mobileNumber_idx_5f22dea3",
                   "prefix": "member_mobileNumber_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "somitiId"
+                  ],
+                  "name": "member_somitiId_idx_7b1f646c",
+                  "prefix": "member_somitiId_idx",
                   "unique": false
                 },
                 {
@@ -4597,11 +4917,202 @@
                 }
               ]
             },
+            "somiti": {
+              "checks": [
+                {
+                  "expression": "\"meetingDay\" IN ('SATURDAY', 'SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY')",
+                  "name": "somiti_meetingDay_check_08e514e5",
+                  "prefix": "somiti_meetingDay_check"
+                },
+                {
+                  "expression": "\"status\" IN ('ACTIVE', 'INACTIVE')",
+                  "name": "somiti_status_check_ee520df2",
+                  "prefix": "somiti_status_check"
+                }
+              ],
+              "columns": {
+                "code": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "district": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "fieldOfficerId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "meetingDay": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "SUNDAY"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SomitiDay",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "meetingTime": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "somitiId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "ACTIVE"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SomitiStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "union": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "upazila": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "village": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "fieldOfficerId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "somiti"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "fieldOfficerId"
+                  ],
+                  "name": "somiti_fieldOfficerId_idx_301d219a",
+                  "prefix": "somiti_fieldOfficerId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "meetingDay"
+                  ],
+                  "name": "somiti_meetingDay_idx_c7d78d1d",
+                  "prefix": "somiti_meetingDay_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "name"
+                  ],
+                  "name": "somiti_name_idx_ce87e6ba",
+                  "prefix": "somiti_name_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "somitiId"
+                  ],
+                  "name": "somiti_somitiId_idx_7b1f646c",
+                  "prefix": "somiti_somitiId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "somiti_status_idx_e98638ab",
+                  "prefix": "somiti_status_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "somitiId"
+                  ]
+                },
+                {
+                  "columns": [
+                    "code"
+                  ]
+                }
+              ]
+            },
             "user": {
               "checks": [
                 {
-                  "expression": "\"role\" IN ('SUPER_ADMIN', 'ADMIN', 'MANAGER')",
-                  "name": "user_role_check_25d457a5",
+                  "expression": "\"role\" IN ('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'FIELD_OFFICER')",
+                  "name": "user_role_check_7a8dd56c",
                   "prefix": "user_role_check"
                 }
               ],
@@ -4782,12 +5293,32 @@
                 "SPECIAL"
               ]
             },
+            "SomitiDay": {
+              "kind": "valueSet",
+              "values": [
+                "SATURDAY",
+                "SUNDAY",
+                "MONDAY",
+                "TUESDAY",
+                "WEDNESDAY",
+                "THURSDAY",
+                "FRIDAY"
+              ]
+            },
+            "SomitiStatus": {
+              "kind": "valueSet",
+              "values": [
+                "ACTIVE",
+                "INACTIVE"
+              ]
+            },
             "UserRole": {
               "kind": "valueSet",
               "values": [
                 "SUPER_ADMIN",
                 "ADMIN",
-                "MANAGER"
+                "MANAGER",
+                "FIELD_OFFICER"
               ]
             }
           }
@@ -4796,10 +5327,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "22c409d88f57ddccf66390be2bcbd359e57849d399857ac8c2f51a803360c83d"
+    "storageHash": "384516f329987c62d90f0979d92e84161a9b40a26a181c555db15598091d5be3"
   },
   "execution": {
-    "executionHash": "b043feca7c87dcfd650a10e8c347863cfc3ff3dac0f8dbd2f7fd85c12f724ae6",
+    "executionHash": "63b75a0ff1f48686ce2f7c0b438e298a510744ebc35779f38995d156bd16da43",
     "mutations": {
       "defaults": [
         {
@@ -4927,6 +5458,21 @@
             "column": "jti",
             "namespace": "public",
             "table": "session"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "somiti"
           }
         },
         {

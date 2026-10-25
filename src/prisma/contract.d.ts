@@ -34,9 +34,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'22c409d88f57ddccf66390be2bcbd359e57849d399857ac8c2f51a803360c83d'>;
+  StorageHashBase<'384516f329987c62d90f0979d92e84161a9b40a26a181c555db15598091d5be3'>;
 export type ExecutionHash =
-  ExecutionHashBase<'b043feca7c87dcfd650a10e8c347863cfc3ff3dac0f8dbd2f7fd85c12f724ae6'>;
+  ExecutionHashBase<'63b75a0ff1f48686ce2f7c0b438e298a510744ebc35779f38995d156bd16da43'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -355,6 +355,7 @@ export type FieldOutputTypes = {
       readonly occupation: CodecTypes['pg/text@1']['output'] | null;
       readonly joinDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+      readonly somitiId: CodecTypes['pg/int4@1']['output'] | null;
       readonly notes: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -418,6 +419,23 @@ export type FieldOutputTypes = {
       readonly rememberMe: CodecTypes['pg/bool@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
+    readonly Somiti: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly somitiId: CodecTypes['pg/text@1']['output'] | null;
+      readonly name: CodecTypes['pg/text@1']['output'];
+      readonly code: CodecTypes['pg/text@1']['output'] | null;
+      readonly meetingDay:
+        'SATURDAY' | 'SUNDAY' | 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY';
+      readonly meetingTime: CodecTypes['pg/text@1']['output'] | null;
+      readonly fieldOfficerId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly village: CodecTypes['pg/text@1']['output'] | null;
+      readonly union: CodecTypes['pg/text@1']['output'] | null;
+      readonly upazila: CodecTypes['pg/text@1']['output'] | null;
+      readonly district: CodecTypes['pg/text@1']['output'] | null;
+      readonly status: 'ACTIVE' | 'INACTIVE';
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    };
     readonly User: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly email: CodecTypes['pg/text@1']['output'];
@@ -426,7 +444,7 @@ export type FieldOutputTypes = {
       readonly password: CodecTypes['pg/text@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER';
+      readonly role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'FIELD_OFFICER';
       readonly isActive: CodecTypes['pg/bool@1']['output'];
       readonly emailVerifiedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
     };
@@ -547,6 +565,7 @@ export type FieldInputTypes = {
       readonly occupation: CodecTypes['pg/text@1']['input'] | null;
       readonly joinDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+      readonly somitiId: CodecTypes['pg/int4@1']['input'] | null;
       readonly notes: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -610,6 +629,23 @@ export type FieldInputTypes = {
       readonly rememberMe: CodecTypes['pg/bool@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
+    readonly Somiti: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly somitiId: CodecTypes['pg/text@1']['input'] | null;
+      readonly name: CodecTypes['pg/text@1']['input'];
+      readonly code: CodecTypes['pg/text@1']['input'] | null;
+      readonly meetingDay:
+        'SATURDAY' | 'SUNDAY' | 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY';
+      readonly meetingTime: CodecTypes['pg/text@1']['input'] | null;
+      readonly fieldOfficerId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly village: CodecTypes['pg/text@1']['input'] | null;
+      readonly union: CodecTypes['pg/text@1']['input'] | null;
+      readonly upazila: CodecTypes['pg/text@1']['input'] | null;
+      readonly district: CodecTypes['pg/text@1']['input'] | null;
+      readonly status: 'ACTIVE' | 'INACTIVE';
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+    };
     readonly User: {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly email: CodecTypes['pg/text@1']['input'];
@@ -618,7 +654,7 @@ export type FieldInputTypes = {
       readonly password: CodecTypes['pg/text@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER';
+      readonly role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'FIELD_OFFICER';
       readonly isActive: CodecTypes['pg/bool@1']['input'];
       readonly emailVerifiedAt: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
     };
@@ -740,6 +776,7 @@ export type StorageColumnTypes = {
       readonly notes: CodecTypes['pg/text@1']['output'] | null;
       readonly occupation: CodecTypes['pg/text@1']['output'] | null;
       readonly photoUrl: CodecTypes['pg/text@1']['output'] | null;
+      readonly somitiId: CodecTypes['pg/int4@1']['output'] | null;
       readonly status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
@@ -802,6 +839,23 @@ export type StorageColumnTypes = {
       readonly revokedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
       readonly userId: CodecTypes['pg/int4@1']['output'];
     };
+    readonly somiti: {
+      readonly code: CodecTypes['pg/text@1']['output'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly district: CodecTypes['pg/text@1']['output'] | null;
+      readonly fieldOfficerId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly meetingDay:
+        'SATURDAY' | 'SUNDAY' | 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY';
+      readonly meetingTime: CodecTypes['pg/text@1']['output'] | null;
+      readonly name: CodecTypes['pg/text@1']['output'];
+      readonly somitiId: CodecTypes['pg/text@1']['output'] | null;
+      readonly status: 'ACTIVE' | 'INACTIVE';
+      readonly union: CodecTypes['pg/text@1']['output'] | null;
+      readonly upazila: CodecTypes['pg/text@1']['output'] | null;
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly village: CodecTypes['pg/text@1']['output'] | null;
+    };
     readonly user: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly email: CodecTypes['pg/text@1']['output'];
@@ -810,7 +864,7 @@ export type StorageColumnTypes = {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly isActive: CodecTypes['pg/bool@1']['output'];
       readonly password: CodecTypes['pg/text@1']['output'];
-      readonly role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER';
+      readonly role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'FIELD_OFFICER';
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly userName: CodecTypes['pg/text@1']['output'] | null;
     };
@@ -932,6 +986,7 @@ export type StorageColumnInputTypes = {
       readonly notes: CodecTypes['pg/text@1']['input'] | null;
       readonly occupation: CodecTypes['pg/text@1']['input'] | null;
       readonly photoUrl: CodecTypes['pg/text@1']['input'] | null;
+      readonly somitiId: CodecTypes['pg/int4@1']['input'] | null;
       readonly status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
@@ -994,6 +1049,23 @@ export type StorageColumnInputTypes = {
       readonly revokedAt: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
       readonly userId: CodecTypes['pg/int4@1']['input'];
     };
+    readonly somiti: {
+      readonly code: CodecTypes['pg/text@1']['input'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly district: CodecTypes['pg/text@1']['input'] | null;
+      readonly fieldOfficerId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly meetingDay:
+        'SATURDAY' | 'SUNDAY' | 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY';
+      readonly meetingTime: CodecTypes['pg/text@1']['input'] | null;
+      readonly name: CodecTypes['pg/text@1']['input'];
+      readonly somitiId: CodecTypes['pg/text@1']['input'] | null;
+      readonly status: 'ACTIVE' | 'INACTIVE';
+      readonly union: CodecTypes['pg/text@1']['input'] | null;
+      readonly upazila: CodecTypes['pg/text@1']['input'] | null;
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly village: CodecTypes['pg/text@1']['input'] | null;
+    };
     readonly user: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly email: CodecTypes['pg/text@1']['input'];
@@ -1002,7 +1074,7 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly isActive: CodecTypes['pg/bool@1']['input'];
       readonly password: CodecTypes['pg/text@1']['input'];
-      readonly role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER';
+      readonly role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'FIELD_OFFICER';
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly userName: CodecTypes['pg/text@1']['input'] | null;
     };
@@ -1018,11 +1090,12 @@ export namespace Models {
     password: CodecTypes['pg/text@1']['output'];
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER';
+    role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'FIELD_OFFICER';
     isActive: CodecTypes['pg/bool@1']['output'];
     emailVerifiedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
     accountTokens: public_AccountToken[];
     approvedLoans: public_Loan[];
+    assignedSomities: public_Somiti[];
     collections: public_Collection[];
     processedSavingsTransactions: public_SavingsTransaction[];
     rejectedLoans: public_Loan[];
@@ -1030,6 +1103,7 @@ export namespace Models {
     readonly [RelationKeys]?:
       | 'accountTokens'
       | 'approvedLoans'
+      | 'assignedSomities'
       | 'collections'
       | 'processedSavingsTransactions'
       | 'rejectedLoans'
@@ -1062,6 +1136,25 @@ export namespace Models {
     user: public_User;
     readonly [RelationKeys]?: 'user';
   };
+  export type public_Somiti = {
+    id: CodecTypes['pg/int4@1']['output'];
+    somitiId: CodecTypes['pg/text@1']['output'] | null;
+    name: CodecTypes['pg/text@1']['output'];
+    code: CodecTypes['pg/text@1']['output'] | null;
+    meetingDay: 'SATURDAY' | 'SUNDAY' | 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY';
+    meetingTime: CodecTypes['pg/text@1']['output'] | null;
+    fieldOfficerId: CodecTypes['pg/int4@1']['output'] | null;
+    village: CodecTypes['pg/text@1']['output'] | null;
+    union: CodecTypes['pg/text@1']['output'] | null;
+    upazila: CodecTypes['pg/text@1']['output'] | null;
+    district: CodecTypes['pg/text@1']['output'] | null;
+    status: 'ACTIVE' | 'INACTIVE';
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    fieldOfficer: public_User | null;
+    members: public_Member[];
+    readonly [RelationKeys]?: 'fieldOfficer' | 'members';
+  };
   export type public_Member = {
     id: CodecTypes['pg/int4@1']['output'];
     memberId: CodecTypes['pg/text@1']['output'] | null;
@@ -1076,6 +1169,7 @@ export namespace Models {
     occupation: CodecTypes['pg/text@1']['output'] | null;
     joinDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
     status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+    somitiId: CodecTypes['pg/int4@1']['output'] | null;
     notes: CodecTypes['pg/text@1']['output'] | null;
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -1084,8 +1178,9 @@ export namespace Models {
     guarantors: public_Guarantor[];
     loans: public_Loan[];
     savingsAccount: public_SavingsAccount | null;
+    somiti: public_Somiti | null;
     readonly [RelationKeys]?:
-      'addresses' | 'collections' | 'guarantors' | 'loans' | 'savingsAccount';
+      'addresses' | 'collections' | 'guarantors' | 'loans' | 'savingsAccount' | 'somiti';
   };
   export type public_MemberAddress = {
     id: CodecTypes['pg/int4@1']['output'];
@@ -1258,6 +1353,7 @@ export declare const models: {
     User: Models.public_User;
     Session: Models.public_Session;
     AccountToken: Models.public_AccountToken;
+    Somiti: Models.public_Somiti;
     Member: Models.public_Member;
     MemberAddress: Models.public_MemberAddress;
     Guarantor: Models.public_Guarantor;
@@ -2198,6 +2294,11 @@ type ContractBase = Omit<
                     readonly value: DefaultLiteralValue<'pg/text@1', 'ACTIVE'>;
                   };
                 };
+                readonly somitiId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
                 readonly notes: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
@@ -2246,13 +2347,32 @@ type ContractBase = Omit<
                   readonly unique: false;
                 },
                 {
+                  readonly name: 'member_somitiId_idx_7b1f646c';
+                  readonly prefix: 'member_somitiId_idx';
+                  readonly columns: readonly ['somitiId'];
+                  readonly unique: false;
+                },
+                {
                   readonly name: 'member_createdAt_idx_9575dbd7';
                   readonly prefix: 'member_createdAt_idx';
                   readonly columns: readonly ['createdAt'];
                   readonly unique: false;
                 },
               ];
-              foreignKeys: readonly [];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'member';
+                    readonly columns: readonly ['somitiId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'somiti';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
             };
             readonly memberAddress: {
               columns: {
@@ -2747,6 +2867,144 @@ type ContractBase = Omit<
                 },
               ];
             };
+            readonly somiti: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly somitiId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly name: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly code: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly meetingDay: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'SUNDAY'>;
+                  };
+                };
+                readonly meetingTime: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly fieldOfficerId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
+                readonly village: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly union: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly upazila: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly district: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly status: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'ACTIVE'>;
+                  };
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly updatedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [
+                { readonly columns: readonly ['somitiId'] },
+                { readonly columns: readonly ['code'] },
+              ];
+              indexes: readonly [
+                {
+                  readonly name: 'somiti_somitiId_idx_7b1f646c';
+                  readonly prefix: 'somiti_somitiId_idx';
+                  readonly columns: readonly ['somitiId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'somiti_name_idx_ce87e6ba';
+                  readonly prefix: 'somiti_name_idx';
+                  readonly columns: readonly ['name'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'somiti_fieldOfficerId_idx_301d219a';
+                  readonly prefix: 'somiti_fieldOfficerId_idx';
+                  readonly columns: readonly ['fieldOfficerId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'somiti_status_idx_e98638ab';
+                  readonly prefix: 'somiti_status_idx';
+                  readonly columns: readonly ['status'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'somiti_meetingDay_idx_c7d78d1d';
+                  readonly prefix: 'somiti_meetingDay_idx';
+                  readonly columns: readonly ['meetingDay'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'somiti';
+                    readonly columns: readonly ['fieldOfficerId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'user';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
             readonly user: {
               columns: {
                 readonly id: {
@@ -2877,9 +3135,25 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['GENERAL', 'SPECIAL'];
             };
+            readonly SomitiDay: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'SATURDAY',
+                'SUNDAY',
+                'MONDAY',
+                'TUESDAY',
+                'WEDNESDAY',
+                'THURSDAY',
+                'FRIDAY',
+              ];
+            };
+            readonly SomitiStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['ACTIVE', 'INACTIVE'];
+            };
             readonly UserRole: {
               readonly kind: 'valueSet';
-              readonly values: readonly ['SUPER_ADMIN', 'ADMIN', 'MANAGER'];
+              readonly values: readonly ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'FIELD_OFFICER'];
             };
           };
         };
@@ -2898,6 +3172,7 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'AccountToken';
     };
+    readonly somiti: { readonly namespace: 'public' & NamespaceId; readonly model: 'Somiti' };
     readonly member: { readonly namespace: 'public' & NamespaceId; readonly model: 'Member' };
     readonly memberAddress: {
       readonly namespace: 'public' & NamespaceId;
@@ -3729,6 +4004,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly somitiId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
               readonly notes: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -3802,6 +4081,18 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['memberId'];
                 };
               };
+              readonly somiti: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Somiti';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['somitiId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
             };
             readonly storage: {
               readonly table: 'member';
@@ -3820,6 +4111,7 @@ type ContractBase = Omit<
                 readonly occupation: { readonly column: 'occupation' };
                 readonly joinDate: { readonly column: 'joinDate' };
                 readonly status: { readonly column: 'status' };
+                readonly somitiId: { readonly column: 'somitiId' };
                 readonly notes: { readonly column: 'notes' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
@@ -4245,6 +4537,114 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly Somiti: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly somitiId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly name: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly code: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly meetingDay: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly meetingTime: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly fieldOfficerId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly village: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly union: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly upazila: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly district: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly fieldOfficer: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['fieldOfficerId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly members: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Member';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['somitiId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'somiti';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly somitiId: { readonly column: 'somitiId' };
+                readonly name: { readonly column: 'name' };
+                readonly code: { readonly column: 'code' };
+                readonly meetingDay: { readonly column: 'meetingDay' };
+                readonly meetingTime: { readonly column: 'meetingTime' };
+                readonly fieldOfficerId: { readonly column: 'fieldOfficerId' };
+                readonly village: { readonly column: 'village' };
+                readonly union: { readonly column: 'union' };
+                readonly upazila: { readonly column: 'upazila' };
+                readonly district: { readonly column: 'district' };
+                readonly status: { readonly column: 'status' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
           readonly User: {
             readonly fields: {
               readonly id: {
@@ -4317,6 +4717,17 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['approvedById'];
                 };
               };
+              readonly assignedSomities: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Somiti';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['fieldOfficerId'];
+                };
+              };
               readonly collections: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -4384,6 +4795,7 @@ type ContractBase = Omit<
               { readonly name: 'SUPER_ADMIN'; readonly value: 'SUPER_ADMIN' },
               { readonly name: 'ADMIN'; readonly value: 'ADMIN' },
               { readonly name: 'MANAGER'; readonly value: 'MANAGER' },
+              { readonly name: 'FIELD_OFFICER'; readonly value: 'FIELD_OFFICER' },
             ];
           };
           readonly AccountTokenType: {
@@ -4399,6 +4811,25 @@ type ContractBase = Omit<
               { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
               { readonly name: 'INACTIVE'; readonly value: 'INACTIVE' },
               { readonly name: 'SUSPENDED'; readonly value: 'SUSPENDED' },
+            ];
+          };
+          readonly SomitiDay: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'SATURDAY'; readonly value: 'SATURDAY' },
+              { readonly name: 'SUNDAY'; readonly value: 'SUNDAY' },
+              { readonly name: 'MONDAY'; readonly value: 'MONDAY' },
+              { readonly name: 'TUESDAY'; readonly value: 'TUESDAY' },
+              { readonly name: 'WEDNESDAY'; readonly value: 'WEDNESDAY' },
+              { readonly name: 'THURSDAY'; readonly value: 'THURSDAY' },
+              { readonly name: 'FRIDAY'; readonly value: 'FRIDAY' },
+            ];
+          };
+          readonly SomitiStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+              { readonly name: 'INACTIVE'; readonly value: 'INACTIVE' },
             ];
           };
           readonly AddressType: {
@@ -4577,6 +5008,15 @@ type ContractBase = Omit<
             readonly column: 'jti';
           };
           readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv4' };
+        },
+        {
+          readonly ref: {
+            readonly namespace: 'public';
+            readonly table: 'somiti';
+            readonly column: 'updatedAt';
+          };
+          readonly onCreate: { readonly kind: 'generator'; readonly id: 'instantNow' };
+          readonly onUpdate: { readonly kind: 'generator'; readonly id: 'instantNow' };
         },
         {
           readonly ref: {

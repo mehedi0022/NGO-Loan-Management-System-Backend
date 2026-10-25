@@ -218,6 +218,7 @@ export const dueInstallmentsSchema = z.object({
   query: z
     .object({
       dueDate: z.coerce.date(),
+      somitiId: z.coerce.number().int().positive().optional(),
     })
     .strict(),
 });
@@ -231,6 +232,8 @@ export const collectionsListSchema = z.object({
   query: z
     .object({
       memberId: z.coerce.number().int().positive().optional(),
+
+      somitiId: z.coerce.number().int().positive().optional(),
 
       fromDate: z.coerce.date().optional(),
 

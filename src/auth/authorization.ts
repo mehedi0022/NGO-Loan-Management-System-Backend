@@ -12,6 +12,12 @@ export const permissions = {
   usersChangeStatus: "users:change-status:any",
   usersResetPassword: "users:reset-password:any",
 
+  // Somities
+  somitiesReadAny: "somities:read:any",
+  somitiesCreate: "somities:create",
+  somitiesUpdateAny: "somities:update:any",
+  somitiesDeleteAny: "somities:delete:any",
+
   // Members
   membersReadAny: "members:read:any",
   membersCreate: "members:create",
@@ -57,6 +63,12 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.usersChangeStatus,
     permissions.usersResetPassword,
 
+    // Somities
+    permissions.somitiesReadAny,
+    permissions.somitiesCreate,
+    permissions.somitiesUpdateAny,
+    permissions.somitiesDeleteAny,
+
     // Members
     permissions.membersReadAny,
     permissions.membersCreate,
@@ -81,10 +93,15 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.reportsReadAny,
   ]),
 
-  // Daily operational access
+  // Daily operational manager access
   MANAGER: new Set([
     // Dashboard
     permissions.dashboardRead,
+
+    // Somities
+    permissions.somitiesReadAny,
+    permissions.somitiesCreate,
+    permissions.somitiesUpdateAny,
 
     // Members
     permissions.membersReadAny,
@@ -95,6 +112,36 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.loansReadAny,
     permissions.loansCreate,
     permissions.loansUpdateAny,
+
+    // Collections
+    permissions.collectionsReadAny,
+    permissions.collectionsCreate,
+
+    // Savings
+    permissions.savingsReadAny,
+    permissions.savingsDeposit,
+    permissions.savingsWithdraw,
+
+    // Reports
+    permissions.reportsReadAny,
+  ]),
+
+  // Field officer operational access
+  FIELD_OFFICER: new Set([
+    // Dashboard
+    permissions.dashboardRead,
+
+    // Somities
+    permissions.somitiesReadAny,
+
+    // Members
+    permissions.membersReadAny,
+    permissions.membersCreate,
+    permissions.membersUpdateAny,
+
+    // Loans
+    permissions.loansReadAny,
+    permissions.loansCreate,
 
     // Collections
     permissions.collectionsReadAny,

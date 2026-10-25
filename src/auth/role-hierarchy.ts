@@ -1,14 +1,18 @@
 import type { UserRole } from "./roles.js";
 
 const roleRank: Readonly<Record<UserRole, number>> = {
-  MANAGER: 1,
-  ADMIN: 2,
-  SUPER_ADMIN: 3,
+  FIELD_OFFICER: 1,
+  MANAGER: 2,
+  ADMIN: 3,
+  SUPER_ADMIN: 4,
 };
 
 export const canCreateRole = (actorRole: UserRole, newRole: UserRole) => {
   if (actorRole === "SUPER_ADMIN") return true;
-  return actorRole === "ADMIN" && newRole === "MANAGER";
+  return (
+    actorRole === "ADMIN" &&
+    (newRole === "MANAGER" || newRole === "FIELD_OFFICER")
+  );
 };
 
 export const canManageRole = (actorRole: UserRole, targetRole: UserRole) => {

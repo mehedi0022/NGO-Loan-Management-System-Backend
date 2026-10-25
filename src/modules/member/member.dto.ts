@@ -7,6 +7,14 @@ type LoanRecord = FieldOutputTypes["public"]["Loan"];
 type LoanInstallmentRecord = FieldOutputTypes["public"]["LoanInstallment"];
 type SavingsAccountRecord = FieldOutputTypes["public"]["SavingsAccount"];
 
+export type MemberSomitiSummaryDto = {
+  id: number;
+  somitiId: string | null;
+  name: string;
+  code: string | null;
+  meetingDay: string;
+};
+
 /**
  * Member list/basic response
  */
@@ -14,6 +22,7 @@ export type PublicMemberDto = Pick<
   MemberRecord,
   | "id"
   | "memberId"
+  | "somitiId"
   | "fullName"
   | "fatherName"
   | "motherName"
@@ -28,7 +37,9 @@ export type PublicMemberDto = Pick<
   | "notes"
   | "createdAt"
   | "updatedAt"
->;
+> & {
+  somiti?: MemberSomitiSummaryDto | null;
+};
 
 /**
  * Address response

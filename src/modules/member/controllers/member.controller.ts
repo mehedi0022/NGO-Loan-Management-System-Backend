@@ -5,6 +5,7 @@ import {
   paginatedResponse,
   successResponse,
 } from "../../../utils/api-response.js";
+import type { AuthenticatedRequest } from "../../../middlewares/auth.middleware.js";
 
 import * as memberService from "../services/member.service.js";
 import type {
@@ -17,7 +18,8 @@ import type {
  */
 export const createMember = asyncHandler(
   async (req: Request, res: Response) => {
-    const member = await memberService.createMember(req.body);
+    const auth = (req as AuthenticatedRequest).auth;
+    const member = await memberService.createMember(req.body, auth);
 
     res
       .status(201)
@@ -30,8 +32,10 @@ export const createMember = asyncHandler(
  */
 export const getAllMembers = asyncHandler(
   async (req: Request, res: Response) => {
+    const auth = (req as AuthenticatedRequest).auth;
     const result = await memberService.getAllMembers(
       req.query as unknown as MemberListQuery,
+      auth,
     );
 
     res
@@ -67,8 +71,9 @@ export const getMemberById = asyncHandler(
 export const updateMember = asyncHandler(
   async (req: Request, res: Response) => {
     const memberId = Number(req.params.id);
+    const auth = (req as AuthenticatedRequest).auth;
 
-    const member = await memberService.updateMember(memberId, req.body);
+    const member = await memberService.updateMember(memberId, req.body, auth);
 
     res
       .status(200)
@@ -83,7 +88,7 @@ export const getMemberLoanPayments = asyncHandler(
       req.query as unknown as MemberFinancialHistoryQuery,
     );
 
-    res
+    return res
       .status(200)
       .json(
         paginatedResponse(
@@ -102,7 +107,7 @@ export const getMemberSavingsTransactions = asyncHandler(
       req.query as unknown as MemberFinancialHistoryQuery,
     );
 
-    res
+    return res
       .status(200)
       .json(
         paginatedResponse(
@@ -116,14 +121,13 @@ export const getMemberSavingsTransactions = asyncHandler(
 
 export const uploadMemberPhoto = asyncHandler(
   async (req: Request, res: Response) => {
-    const member = await memberService.uploadMemberPhoto(
-      Number(req.params.id),
-      req.file,
-    );
+    const memberId = Number(req.params.id);
+
+    const member = await memberService.uploadMemberPhoto(memberId, req.file);
 
     res
       .status(200)
-      .json(successResponse("Member profile photo uploaded successfully", member));
+      .json(successResponse("Member photo uploaded successfully", member));
   },
 );
 

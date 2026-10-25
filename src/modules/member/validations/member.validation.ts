@@ -137,6 +137,8 @@ export const createMemberSchema = z.object({
 
       occupation: z.string().trim().optional(),
 
+      somitiId: z.coerce.number().int().positive("Invalid somiti ID").optional(),
+
       joinDate: z.coerce.date().optional(),
 
       notes: z.string().trim().optional(),
@@ -212,29 +214,56 @@ export const updateMemberSchema = z.object({
 
       occupation: z.string().trim().nullable().optional(),
 
+      somitiId: z.coerce
+        .number()
+        .int()
+        .positive("Invalid somiti ID")
+        .nullable()
+        .optional(),
+
       joinDate: z.coerce.date().optional(),
 
       status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]).optional(),
 
       notes: z.string().trim().nullable().optional(),
 
-      addresses: z.array(addressSchema).max(2).optional(),
+      addresses: z
+        .array(addressSchema)
+        .min(1, "At least one address is required")
+        .max(2, "Maximum two addresses are allowed")
+        .refine(
+          (addresses) =>
+            addresses.some((address) => address.type === "PRESENT"),
+          {
+            message: "Member present address is required",
+          },
+        )
+        .refine(
+          (addresses) => {
+            const types = addresses.map((address) => address.type);
+
+            return new Set(types).size === types.length;
+          },
+          {
+            message: "Duplicate address types are not allowed",
+          },
+        )
+        .optional(),
 
       guarantors: z.array(guarantorSchema).optional(),
     })
-    .strict()
-    .refine((body) => Object.keys(body).length > 0, {
-      message: "At least one member field is required",
-    }),
+    .strict(),
 });
 
 /**
- * Member List Query
+ * Member list query
  */
 export const memberListQuerySchema = z.object({
   query: paginationQuerySchema
     .extend({
       status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]).optional(),
+
+      somitiId: z.coerce.number().int().positive().optional(),
 
       search: z.string().trim().optional(),
 

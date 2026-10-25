@@ -9,10 +9,20 @@ import type {
 } from "../member.dto.js";
 
 export const toPublicMemberDto = (
-  member: PublicMemberDto,
+  member: any,
 ): PublicMemberDto => ({
   id: member.id,
   memberId: member.memberId,
+  somitiId: member.somitiId ?? null,
+  somiti: member.somiti
+    ? {
+        id: member.somiti.id,
+        somitiId: member.somiti.somitiId,
+        name: member.somiti.name,
+        code: member.somiti.code,
+        meetingDay: member.somiti.meetingDay,
+      }
+    : null,
   fullName: member.fullName,
   fatherName: member.fatherName,
   motherName: member.motherName,
@@ -108,14 +118,14 @@ const toMemberSavingsAccountDto = (
 });
 
 export const toMemberDetailsDto = (
-  member: MemberDetailsDto,
+  member: any,
 ): MemberDetailsDto => ({
   ...toPublicMemberDto(member),
-  addresses: member.addresses.map(toMemberAddressDto),
-  guarantors: member.guarantors.map(toGuarantorDto),
-  loans: member.loans
+  addresses: (member.addresses || []).map(toMemberAddressDto),
+  guarantors: (member.guarantors || []).map(toGuarantorDto),
+  loans: (member.loans || [])
     .map(toMemberLoanDto)
-    .sort((left, right) => right.id - left.id),
+    .sort((left: any, right: any) => right.id - left.id),
   savingsAccount: member.savingsAccount
     ? toMemberSavingsAccountDto(member.savingsAccount)
     : null,

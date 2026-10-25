@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 
 import { asyncHandler } from "../../../utils/asyncHandler.js";
 import { successResponse } from "../../../utils/api-response.js";
+import type { AuthenticatedRequest } from "../../../middlewares/auth.middleware.js";
 
 import * as service from "../services/collection.service.js";
 
@@ -63,8 +64,10 @@ export const createBatchCollections = asyncHandler(
 export const getDueInstallments = asyncHandler(
   async (req: Request, res: Response) => {
     const dueDate = new Date(String(req.query.dueDate));
+    const somitiId = req.query.somitiId ? Number(req.query.somitiId) : undefined;
+    const auth = (req as AuthenticatedRequest).auth;
 
-    const result = await service.getDueInstallments(dueDate);
+    const result = await service.getDueInstallments(dueDate, somitiId, auth);
 
     return res
       .status(200)
@@ -86,18 +89,23 @@ export const getDueInstallments = asyncHandler(
  */
 export const getCollections = asyncHandler(
   async (req: Request, res: Response) => {
-    const result = await service.getCollections({
-      memberId: req.query.memberId ? Number(req.query.memberId) : undefined,
+    const auth = (req as AuthenticatedRequest).auth;
+    const result = await service.getCollections(
+      {
+        memberId: req.query.memberId ? Number(req.query.memberId) : undefined,
+        somitiId: req.query.somitiId ? Number(req.query.somitiId) : undefined,
 
-      fromDate: req.query.fromDate
-        ? new Date(String(req.query.fromDate))
-        : undefined,
+        fromDate: req.query.fromDate
+          ? new Date(String(req.query.fromDate))
+          : undefined,
 
-      toDate: req.query.toDate ? new Date(String(req.query.toDate)) : undefined,
+        toDate: req.query.toDate ? new Date(String(req.query.toDate)) : undefined,
 
-      page: Number(req.query.page ?? 1),
-      limit: Number(req.query.limit ?? 20),
-    });
+        page: Number(req.query.page ?? 1),
+        limit: Number(req.query.limit ?? 20),
+      },
+      auth,
+    );
 
     return res
       .status(200)

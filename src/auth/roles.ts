@@ -7,4 +7,5 @@ export const userRoleSchema = z.enum([
   "SUPER_ADMIN",
   "ADMIN",
   "MANAGER",
+  "FIELD_OFFICER",
 ] satisfies readonly UserRole[]);

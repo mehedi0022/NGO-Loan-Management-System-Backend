@@ -1,0 +1,569 @@
+[
+  {
+    "id": "dropCheckConstraint.user.user_role_check_25d457a5",
+    "label": "Drop check constraint \"user_role_check_25d457a5\" on \"user\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "user_role_check_25d457a5",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"user_role_check_25d457a5\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_role_check_25d457a5",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"user_role_check_25d457a5\"",
+        "sql": "ALTER TABLE \"public\".\"user\" DROP CONSTRAINT \"user_role_check_25d457a5\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"user_role_check_25d457a5\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_role_check_25d457a5",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.somiti",
+    "label": "Create table \"somiti\"",
+    "summary": "Creates table \"somiti\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "somiti"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"somiti\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"somiti\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"somiti\"",
+        "sql": "CREATE TABLE \"public\".\"somiti\" (\n  \"code\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"district\" text,\n  \"fieldOfficerId\" int4,\n  \"id\" SERIAL NOT NULL,\n  \"meetingDay\" text DEFAULT 'SUNDAY' NOT NULL,\n  \"meetingTime\" text,\n  \"name\" text NOT NULL,\n  \"somitiId\" text,\n  \"status\" text DEFAULT 'ACTIVE' NOT NULL,\n  \"union\" text,\n  \"upazila\" text,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"village\" text,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"somiti_meetingDay_check_08e514e5\" CHECK (\"meetingDay\" IN ('SATURDAY', 'SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY')),\n  CONSTRAINT \"somiti_status_check_ee520df2\" CHECK (\"status\" IN ('ACTIVE', 'INACTIVE'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"somiti\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"somiti\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.member.somitiId",
+    "label": "Add column \"somitiId\" to \"member\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "somitiId",
+        "table": "member"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"somitiId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "member",
+          "somitiId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"somitiId\"",
+        "sql": "ALTER TABLE \"public\".\"member\" ADD COLUMN \"somitiId\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"somitiId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "member",
+          "somitiId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.somiti.somiti_somitiId_key",
+    "label": "Add unique constraint on \"somiti\" (somitiId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "somiti_somitiId_key",
+        "table": "somiti"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"somiti_somitiId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "somiti_somitiId_key",
+          "public",
+          "\"public\".\"somiti\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"somiti_somitiId_key\"",
+        "sql": "ALTER TABLE \"public\".\"somiti\" ADD CONSTRAINT \"somiti_somitiId_key\" UNIQUE (\"somitiId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"somiti_somitiId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "somiti_somitiId_key",
+          "public",
+          "\"public\".\"somiti\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.somiti.somiti_code_key",
+    "label": "Add unique constraint on \"somiti\" (code)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "somiti_code_key",
+        "table": "somiti"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"somiti_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "somiti_code_key",
+          "public",
+          "\"public\".\"somiti\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"somiti_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"somiti\" ADD CONSTRAINT \"somiti_code_key\" UNIQUE (\"code\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"somiti_code_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "somiti_code_key",
+          "public",
+          "\"public\".\"somiti\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.user.user_role_check_7a8dd56c",
+    "label": "Add check constraint \"user_role_check_7a8dd56c\" on \"user\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "user_role_check_7a8dd56c",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"user_role_check_7a8dd56c\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_role_check_7a8dd56c",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"user_role_check_7a8dd56c\"",
+        "sql": "ALTER TABLE \"public\".\"user\" ADD CONSTRAINT \"user_role_check_7a8dd56c\" CHECK (\"role\" IN ('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'FIELD_OFFICER'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"user_role_check_7a8dd56c\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_role_check_7a8dd56c",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.member.member_somitiId_idx_7b1f646c",
+    "label": "Create index \"member_somitiId_idx_7b1f646c\" on \"member\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "member_somitiId_idx_7b1f646c",
+        "table": "member"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"member_somitiId_idx_7b1f646c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"member_somitiId_idx_7b1f646c\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"member_somitiId_idx_7b1f646c\"",
+        "sql": "CREATE INDEX \"member_somitiId_idx_7b1f646c\" ON \"public\".\"member\" (\"somitiId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"member_somitiId_idx_7b1f646c\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"member_somitiId_idx_7b1f646c\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.somiti.somiti_fieldOfficerId_idx_301d219a",
+    "label": "Create index \"somiti_fieldOfficerId_idx_301d219a\" on \"somiti\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "somiti_fieldOfficerId_idx_301d219a",
+        "table": "somiti"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"somiti_fieldOfficerId_idx_301d219a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"somiti_fieldOfficerId_idx_301d219a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"somiti_fieldOfficerId_idx_301d219a\"",
+        "sql": "CREATE INDEX \"somiti_fieldOfficerId_idx_301d219a\" ON \"public\".\"somiti\" (\"fieldOfficerId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"somiti_fieldOfficerId_idx_301d219a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"somiti_fieldOfficerId_idx_301d219a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.somiti.somiti_meetingDay_idx_c7d78d1d",
+    "label": "Create index \"somiti_meetingDay_idx_c7d78d1d\" on \"somiti\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "somiti_meetingDay_idx_c7d78d1d",
+        "table": "somiti"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"somiti_meetingDay_idx_c7d78d1d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"somiti_meetingDay_idx_c7d78d1d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"somiti_meetingDay_idx_c7d78d1d\"",
+        "sql": "CREATE INDEX \"somiti_meetingDay_idx_c7d78d1d\" ON \"public\".\"somiti\" (\"meetingDay\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"somiti_meetingDay_idx_c7d78d1d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"somiti_meetingDay_idx_c7d78d1d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.somiti.somiti_name_idx_ce87e6ba",
+    "label": "Create index \"somiti_name_idx_ce87e6ba\" on \"somiti\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "somiti_name_idx_ce87e6ba",
+        "table": "somiti"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"somiti_name_idx_ce87e6ba\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"somiti_name_idx_ce87e6ba\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"somiti_name_idx_ce87e6ba\"",
+        "sql": "CREATE INDEX \"somiti_name_idx_ce87e6ba\" ON \"public\".\"somiti\" (\"name\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"somiti_name_idx_ce87e6ba\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"somiti_name_idx_ce87e6ba\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.somiti.somiti_somitiId_idx_7b1f646c",
+    "label": "Create index \"somiti_somitiId_idx_7b1f646c\" on \"somiti\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "somiti_somitiId_idx_7b1f646c",
+        "table": "somiti"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"somiti_somitiId_idx_7b1f646c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"somiti_somitiId_idx_7b1f646c\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"somiti_somitiId_idx_7b1f646c\"",
+        "sql": "CREATE INDEX \"somiti_somitiId_idx_7b1f646c\" ON \"public\".\"somiti\" (\"somitiId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"somiti_somitiId_idx_7b1f646c\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"somiti_somitiId_idx_7b1f646c\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.somiti.somiti_status_idx_e98638ab",
+    "label": "Create index \"somiti_status_idx_e98638ab\" on \"somiti\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "somiti_status_idx_e98638ab",
+        "table": "somiti"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"somiti_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"somiti_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"somiti_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"somiti_status_idx_e98638ab\" ON \"public\".\"somiti\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"somiti_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"somiti_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.somiti.somiti_fieldOfficerId_fkey",
+    "label": "Add foreign key \"somiti_fieldOfficerId_fkey\" on \"somiti\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "somiti_fieldOfficerId_fkey",
+        "table": "somiti"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"somiti_fieldOfficerId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "somiti_fieldOfficerId_fkey",
+          "public",
+          "\"public\".\"somiti\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"somiti_fieldOfficerId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"somiti\"\nADD CONSTRAINT \"somiti_fieldOfficerId_fkey\"\nFOREIGN KEY (\"fieldOfficerId\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"somiti_fieldOfficerId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "somiti_fieldOfficerId_fkey",
+          "public",
+          "\"public\".\"somiti\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.member.member_somitiId_fkey",
+    "label": "Add foreign key \"member_somitiId_fkey\" on \"member\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "member_somitiId_fkey",
+        "table": "member"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"member_somitiId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "member_somitiId_fkey",
+          "public",
+          "\"public\".\"member\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"member_somitiId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"member\"\nADD CONSTRAINT \"member_somitiId_fkey\"\nFOREIGN KEY (\"somitiId\")\nREFERENCES \"public\".\"somiti\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"member_somitiId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "member_somitiId_fkey",
+          "public",
+          "\"public\".\"member\""
+        ]
+      }
+    ]
+  }
+]

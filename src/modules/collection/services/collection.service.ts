@@ -114,17 +114,31 @@ export const createBatchCollections = async (
   return result;
 };
 
+type Actor = {
+  userId: number;
+  role: string;
+};
+
 /**
  * Get installments due on a selected date.
  */
-export const getDueInstallments = (dueDate: Date) =>
-  repository.findDueInstallments(dueDate);
+export const getDueInstallments = (
+  dueDate: Date,
+  somitiId?: number,
+  actor?: Actor,
+) => {
+  const fieldOfficerId =
+    actor?.role === "FIELD_OFFICER" ? actor.userId : undefined;
+  return repository.findDueInstallments(dueDate, somitiId, fieldOfficerId);
+};
 
 /**
  * Collection history filters.
  */
 export type CollectionListFilters = {
   memberId?: number;
+  somitiId?: number;
+  collectedById?: number;
   fromDate?: Date;
   toDate?: Date;
   page: number;
@@ -134,8 +148,16 @@ export type CollectionListFilters = {
 /**
  * Get collection history.
  */
-export const getCollections = (filters: CollectionListFilters) =>
-  repository.findCollections(filters);
+export const getCollections = (
+  filters: CollectionListFilters,
+  actor?: Actor,
+) => {
+  const effectiveFilters = { ...filters };
+  if (actor?.role === "FIELD_OFFICER") {
+    effectiveFilters.collectedById = actor.userId;
+  }
+  return repository.findCollections(effectiveFilters);
+};
 
 /**
  * Get a single collection receipt/details.
