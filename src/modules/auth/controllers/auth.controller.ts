@@ -17,14 +17,6 @@ import { millisecondsUntil } from "../../../config/session-policy.js";
 
 import * as authService from "../services/auth.service.js";
 
-/**
- * Set access token cookie
- *
- * Access token:
- * - httpOnly
- * - available to all API routes
- * - expires after 15 minutes
- */
 const setAccessCookie = (res: Response, accessToken: string) => {
   res.cookie(accessTokenCookieName, accessToken, getAccessTokenCookieOptions());
 };

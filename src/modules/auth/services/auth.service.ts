@@ -127,8 +127,9 @@ export const refreshAccessToken = async (refreshToken: string) => {
     throw new AuthenticationError("Invalid or expired refresh token");
   }
 
-  const authorizationUser =
-    await userRepository.findAuthorizationUserById(payload.userId);
+  const authorizationUser = await userRepository.findAuthorizationUserById(
+    payload.userId,
+  );
 
   if (!authorizationUser?.isActive) {
     await sessionService.revokeAllUserSessions(payload.userId);
