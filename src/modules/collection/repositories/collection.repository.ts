@@ -636,14 +636,18 @@ export const findDueInstallments = async (
               "somitiId",
             )
             .include("somiti", (somiti) =>
-              somiti.select(
-                "id",
-                "somitiId",
-                "name",
-                "code",
-                "meetingDay",
-                "fieldOfficerId",
-              ),
+              somiti
+                .select(
+                  "id",
+                  "somitiId",
+                  "name",
+                  "code",
+                  "meetingDay",
+                  "fieldOfficerId",
+                )
+                .include("fieldOfficer", (officer) =>
+                  officer.select("id", "fullName", "userName", "email", "role"),
+                ),
             ),
         ),
     )

@@ -164,19 +164,23 @@ export const findSomities = async ({
 };
 
 export const findAllActiveSomities = async (fieldOfficerId?: number) => {
-  let query = db.orm.public.Somiti.where({ status: "ACTIVE" }).select(
-    "id",
-    "somitiId",
-    "name",
-    "code",
-    "meetingDay",
-    "meetingTime",
-    "fieldOfficerId",
-    "village",
-    "union",
-    "upazila",
-    "district",
-  );
+  let query = db.orm.public.Somiti.where({ status: "ACTIVE" })
+    .select(
+      "id",
+      "somitiId",
+      "name",
+      "code",
+      "meetingDay",
+      "meetingTime",
+      "fieldOfficerId",
+      "village",
+      "union",
+      "upazila",
+      "district",
+    )
+    .include("fieldOfficer", (officer) =>
+      officer.select("id", "fullName", "userName", "email", "role"),
+    );
 
   if (fieldOfficerId) {
     query = query.where({ fieldOfficerId });
