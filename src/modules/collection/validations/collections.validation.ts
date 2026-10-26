@@ -23,22 +23,26 @@ const paymentMethod = z.enum([
 const collectionItemShape = {
   memberId: z.coerce.number().int().positive(),
 
-  // Optional because savings can be collected without a loan.
+  // Optional because savings/dps can be collected without a loan.
   loanId: z.coerce.number().int().positive().optional(),
   installmentId: z.coerce.number().int().positive().optional(),
+  dpsAccountId: z.coerce.number().int().positive().optional(),
 
   loanCollectionAmount: z.coerce.number().min(0).default(0),
   generalSavingsAmount: z.coerce.number().min(0).default(0),
   specialSavingsAmount: z.coerce.number().min(0).default(0),
+  dpsAmount: z.coerce.number().min(0).default(0),
 };
 
 type CollectionItem = {
   memberId: number;
   loanId?: number;
   installmentId?: number;
+  dpsAccountId?: number;
   loanCollectionAmount: number;
   generalSavingsAmount: number;
   specialSavingsAmount: number;
+  dpsAmount?: number;
 };
 
 /**
@@ -53,9 +57,10 @@ const validateCollectionItem = (data: CollectionItem, ctx: z.RefinementCtx) => {
     generalSavingsAmount,
     specialSavingsAmount,
   } = data;
+  const dpsAmount = data.dpsAmount ?? 0;
 
   const totalAmount =
-    loanCollectionAmount + generalSavingsAmount + specialSavingsAmount;
+    loanCollectionAmount + generalSavingsAmount + specialSavingsAmount + dpsAmount;
 
   /**
    * At least one amount must be collected.

@@ -1,0 +1,890 @@
+[
+  {
+    "id": "table.dpsAccount",
+    "label": "Create table \"dpsAccount\"",
+    "summary": "Creates table \"dpsAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "dpsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"dpsAccount\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsAccount\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"dpsAccount\"",
+        "sql": "CREATE TABLE \"public\".\"dpsAccount\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"dpsNumber\" text,\n  \"durationMonths\" int4 NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"installmentAmount\" numeric NOT NULL,\n  \"interestRate\" numeric NOT NULL,\n  \"maturityAmount\" numeric NOT NULL,\n  \"maturityDate\" timestamptz NOT NULL,\n  \"memberId\" int4 NOT NULL,\n  \"notes\" text,\n  \"openedById\" int4,\n  \"paidInstallments\" int4 DEFAULT 0 NOT NULL,\n  \"startDate\" timestamptz DEFAULT (now()) NOT NULL,\n  \"status\" text DEFAULT 'ACTIVE' NOT NULL,\n  \"totalPaidAmount\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"totalPrincipal\" numeric NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"dpsAccount_status_check_c62bdaf7\" CHECK (\"status\" IN ('ACTIVE', 'MATURED', 'CLOSED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"dpsAccount\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsAccount\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.dpsInstallment",
+    "label": "Create table \"dpsInstallment\"",
+    "summary": "Creates table \"dpsInstallment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "dpsInstallment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"dpsInstallment\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsInstallment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"dpsInstallment\"",
+        "sql": "CREATE TABLE \"public\".\"dpsInstallment\" (\n  \"amount\" numeric NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"dpsAccountId\" int4 NOT NULL,\n  \"dueDate\" timestamptz NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"installmentNo\" int4 NOT NULL,\n  \"paidAmount\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"paidAt\" timestamptz,\n  \"status\" text DEFAULT 'PENDING' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"dpsInstallment_status_check_b0be9e9f\" CHECK (\"status\" IN ('PENDING', 'PARTIAL', 'PAID'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"dpsInstallment\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsInstallment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.dpsTransaction",
+    "label": "Create table \"dpsTransaction\"",
+    "summary": "Creates table \"dpsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "dpsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"dpsTransaction\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"dpsTransaction\"",
+        "sql": "CREATE TABLE \"public\".\"dpsTransaction\" (\n  \"amount\" numeric NOT NULL,\n  \"balanceAfter\" numeric NOT NULL,\n  \"balanceBefore\" numeric NOT NULL,\n  \"collectionId\" int4,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"dpsAccountId\" int4 NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"notes\" text,\n  \"paymentMethod\" text DEFAULT 'CASH' NOT NULL,\n  \"processedById\" int4,\n  \"reference\" text,\n  \"transactionDate\" timestamptz DEFAULT (now()) NOT NULL,\n  \"transactionId\" text,\n  \"type\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"dpsTransaction_paymentMethod_check_1ac18d5d\" CHECK (\"paymentMethod\" IN ('CASH', 'BANK_TRANSFER', 'MOBILE_PAYMENT', 'CHEQUE', 'OTHER'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"dpsTransaction\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.collection.dpsAmount",
+    "label": "Add column \"dpsAmount\" to \"collection\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "dpsAmount",
+        "table": "collection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"dpsAmount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "collection",
+          "dpsAmount"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"dpsAmount\"",
+        "sql": "ALTER TABLE \"public\".\"collection\" ADD COLUMN \"dpsAmount\" numeric DEFAULT '0'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"dpsAmount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "collection",
+          "dpsAmount"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.dpsAccount.dpsAccount_dpsNumber_key",
+    "label": "Add unique constraint on \"dpsAccount\" (dpsNumber)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "dpsAccount_dpsNumber_key",
+        "table": "dpsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"dpsAccount_dpsNumber_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsAccount_dpsNumber_key",
+          "public",
+          "\"public\".\"dpsAccount\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"dpsAccount_dpsNumber_key\"",
+        "sql": "ALTER TABLE \"public\".\"dpsAccount\" ADD CONSTRAINT \"dpsAccount_dpsNumber_key\" UNIQUE (\"dpsNumber\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"dpsAccount_dpsNumber_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsAccount_dpsNumber_key",
+          "public",
+          "\"public\".\"dpsAccount\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.dpsInstallment.dpsInstallment_dpsAccountId_installmentNo_key",
+    "label": "Add unique constraint on \"dpsInstallment\" (dpsAccountId, installmentNo)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "dpsInstallment_dpsAccountId_installmentNo_key",
+        "table": "dpsInstallment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"dpsInstallment_dpsAccountId_installmentNo_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsInstallment_dpsAccountId_installmentNo_key",
+          "public",
+          "\"public\".\"dpsInstallment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"dpsInstallment_dpsAccountId_installmentNo_key\"",
+        "sql": "ALTER TABLE \"public\".\"dpsInstallment\" ADD CONSTRAINT \"dpsInstallment_dpsAccountId_installmentNo_key\" UNIQUE (\"dpsAccountId\", \"installmentNo\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"dpsInstallment_dpsAccountId_installmentNo_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsInstallment_dpsAccountId_installmentNo_key",
+          "public",
+          "\"public\".\"dpsInstallment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.dpsTransaction.dpsTransaction_transactionId_key",
+    "label": "Add unique constraint on \"dpsTransaction\" (transactionId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "dpsTransaction_transactionId_key",
+        "table": "dpsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"dpsTransaction_transactionId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsTransaction_transactionId_key",
+          "public",
+          "\"public\".\"dpsTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"dpsTransaction_transactionId_key\"",
+        "sql": "ALTER TABLE \"public\".\"dpsTransaction\" ADD CONSTRAINT \"dpsTransaction_transactionId_key\" UNIQUE (\"transactionId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"dpsTransaction_transactionId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsTransaction_transactionId_key",
+          "public",
+          "\"public\".\"dpsTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dpsAccount.dpsAccount_dpsNumber_idx_a640da47",
+    "label": "Create index \"dpsAccount_dpsNumber_idx_a640da47\" on \"dpsAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dpsAccount_dpsNumber_idx_a640da47",
+        "table": "dpsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dpsAccount_dpsNumber_idx_a640da47\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsAccount_dpsNumber_idx_a640da47\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dpsAccount_dpsNumber_idx_a640da47\"",
+        "sql": "CREATE INDEX \"dpsAccount_dpsNumber_idx_a640da47\" ON \"public\".\"dpsAccount\" (\"dpsNumber\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dpsAccount_dpsNumber_idx_a640da47\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsAccount_dpsNumber_idx_a640da47\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dpsAccount.dpsAccount_memberId_idx_76b3c263",
+    "label": "Create index \"dpsAccount_memberId_idx_76b3c263\" on \"dpsAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dpsAccount_memberId_idx_76b3c263",
+        "table": "dpsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dpsAccount_memberId_idx_76b3c263\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsAccount_memberId_idx_76b3c263\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dpsAccount_memberId_idx_76b3c263\"",
+        "sql": "CREATE INDEX \"dpsAccount_memberId_idx_76b3c263\" ON \"public\".\"dpsAccount\" (\"memberId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dpsAccount_memberId_idx_76b3c263\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsAccount_memberId_idx_76b3c263\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dpsAccount.dpsAccount_openedById_idx_40bfe2c9",
+    "label": "Create index \"dpsAccount_openedById_idx_40bfe2c9\" on \"dpsAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dpsAccount_openedById_idx_40bfe2c9",
+        "table": "dpsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dpsAccount_openedById_idx_40bfe2c9\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsAccount_openedById_idx_40bfe2c9\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dpsAccount_openedById_idx_40bfe2c9\"",
+        "sql": "CREATE INDEX \"dpsAccount_openedById_idx_40bfe2c9\" ON \"public\".\"dpsAccount\" (\"openedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dpsAccount_openedById_idx_40bfe2c9\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsAccount_openedById_idx_40bfe2c9\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dpsAccount.dpsAccount_status_idx_e98638ab",
+    "label": "Create index \"dpsAccount_status_idx_e98638ab\" on \"dpsAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dpsAccount_status_idx_e98638ab",
+        "table": "dpsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dpsAccount_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsAccount_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dpsAccount_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"dpsAccount_status_idx_e98638ab\" ON \"public\".\"dpsAccount\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dpsAccount_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsAccount_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dpsInstallment.dpsInstallment_dpsAccountId_idx_94a05b9b",
+    "label": "Create index \"dpsInstallment_dpsAccountId_idx_94a05b9b\" on \"dpsInstallment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dpsInstallment_dpsAccountId_idx_94a05b9b",
+        "table": "dpsInstallment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dpsInstallment_dpsAccountId_idx_94a05b9b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsInstallment_dpsAccountId_idx_94a05b9b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dpsInstallment_dpsAccountId_idx_94a05b9b\"",
+        "sql": "CREATE INDEX \"dpsInstallment_dpsAccountId_idx_94a05b9b\" ON \"public\".\"dpsInstallment\" (\"dpsAccountId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dpsInstallment_dpsAccountId_idx_94a05b9b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsInstallment_dpsAccountId_idx_94a05b9b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dpsInstallment.dpsInstallment_dueDate_idx_fb527616",
+    "label": "Create index \"dpsInstallment_dueDate_idx_fb527616\" on \"dpsInstallment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dpsInstallment_dueDate_idx_fb527616",
+        "table": "dpsInstallment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dpsInstallment_dueDate_idx_fb527616\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsInstallment_dueDate_idx_fb527616\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dpsInstallment_dueDate_idx_fb527616\"",
+        "sql": "CREATE INDEX \"dpsInstallment_dueDate_idx_fb527616\" ON \"public\".\"dpsInstallment\" (\"dueDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dpsInstallment_dueDate_idx_fb527616\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsInstallment_dueDate_idx_fb527616\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dpsTransaction.dpsTransaction_collectionId_idx_b344fc1a",
+    "label": "Create index \"dpsTransaction_collectionId_idx_b344fc1a\" on \"dpsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dpsTransaction_collectionId_idx_b344fc1a",
+        "table": "dpsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dpsTransaction_collectionId_idx_b344fc1a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsTransaction_collectionId_idx_b344fc1a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dpsTransaction_collectionId_idx_b344fc1a\"",
+        "sql": "CREATE INDEX \"dpsTransaction_collectionId_idx_b344fc1a\" ON \"public\".\"dpsTransaction\" (\"collectionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dpsTransaction_collectionId_idx_b344fc1a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsTransaction_collectionId_idx_b344fc1a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dpsTransaction.dpsTransaction_dpsAccountId_idx_94a05b9b",
+    "label": "Create index \"dpsTransaction_dpsAccountId_idx_94a05b9b\" on \"dpsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dpsTransaction_dpsAccountId_idx_94a05b9b",
+        "table": "dpsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dpsTransaction_dpsAccountId_idx_94a05b9b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsTransaction_dpsAccountId_idx_94a05b9b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dpsTransaction_dpsAccountId_idx_94a05b9b\"",
+        "sql": "CREATE INDEX \"dpsTransaction_dpsAccountId_idx_94a05b9b\" ON \"public\".\"dpsTransaction\" (\"dpsAccountId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dpsTransaction_dpsAccountId_idx_94a05b9b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsTransaction_dpsAccountId_idx_94a05b9b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dpsTransaction.dpsTransaction_processedById_idx_92dfd8d4",
+    "label": "Create index \"dpsTransaction_processedById_idx_92dfd8d4\" on \"dpsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dpsTransaction_processedById_idx_92dfd8d4",
+        "table": "dpsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dpsTransaction_processedById_idx_92dfd8d4\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsTransaction_processedById_idx_92dfd8d4\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dpsTransaction_processedById_idx_92dfd8d4\"",
+        "sql": "CREATE INDEX \"dpsTransaction_processedById_idx_92dfd8d4\" ON \"public\".\"dpsTransaction\" (\"processedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dpsTransaction_processedById_idx_92dfd8d4\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dpsTransaction_processedById_idx_92dfd8d4\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.dpsAccount.dpsAccount_memberId_fkey",
+    "label": "Add foreign key \"dpsAccount_memberId_fkey\" on \"dpsAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "dpsAccount_memberId_fkey",
+        "table": "dpsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"dpsAccount_memberId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsAccount_memberId_fkey",
+          "public",
+          "\"public\".\"dpsAccount\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"dpsAccount_memberId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"dpsAccount\"\nADD CONSTRAINT \"dpsAccount_memberId_fkey\"\nFOREIGN KEY (\"memberId\")\nREFERENCES \"public\".\"member\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"dpsAccount_memberId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsAccount_memberId_fkey",
+          "public",
+          "\"public\".\"dpsAccount\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.dpsAccount.dpsAccount_openedById_fkey",
+    "label": "Add foreign key \"dpsAccount_openedById_fkey\" on \"dpsAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "dpsAccount_openedById_fkey",
+        "table": "dpsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"dpsAccount_openedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsAccount_openedById_fkey",
+          "public",
+          "\"public\".\"dpsAccount\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"dpsAccount_openedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"dpsAccount\"\nADD CONSTRAINT \"dpsAccount_openedById_fkey\"\nFOREIGN KEY (\"openedById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"dpsAccount_openedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsAccount_openedById_fkey",
+          "public",
+          "\"public\".\"dpsAccount\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.dpsInstallment.dpsInstallment_dpsAccountId_fkey",
+    "label": "Add foreign key \"dpsInstallment_dpsAccountId_fkey\" on \"dpsInstallment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "dpsInstallment_dpsAccountId_fkey",
+        "table": "dpsInstallment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"dpsInstallment_dpsAccountId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsInstallment_dpsAccountId_fkey",
+          "public",
+          "\"public\".\"dpsInstallment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"dpsInstallment_dpsAccountId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"dpsInstallment\"\nADD CONSTRAINT \"dpsInstallment_dpsAccountId_fkey\"\nFOREIGN KEY (\"dpsAccountId\")\nREFERENCES \"public\".\"dpsAccount\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"dpsInstallment_dpsAccountId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsInstallment_dpsAccountId_fkey",
+          "public",
+          "\"public\".\"dpsInstallment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.dpsTransaction.dpsTransaction_dpsAccountId_fkey",
+    "label": "Add foreign key \"dpsTransaction_dpsAccountId_fkey\" on \"dpsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "dpsTransaction_dpsAccountId_fkey",
+        "table": "dpsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"dpsTransaction_dpsAccountId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsTransaction_dpsAccountId_fkey",
+          "public",
+          "\"public\".\"dpsTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"dpsTransaction_dpsAccountId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"dpsTransaction\"\nADD CONSTRAINT \"dpsTransaction_dpsAccountId_fkey\"\nFOREIGN KEY (\"dpsAccountId\")\nREFERENCES \"public\".\"dpsAccount\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"dpsTransaction_dpsAccountId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsTransaction_dpsAccountId_fkey",
+          "public",
+          "\"public\".\"dpsTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.dpsTransaction.dpsTransaction_collectionId_fkey",
+    "label": "Add foreign key \"dpsTransaction_collectionId_fkey\" on \"dpsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "dpsTransaction_collectionId_fkey",
+        "table": "dpsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"dpsTransaction_collectionId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsTransaction_collectionId_fkey",
+          "public",
+          "\"public\".\"dpsTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"dpsTransaction_collectionId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"dpsTransaction\"\nADD CONSTRAINT \"dpsTransaction_collectionId_fkey\"\nFOREIGN KEY (\"collectionId\")\nREFERENCES \"public\".\"collection\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"dpsTransaction_collectionId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsTransaction_collectionId_fkey",
+          "public",
+          "\"public\".\"dpsTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.dpsTransaction.dpsTransaction_processedById_fkey",
+    "label": "Add foreign key \"dpsTransaction_processedById_fkey\" on \"dpsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "dpsTransaction_processedById_fkey",
+        "table": "dpsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"dpsTransaction_processedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsTransaction_processedById_fkey",
+          "public",
+          "\"public\".\"dpsTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"dpsTransaction_processedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"dpsTransaction\"\nADD CONSTRAINT \"dpsTransaction_processedById_fkey\"\nFOREIGN KEY (\"processedById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"dpsTransaction_processedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsTransaction_processedById_fkey",
+          "public",
+          "\"public\".\"dpsTransaction\""
+        ]
+      }
+    ]
+  }
+]

@@ -36,6 +36,14 @@ export interface SavingsSummaryReportQuery {
   limit?: number;
 }
 
+export interface DpsSummaryReportQuery {
+  somitiId?: number;
+  fieldOfficerId?: number;
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+
 export interface ReportActor {
   userId: number;
   role: string;

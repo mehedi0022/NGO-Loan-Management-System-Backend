@@ -80,3 +80,11 @@ export const savingsSummaryReportSchema = z.object({
     status: z.enum(["ALL", "ACTIVE", "INACTIVE", "DORMANT", "CLOSED"]).optional(),
   }),
 });
+
+export const dpsSummaryReportSchema = z.object({
+  query: paginationQuerySchema.extend({
+    somitiId: z.coerce.number().int().positive().optional(),
+    fieldOfficerId: z.coerce.number().int().positive().optional(),
+    status: z.enum(["ALL", "ACTIVE", "MATURED", "CLOSED"]).optional(),
+  }),
+});

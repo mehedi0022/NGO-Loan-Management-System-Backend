@@ -249,6 +249,30 @@ export const findMemberById = async (id: number) => {
         "closedAt",
       ),
     )
+    .include("dpsAccounts", (dps) =>
+      dps
+        .select(
+          "id",
+          "dpsNumber",
+          "installmentAmount",
+          "durationMonths",
+          "interestRate",
+          "totalPrincipal",
+          "maturityAmount",
+          "totalPaidAmount",
+          "paidInstallments",
+          "startDate",
+          "maturityDate",
+          "status",
+          "notes",
+          "createdAt",
+        )
+        .include("installments", (inst) =>
+          inst
+            .select("id", "installmentNo", "dueDate", "amount", "paidAmount", "status", "paidAt")
+            .orderBy((i) => i.installmentNo.asc()),
+        ),
+    )
     .first({ id });
 
   if (!member) {

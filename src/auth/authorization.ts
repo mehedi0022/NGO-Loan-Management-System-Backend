@@ -41,6 +41,12 @@ export const permissions = {
   savingsDeposit: "savings:deposit",
   savingsWithdraw: "savings:withdraw",
 
+  // DPS
+  dpsReadAny: "dps:read:any",
+  dpsCreate: "dps:create",
+  dpsDeposit: "dps:deposit",
+  dpsClose: "dps:close",
+
   // Reports
   reportsReadAny: "reports:read:any",
 
@@ -99,6 +105,12 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.savingsDeposit,
     permissions.savingsWithdraw,
 
+    // DPS
+    permissions.dpsReadAny,
+    permissions.dpsCreate,
+    permissions.dpsDeposit,
+    permissions.dpsClose,
+
     // Reports
     permissions.reportsReadAny,
 
@@ -142,6 +154,12 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.savingsDeposit,
     permissions.savingsWithdraw,
 
+    // DPS
+    permissions.dpsReadAny,
+    permissions.dpsCreate,
+    permissions.dpsDeposit,
+    permissions.dpsClose,
+
     // Reports
     permissions.reportsReadAny,
 
@@ -179,6 +197,12 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.savingsReadAny,
     permissions.savingsDeposit,
     permissions.savingsWithdraw,
+
+    // DPS
+    permissions.dpsReadAny,
+    permissions.dpsCreate,
+    permissions.dpsDeposit,
+    permissions.dpsClose,
 
     // Reports
     permissions.reportsReadAny,

@@ -218,16 +218,14 @@ export const getIncomeExpenseList = async (query: IncomeExpenseQuery = {}) => {
 
   if (startDate) {
     const from = new Date(`${startDate}T00:00:00.000Z`);
-    voucherQuery = voucherQuery.where({
-      date: { gte: toInstant(from) },
-    });
+    const fromInstant = toInstant(from);
+    voucherQuery = voucherQuery.where((v) => v.date.gte(fromInstant));
   }
 
   if (endDate) {
     const to = new Date(`${endDate}T23:59:59.999Z`);
-    voucherQuery = voucherQuery.where({
-      date: { lte: toInstant(to) },
-    });
+    const toInstantVal = toInstant(to);
+    voucherQuery = voucherQuery.where((v) => v.date.lte(toInstantVal));
   }
 
   const allRecords = await voucherQuery

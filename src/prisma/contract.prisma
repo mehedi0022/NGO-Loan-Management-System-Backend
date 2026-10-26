@@ -120,6 +120,14 @@ enum TransactionType {
   EXPENSE = "EXPENSE"
 }
 
+enum DpsStatus {
+  @@type("pg/text@1")
+
+  ACTIVE = "ACTIVE"
+  MATURED = "MATURED"
+  CLOSED = "CLOSED"
+}
+
 model User {
   id                           Int                  @id @default(autoincrement())
   email                        String               @unique
@@ -140,6 +148,8 @@ model User {
   rejectedLoans                Loan[]               @relation("LoanRejectedBy")
   assignedSomities             Somiti[]             @relation("SomitiFieldOfficer")
   incomeExpenses               IncomeExpense[]      @relation("IncomeExpenseCreatedBy")
+  openedDpsAccounts            DpsAccount[]         @relation("DpsAccountOpenedBy")
+  processedDpsTransactions     DpsTransaction[]     @relation("DpsTransactionProcessedBy")
 }
 
 model Session {
@@ -243,6 +253,7 @@ model Member {
   loans          Loan[]
 
   savingsAccount SavingsAccount?
+  dpsAccounts    DpsAccount[]
   collections    Collection[]
 
   createdAt      DateTime             @default(now())
@@ -494,6 +505,7 @@ model Collection {
   loanCollectionAmount Decimal              @default("0")
   generalSavingsAmount Decimal              @default("0")
   specialSavingsAmount Decimal              @default("0")
+  dpsAmount            Decimal              @default("0")
   totalAmount          Decimal              @default("0")
 
   collectionDate       DateTime             @default(now())
@@ -504,6 +516,7 @@ model Collection {
 
   loanPayments         LoanPayment[]
   savingsTransactions  SavingsTransaction[]
+  dpsTransactions      DpsTransaction[]
 
   createdAt            DateTime             @default(now())
   updatedAt            temporal.updatedAt()
@@ -594,4 +607,92 @@ model OrganizationSetting {
   minSpecialSavingsDeposit Decimal              @default("100")
 
   updatedAt                temporal.updatedAt()
+}
+
+
+model DpsAccount {
+  id                Int              @id @default(autoincrement())
+  dpsNumber         String?          @unique
+
+  memberId          Int
+  member            Member           @relation(fields:[memberId], references:[id])
+
+  installmentAmount Decimal
+  durationMonths    Int
+  interestRate      Decimal
+
+  totalPrincipal    Decimal
+  maturityAmount    Decimal
+
+  totalPaidAmount   Decimal          @default("0")
+  paidInstallments  Int              @default(0)
+
+  startDate         DateTime         @default(now())
+  maturityDate      DateTime
+
+  status            DpsStatus        @default(ACTIVE)
+  notes             String?
+
+  openedById        Int?
+  openedBy          User?            @relation("DpsAccountOpenedBy", fields:[openedById], references:[id])
+
+  installments      DpsInstallment[]
+  transactions      DpsTransaction[]
+
+  createdAt         DateTime         @default(now())
+  updatedAt         temporal.updatedAt()
+
+  @@index([dpsNumber])
+  @@index([memberId])
+  @@index([status])
+}
+
+model DpsInstallment {
+  id            Int               @id @default(autoincrement())
+  dpsAccountId  Int
+  dpsAccount    DpsAccount        @relation(fields:[dpsAccountId], references:[id], onDelete: Cascade)
+
+  installmentNo Int
+  dueDate       DateTime
+  amount        Decimal
+  paidAmount    Decimal           @default("0")
+  status        InstallmentStatus @default(PENDING)
+  paidAt        DateTime?
+
+  createdAt     DateTime          @default(now())
+  updatedAt     temporal.updatedAt()
+
+  @@unique([dpsAccountId, installmentNo])
+  @@index([dpsAccountId])
+  @@index([dueDate])
+}
+
+model DpsTransaction {
+  id            Int           @id @default(autoincrement())
+  transactionId String?       @unique
+
+  dpsAccountId  Int
+  dpsAccount    DpsAccount    @relation(fields:[dpsAccountId], references:[id])
+
+  collectionId  Int?
+  collection    Collection?   @relation(fields:[collectionId], references:[id])
+
+  processedById Int?
+  processedBy   User?         @relation("DpsTransactionProcessedBy", fields:[processedById], references:[id])
+
+  type          String
+  amount        Decimal
+  balanceBefore Decimal
+  balanceAfter  Decimal
+
+  transactionDate DateTime    @default(now())
+  paymentMethod PaymentMethod @default(CASH)
+  reference     String?
+  notes         String?
+
+  createdAt     DateTime      @default(now())
+
+  @@index([dpsAccountId])
+  @@index([collectionId])
+  @@index([processedById])
 }

@@ -158,4 +158,5 @@ export const toMemberDetailsDto = (
   savingsAccount: member.savingsAccount
     ? toMemberSavingsAccountDto(member.savingsAccount)
     : null,
+  dpsAccounts: member.dpsAccounts || [],
 });

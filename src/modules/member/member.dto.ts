@@ -135,4 +135,5 @@ export type MemberDetailsDto = PublicMemberDto & {
   guarantors: GuarantorDto[];
   loans: MemberLoanDto[];
   savingsAccount: MemberSavingsAccountDto | null;
+  dpsAccounts?: any[];
 };

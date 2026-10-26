@@ -6,6 +6,7 @@ import type {
   LoanPortfolioReportQuery,
   OverdueReportQuery,
   SavingsSummaryReportQuery,
+  DpsSummaryReportQuery,
 } from "../reports.types.js";
 
 const toInstant = (date: Date) => Temporal.Instant.from(date.toISOString());
@@ -46,6 +47,7 @@ export const getDailyCollectionsReport = async (query: DailyCollectionReportQuer
     "loanCollectionAmount",
     "generalSavingsAmount",
     "specialSavingsAmount",
+    "dpsAmount",
     "totalAmount",
     "collectionDate",
     "paymentMethod",
@@ -77,16 +79,18 @@ export const getDailyCollectionsReport = async (query: DailyCollectionReportQuer
 
   if (startDate) {
     const from = new Date(`${startDate}T00:00:00.000Z`);
-    collectionsQuery = collectionsQuery.where({
-      collectionDate: { gte: toInstant(from) },
-    });
+    const fromInstant = toInstant(from);
+    collectionsQuery = collectionsQuery.where((c) =>
+      c.collectionDate.gte(fromInstant),
+    );
   }
 
   if (endDate) {
     const to = new Date(`${endDate}T23:59:59.999Z`);
-    collectionsQuery = collectionsQuery.where({
-      collectionDate: { lte: toInstant(to) },
-    });
+    const toInstantVal = toInstant(to);
+    collectionsQuery = collectionsQuery.where((c) =>
+      c.collectionDate.lte(toInstantVal),
+    );
   }
 
   const allRecords = await collectionsQuery
@@ -124,6 +128,10 @@ export const getDailyCollectionsReport = async (query: DailyCollectionReportQuer
     (acc, r) => acc + toNumber(r.specialSavingsAmount),
     0,
   );
+  const totalDpsAmount = filtered.reduce(
+    (acc, r) => acc + toNumber(r.dpsAmount),
+    0,
+  );
   const totalCollectedAmount = filtered.reduce(
     (acc, r) => acc + toNumber(r.totalAmount),
     0,
@@ -135,6 +143,7 @@ export const getDailyCollectionsReport = async (query: DailyCollectionReportQuer
       totalLoanAmount,
       totalGeneralSavingsAmount,
       totalSpecialSavingsAmount,
+      totalDpsAmount,
       totalCollectedAmount,
     },
     records: pagedRecords.map((r) => ({
@@ -159,6 +168,7 @@ export const getDailyCollectionsReport = async (query: DailyCollectionReportQuer
       loanCollectionAmount: toNumber(r.loanCollectionAmount),
       generalSavingsAmount: toNumber(r.generalSavingsAmount),
       specialSavingsAmount: toNumber(r.specialSavingsAmount),
+      dpsAmount: toNumber(r.dpsAmount),
       totalAmount: toNumber(r.totalAmount),
       paymentMethod: r.paymentMethod,
       reference: r.reference,
@@ -228,16 +238,14 @@ export const getLoanPortfolioReport = async (query: LoanPortfolioReportQuery) =>
 
   if (startDate) {
     const from = new Date(`${startDate}T00:00:00.000Z`);
-    loansQuery = loansQuery.where({
-      createdAt: { gte: toInstant(from) },
-    });
+    const fromInstant = toInstant(from);
+    loansQuery = loansQuery.where((l) => l.createdAt.gte(fromInstant));
   }
 
   if (endDate) {
     const to = new Date(`${endDate}T23:59:59.999Z`);
-    loansQuery = loansQuery.where({
-      createdAt: { lte: toInstant(to) },
-    });
+    const toInstantVal = toInstant(to);
+    loansQuery = loansQuery.where((l) => l.createdAt.lte(toInstantVal));
   }
 
   const allLoans = await loansQuery
@@ -376,9 +384,7 @@ export const getOverdueInstallmentsReport = async (query: OverdueReportQuery) =>
             ),
         ),
     )
-    .where({
-      dueDate: { lt: toInstant(targetDate) },
-    })
+    .where((i) => i.dueDate.lt(toInstant(targetDate)))
     .orderBy((i) => i.dueDate.asc())
     .all();
 
@@ -561,6 +567,119 @@ export const getSavingsSummaryReport = async (query: SavingsSummaryReportQuery) 
         openedAt: acc.openedAt,
       };
     }),
+    meta: paginationMeta(page, limit, total),
+  };
+};
+
+/**
+ * 5. DPS Summary Report
+ */
+export const getDpsSummaryReport = async (query: DpsSummaryReportQuery) => {
+  const { somitiId, fieldOfficerId, status, page = 1, limit = 20 } = query;
+
+  let allowedSomitiIds: number[] | null = null;
+  if (fieldOfficerId) {
+    const assignedSomities = await db.orm.public.Somiti.select("id")
+      .where({ fieldOfficerId })
+      .all();
+    allowedSomitiIds = assignedSomities.map((s) => s.id);
+  }
+
+  let accountsQuery = db.orm.public.DpsAccount.select(
+    "id",
+    "dpsNumber",
+    "memberId",
+    "installmentAmount",
+    "durationMonths",
+    "interestRate",
+    "totalPrincipal",
+    "maturityAmount",
+    "totalPaidAmount",
+    "paidInstallments",
+    "status",
+    "startDate",
+    "maturityDate",
+    "createdAt",
+  )
+    .include("member", (member) =>
+      member
+        .select("id", "memberId", "fullName", "mobileNumber", "somitiId")
+        .include("somiti", (somiti) =>
+          somiti.select("id", "somitiId", "name", "code", "fieldOfficerId"),
+        ),
+    );
+
+  if (status && status !== "ALL") {
+    accountsQuery = accountsQuery.where({ status: status as any });
+  }
+
+  const allAccounts = await accountsQuery
+    .orderBy((a) => a.createdAt.desc())
+    .all();
+
+  const filtered = allAccounts.filter((account) => {
+    const memberSomitiId = account.member?.somitiId;
+    if (somitiId && memberSomitiId !== somitiId) return false;
+    if (allowedSomitiIds !== null) {
+      if (!memberSomitiId || !allowedSomitiIds.includes(memberSomitiId)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  const total = filtered.length;
+  const offset = pageOffset(page, limit);
+  const pagedAccounts = filtered.slice(offset, offset + limit);
+
+  let activeCount = 0;
+  let totalMonthlyDemand = 0;
+  let totalPaidAmount = 0;
+  let totalMaturityLiability = 0;
+
+  filtered.forEach((acc) => {
+    if (acc.status === "ACTIVE") {
+      activeCount++;
+      totalMonthlyDemand += toNumber(acc.installmentAmount);
+    }
+    totalPaidAmount += toNumber(acc.totalPaidAmount);
+    totalMaturityLiability += toNumber(acc.maturityAmount);
+  });
+
+  return {
+    summary: {
+      totalAccounts: total,
+      activeAccounts: activeCount,
+      totalMonthlyDemand,
+      totalPaidAmount,
+      totalMaturityLiability,
+    },
+    records: pagedAccounts.map((acc) => ({
+      id: acc.id,
+      dpsNumber: acc.dpsNumber || `DPS-${acc.id}`,
+      member: {
+        id: acc.member?.id,
+        memberId: acc.member?.memberId,
+        fullName: acc.member?.fullName,
+        mobileNumber: acc.member?.mobileNumber,
+      },
+      somiti: acc.member?.somiti
+        ? {
+            id: acc.member.somiti.id,
+            name: acc.member.somiti.name,
+            code: acc.member.somiti.code,
+          }
+        : null,
+      installmentAmount: toNumber(acc.installmentAmount),
+      durationMonths: acc.durationMonths,
+      interestRate: toNumber(acc.interestRate),
+      totalPaidAmount: toNumber(acc.totalPaidAmount),
+      paidInstallments: acc.paidInstallments,
+      maturityAmount: toNumber(acc.maturityAmount),
+      status: acc.status,
+      startDate: acc.startDate,
+      maturityDate: acc.maturityDate,
+    })),
     meta: paginationMeta(page, limit, total),
   };
 };

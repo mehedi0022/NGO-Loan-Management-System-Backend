@@ -7,6 +7,7 @@ import type {
   LoanPortfolioReportQuery,
   OverdueReportQuery,
   SavingsSummaryReportQuery,
+  DpsSummaryReportQuery,
 } from "../reports.types.js";
 
 export const getDailyCollectionsReport = asyncHandler(
@@ -74,6 +75,24 @@ export const getSavingsSummaryReport = asyncHandler(
     return res.status(200).json({
       success: true,
       message: "Savings summary report fetched successfully",
+      data: result.records,
+      summary: result.summary,
+      meta: result.meta,
+    });
+  },
+);
+
+export const getDpsSummaryReport = asyncHandler(
+  async (req: Request, res: Response) => {
+    const auth = (req as AuthenticatedRequest).auth;
+    const result = await service.getDpsSummaryReport(
+      req.query as unknown as DpsSummaryReportQuery,
+      auth,
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "DPS summary report fetched successfully",
       data: result.records,
       summary: result.summary,
       meta: result.meta,

@@ -21,10 +21,12 @@ type CollectionItemInput = {
 
   loanId?: number;
   installmentId?: number;
+  dpsAccountId?: number;
 
   loanCollectionAmount: number;
   generalSavingsAmount: number;
   specialSavingsAmount: number;
+  dpsAmount?: number;
 
   collectionDate: Date;
   allowAdvance: boolean;
@@ -50,6 +52,7 @@ export type CollectionResult =
         | "OVERPAY"
         | "UPCOMING"
         | "SAVINGS_ACCOUNT_CLOSED"
+        | "DPS_ACCOUNT_NOT_ACTIVE"
         | "CONCURRENT";
     };
 
@@ -347,6 +350,112 @@ const applySavingsDeposit = async (
 };
 
 /**
+ * Apply one DPS installment deposit.
+ */
+const applyDpsDeposit = async (
+  tx: TransactionClient,
+  collectionDbId: number,
+  processedById: number,
+  memberId: number,
+  dpsAccountId: number | undefined,
+  amount: number,
+  collectionDate: Date,
+  paymentMethod: CreateCollectionInput["paymentMethod"],
+  reference?: string,
+  notes?: string,
+): Promise<CollectionResult> => {
+  if (amount <= 0) {
+    return { kind: "SUCCESS" };
+  }
+
+  let account: any;
+  if (dpsAccountId) {
+    account = await tx.orm.public.DpsAccount.select(
+      "id",
+      "memberId",
+      "status",
+      "totalPaidAmount",
+      "paidInstallments",
+      "durationMonths",
+      "installmentAmount",
+    ).first({ id: dpsAccountId });
+  } else {
+    account = await tx.orm.public.DpsAccount.select(
+      "id",
+      "memberId",
+      "status",
+      "totalPaidAmount",
+      "paidInstallments",
+      "durationMonths",
+      "installmentAmount",
+    ).first({ memberId, status: "ACTIVE" });
+  }
+
+  if (!account || account.status !== "ACTIVE" || account.memberId !== memberId) {
+    return { kind: "DPS_ACCOUNT_NOT_ACTIVE" };
+  }
+
+  const depositCents = cents(amount);
+  const currentPaidCents = cents(account.totalPaidAmount);
+  const balanceAfterCents = currentPaidCents + depositCents;
+
+  const targetInstallment = await tx.orm.public.DpsInstallment.select(
+    "id",
+    "installmentNo",
+    "amount",
+    "paidAmount",
+    "status",
+  )
+    .where({ dpsAccountId: account.id, status: "PENDING" })
+    .orderBy((inst: any) => inst.installmentNo.asc())
+    .first();
+
+  const paymentDate = toInstant(collectionDate);
+
+  if (targetInstallment) {
+    const instAmountCents = cents(targetInstallment.amount);
+    const instPaidCents = cents(targetInstallment.paidAmount);
+    const newInstPaidCents = instPaidCents + depositCents;
+    const isFullyPaid = newInstPaidCents >= instAmountCents;
+
+    await tx.orm.public.DpsInstallment.where({ id: targetInstallment.id }).update({
+      paidAmount: money(newInstPaidCents),
+      status: isFullyPaid ? "PAID" : "PARTIAL",
+      paidAt: isFullyPaid ? paymentDate : null,
+    });
+  }
+
+  const newPaidInstallments = account.paidInstallments + 1;
+  const isMatured = newPaidInstallments >= account.durationMonths;
+
+  await tx.orm.public.DpsAccount.where({ id: account.id }).update({
+    totalPaidAmount: money(balanceAfterCents),
+    paidInstallments: newPaidInstallments,
+    status: isMatured ? "MATURED" : "ACTIVE",
+  });
+
+  const transaction = await tx.orm.public.DpsTransaction.create({
+    dpsAccountId: account.id,
+    collectionId: collectionDbId,
+    processedById,
+    type: "DEPOSIT",
+    amount: money(depositCents),
+    balanceBefore: money(currentPaidCents),
+    balanceAfter: money(balanceAfterCents),
+    transactionDate: paymentDate,
+    paymentMethod: paymentMethod || "CASH",
+    reference: reference || null,
+    notes: notes || null,
+  });
+
+  await tx.orm.public.DpsTransaction.where({ id: transaction.id }).update({
+    transactionId: `DTX-${String(transaction.id).padStart(6, "0")}`,
+  });
+
+  return { kind: "SUCCESS" };
+};
+
+/**
  * Process one complete member collection.
  *
  * Everything runs inside the transaction supplied
@@ -368,12 +477,11 @@ const applyCollection = async (
   }
 
   const loanAmount = cents(input.loanCollectionAmount);
-
   const generalAmount = cents(input.generalSavingsAmount);
-
   const specialAmount = cents(input.specialSavingsAmount);
+  const dpsAmount = cents(input.dpsAmount || 0);
 
-  const totalAmount = loanAmount + generalAmount + specialAmount;
+  const totalAmount = loanAmount + generalAmount + specialAmount + dpsAmount;
 
   /**
    * Validation layer already rejects zero collections,
@@ -391,19 +499,14 @@ const applyCollection = async (
     collectedById: input.collectedById,
 
     loanCollectionAmount: money(loanAmount),
-
     generalSavingsAmount: money(generalAmount),
-
     specialSavingsAmount: money(specialAmount),
-
+    dpsAmount: money(dpsAmount),
     totalAmount: money(totalAmount),
 
     collectionDate: toInstant(input.collectionDate),
-
     paymentMethod: input.paymentMethod,
-
     reference: input.reference || null,
-
     notes: input.notes || null,
   });
 
@@ -462,6 +565,26 @@ const applyCollection = async (
     return specialResult;
   }
 
+  /**
+   * 4. DPS Installment
+   */
+  const dpsResult = await applyDpsDeposit(
+    tx,
+    collection.id,
+    input.collectedById,
+    input.memberId,
+    input.dpsAccountId,
+    input.dpsAmount || 0,
+    input.collectionDate,
+    input.paymentMethod,
+    input.reference,
+    input.notes,
+  );
+
+  if (dpsResult.kind !== "SUCCESS") {
+    return dpsResult;
+  }
+
   return {
     kind: "SUCCESS",
     collectionId: collection.id,
@@ -506,6 +629,9 @@ export const createCollection = async (
         generalSavingsAmount: data.generalSavingsAmount,
 
         specialSavingsAmount: data.specialSavingsAmount,
+
+        dpsAccountId: data.dpsAccountId,
+        dpsAmount: data.dpsAmount,
 
         collectionDate: data.collectionDate,
         allowAdvance: data.allowAdvance,
@@ -565,6 +691,9 @@ export const createBatchCollections = async (
           generalSavingsAmount: item.generalSavingsAmount,
 
           specialSavingsAmount: item.specialSavingsAmount,
+
+          dpsAccountId: item.dpsAccountId,
+          dpsAmount: item.dpsAmount,
 
           collectionDate: data.collectionDate,
           allowAdvance: data.allowAdvance,
@@ -634,6 +763,27 @@ export const findDueInstallments = async (
               "mobileNumber",
               "photoUrl",
               "somitiId",
+            )
+            .include("savingsAccount", (savings) =>
+              savings.select(
+                "id",
+                "accountId",
+                "generalSavingsBalance",
+                "specialSavingsBalance",
+              ),
+            )
+            .include("dpsAccounts", (dps) =>
+              dps
+                .select(
+                  "id",
+                  "dpsNumber",
+                  "status",
+                  "installmentAmount",
+                  "totalPaidAmount",
+                  "paidInstallments",
+                  "durationMonths",
+                )
+                .where({ status: "ACTIVE" }),
             )
             .include("somiti", (somiti) =>
               somiti
@@ -738,19 +888,13 @@ export const findCollections = async (filters: {
   }
 
   if (fromDate) {
-    query = query.where({
-      collectionDate: {
-        gte: toInstant(fromDate),
-      },
-    });
+    const fromInstant = toInstant(fromDate);
+    query = query.where((c) => c.collectionDate.gte(fromInstant));
   }
 
   if (toDate) {
-    query = query.where({
-      collectionDate: {
-        lte: toInstant(toDate),
-      },
-    });
+    const toInstantVal = toInstant(toDate);
+    query = query.where((c) => c.collectionDate.lte(toInstantVal));
   }
 
   const [{ total }, data] = await Promise.all([

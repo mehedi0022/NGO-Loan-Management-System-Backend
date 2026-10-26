@@ -66,6 +66,9 @@ const assertCollectionResult = (result: CollectionResult) => {
     case "SAVINGS_ACCOUNT_CLOSED":
       throw new ConflictError(`Savings account is closed${suffix}`);
 
+    case "DPS_ACCOUNT_NOT_ACTIVE":
+      throw new ConflictError(`Active DPS account not found for this member${suffix}`);
+
     case "CONCURRENT":
       throw new ConflictError(
         `Financial data changed while processing the collection; please retry${suffix}`,

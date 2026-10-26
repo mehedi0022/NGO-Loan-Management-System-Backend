@@ -12,6 +12,18 @@
       "model": "Collection",
       "namespace": "public"
     },
+    "dpsAccount": {
+      "model": "DpsAccount",
+      "namespace": "public"
+    },
+    "dpsInstallment": {
+      "model": "DpsInstallment",
+      "namespace": "public"
+    },
+    "dpsTransaction": {
+      "model": "DpsTransaction",
+      "namespace": "public"
+    },
     "guarantor": {
       "model": "Guarantor",
       "namespace": "public"
@@ -96,6 +108,23 @@
               {
                 "name": "FATHER_HOME",
                 "value": "FATHER_HOME"
+              }
+            ]
+          },
+          "DpsStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "ACTIVE",
+                "value": "ACTIVE"
+              },
+              {
+                "name": "MATURED",
+                "value": "MATURED"
+              },
+              {
+                "name": "CLOSED",
+                "value": "CLOSED"
               }
             ]
           },
@@ -468,6 +497,13 @@
                   "kind": "scalar"
                 }
               },
+              "dpsAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
               "generalSavingsAmount": {
                 "nullable": false,
                 "type": {
@@ -562,6 +598,21 @@
                   "namespace": "public"
                 }
               },
+              "dpsTransactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "collectionId"
+                  ]
+                },
+                "to": {
+                  "model": "DpsTransaction",
+                  "namespace": "public"
+                }
+              },
               "loanPayments": {
                 "cardinality": "1:N",
                 "on": {
@@ -623,6 +674,9 @@
                 "createdAt": {
                   "column": "createdAt"
                 },
+                "dpsAmount": {
+                  "column": "dpsAmount"
+                },
                 "generalSavingsAmount": {
                   "column": "generalSavingsAmount"
                 },
@@ -656,6 +710,596 @@
               },
               "namespaceId": "public",
               "table": "collection"
+            }
+          },
+          "DpsAccount": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "dpsNumber": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "durationMonths": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "installmentAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "interestRate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "maturityAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "maturityDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "memberId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "notes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "openedById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "paidInstallments": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "startDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DpsStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "totalPaidAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "totalPrincipal": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "installments": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "dpsAccountId"
+                  ]
+                },
+                "to": {
+                  "model": "DpsInstallment",
+                  "namespace": "public"
+                }
+              },
+              "member": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "memberId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Member",
+                  "namespace": "public"
+                }
+              },
+              "openedBy": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "openedById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "transactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "dpsAccountId"
+                  ]
+                },
+                "to": {
+                  "model": "DpsTransaction",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "dpsNumber": {
+                  "column": "dpsNumber"
+                },
+                "durationMonths": {
+                  "column": "durationMonths"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "installmentAmount": {
+                  "column": "installmentAmount"
+                },
+                "interestRate": {
+                  "column": "interestRate"
+                },
+                "maturityAmount": {
+                  "column": "maturityAmount"
+                },
+                "maturityDate": {
+                  "column": "maturityDate"
+                },
+                "memberId": {
+                  "column": "memberId"
+                },
+                "notes": {
+                  "column": "notes"
+                },
+                "openedById": {
+                  "column": "openedById"
+                },
+                "paidInstallments": {
+                  "column": "paidInstallments"
+                },
+                "startDate": {
+                  "column": "startDate"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "totalPaidAmount": {
+                  "column": "totalPaidAmount"
+                },
+                "totalPrincipal": {
+                  "column": "totalPrincipal"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "dpsAccount"
+            }
+          },
+          "DpsInstallment": {
+            "fields": {
+              "amount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "dpsAccountId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "dueDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "installmentNo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "paidAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "paidAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "InstallmentStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "dpsAccount": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "dpsAccountId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "DpsAccount",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "amount": {
+                  "column": "amount"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "dpsAccountId": {
+                  "column": "dpsAccountId"
+                },
+                "dueDate": {
+                  "column": "dueDate"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "installmentNo": {
+                  "column": "installmentNo"
+                },
+                "paidAmount": {
+                  "column": "paidAmount"
+                },
+                "paidAt": {
+                  "column": "paidAt"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "dpsInstallment"
+            }
+          },
+          "DpsTransaction": {
+            "fields": {
+              "amount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "balanceAfter": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "balanceBefore": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "collectionId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "dpsAccountId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "notes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "paymentMethod": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "PaymentMethod",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "processedById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "reference": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "transactionDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "transactionId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "collection": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "collectionId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Collection",
+                  "namespace": "public"
+                }
+              },
+              "dpsAccount": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "dpsAccountId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "DpsAccount",
+                  "namespace": "public"
+                }
+              },
+              "processedBy": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "processedById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "amount": {
+                  "column": "amount"
+                },
+                "balanceAfter": {
+                  "column": "balanceAfter"
+                },
+                "balanceBefore": {
+                  "column": "balanceBefore"
+                },
+                "collectionId": {
+                  "column": "collectionId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "dpsAccountId": {
+                  "column": "dpsAccountId"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "notes": {
+                  "column": "notes"
+                },
+                "paymentMethod": {
+                  "column": "paymentMethod"
+                },
+                "processedById": {
+                  "column": "processedById"
+                },
+                "reference": {
+                  "column": "reference"
+                },
+                "transactionDate": {
+                  "column": "transactionDate"
+                },
+                "transactionId": {
+                  "column": "transactionId"
+                },
+                "type": {
+                  "column": "type"
+                }
+              },
+              "namespaceId": "public",
+              "table": "dpsTransaction"
             }
           },
           "Guarantor": {
@@ -1927,6 +2571,21 @@
                 },
                 "to": {
                   "model": "Collection",
+                  "namespace": "public"
+                }
+              },
+              "dpsAccounts": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "memberId"
+                  ]
+                },
+                "to": {
+                  "model": "DpsAccount",
                   "namespace": "public"
                 }
               },
@@ -3451,6 +4110,36 @@
                   "namespace": "public"
                 }
               },
+              "openedDpsAccounts": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "openedById"
+                  ]
+                },
+                "to": {
+                  "model": "DpsAccount",
+                  "namespace": "public"
+                }
+              },
+              "processedDpsTransactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "processedById"
+                  ]
+                },
+                "to": {
+                  "model": "DpsTransaction",
+                  "namespace": "public"
+                }
+              },
               "processedSavingsTransactions": {
                 "cardinality": "1:N",
                 "on": {
@@ -3697,6 +4386,15 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
+                "dpsAmount": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
                 "generalSavingsAmount": {
                   "codecId": "pg/numeric@1",
                   "default": {
@@ -3855,6 +4553,536 @@
                 {
                   "columns": [
                     "collectionId"
+                  ]
+                }
+              ]
+            },
+            "dpsAccount": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('ACTIVE', 'MATURED', 'CLOSED')",
+                  "name": "dpsAccount_status_check_c62bdaf7",
+                  "prefix": "dpsAccount_status_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "dpsNumber": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "durationMonths": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "installmentAmount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "interestRate": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "maturityAmount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "maturityDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "memberId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "notes": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "openedById": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "paidInstallments": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "startDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "ACTIVE"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DpsStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "totalPaidAmount": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "totalPrincipal": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "memberId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "dpsAccount"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "member"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "openedById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "dpsAccount"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "dpsNumber"
+                  ],
+                  "name": "dpsAccount_dpsNumber_idx_a640da47",
+                  "prefix": "dpsAccount_dpsNumber_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "memberId"
+                  ],
+                  "name": "dpsAccount_memberId_idx_76b3c263",
+                  "prefix": "dpsAccount_memberId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "openedById"
+                  ],
+                  "name": "dpsAccount_openedById_idx_40bfe2c9",
+                  "prefix": "dpsAccount_openedById_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "dpsAccount_status_idx_e98638ab",
+                  "prefix": "dpsAccount_status_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "dpsNumber"
+                  ]
+                }
+              ]
+            },
+            "dpsInstallment": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('PENDING', 'PARTIAL', 'PAID')",
+                  "name": "dpsInstallment_status_check_b0be9e9f",
+                  "prefix": "dpsInstallment_status_check"
+                }
+              ],
+              "columns": {
+                "amount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "dpsAccountId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "dueDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "installmentNo": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "paidAmount": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "paidAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PENDING"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "InstallmentStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "dpsAccountId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "dpsInstallment"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "dpsAccount"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "dpsAccountId"
+                  ],
+                  "name": "dpsInstallment_dpsAccountId_idx_94a05b9b",
+                  "prefix": "dpsInstallment_dpsAccountId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "dueDate"
+                  ],
+                  "name": "dpsInstallment_dueDate_idx_fb527616",
+                  "prefix": "dpsInstallment_dueDate_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "dpsAccountId",
+                    "installmentNo"
+                  ]
+                }
+              ]
+            },
+            "dpsTransaction": {
+              "checks": [
+                {
+                  "expression": "\"paymentMethod\" IN ('CASH', 'BANK_TRANSFER', 'MOBILE_PAYMENT', 'CHEQUE', 'OTHER')",
+                  "name": "dpsTransaction_paymentMethod_check_1ac18d5d",
+                  "prefix": "dpsTransaction_paymentMethod_check"
+                }
+              ],
+              "columns": {
+                "amount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "balanceAfter": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "balanceBefore": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "collectionId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "dpsAccountId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "notes": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "paymentMethod": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "CASH"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "PaymentMethod",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "processedById": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "reference": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "transactionDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "transactionId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "dpsAccountId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "dpsTransaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "dpsAccount"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "collectionId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "dpsTransaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "collection"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "processedById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "dpsTransaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "collectionId"
+                  ],
+                  "name": "dpsTransaction_collectionId_idx_b344fc1a",
+                  "prefix": "dpsTransaction_collectionId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "dpsAccountId"
+                  ],
+                  "name": "dpsTransaction_dpsAccountId_idx_94a05b9b",
+                  "prefix": "dpsTransaction_dpsAccountId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "processedById"
+                  ],
+                  "name": "dpsTransaction_processedById_idx_92dfd8d4",
+                  "prefix": "dpsTransaction_processedById_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "transactionId"
                   ]
                 }
               ]
@@ -6352,6 +7580,14 @@
                 "FATHER_HOME"
               ]
             },
+            "DpsStatus": {
+              "kind": "valueSet",
+              "values": [
+                "ACTIVE",
+                "MATURED",
+                "CLOSED"
+              ]
+            },
             "InstallmentFrequency": {
               "kind": "valueSet",
               "values": [
@@ -6465,10 +7701,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "b900b0724b652578e11ba114916c8d0436bad6d52ef689cccce2d37f2d3a670b"
+    "storageHash": "540cd940fb42ab06b8ffb43bd4242d7f2635370745164898d325fe0f6eb8f0c9"
   },
   "execution": {
-    "executionHash": "48154abc0bc2a57ea1a2443fbb95c5e275667220c073786c22793e9035f38fe5",
+    "executionHash": "ad25f9e5883003299c29ffcadb148b7a33cc3c2db17178e0cd846fe05998b1b7",
     "mutations": {
       "defaults": [
         {
@@ -6484,6 +7720,36 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "collection"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "dpsAccount"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "dpsInstallment"
           }
         },
         {

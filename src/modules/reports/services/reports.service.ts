@@ -5,6 +5,7 @@ import type {
   OverdueReportQuery,
   ReportActor,
   SavingsSummaryReportQuery,
+  DpsSummaryReportQuery,
 } from "../reports.types.js";
 
 export const getDailyCollectionsReport = async (
@@ -54,6 +55,19 @@ export const getSavingsSummaryReport = async (
     actor?.role === "FIELD_OFFICER" ? actor.userId : query.fieldOfficerId;
 
   return repository.getSavingsSummaryReport({
+    ...query,
+    fieldOfficerId,
+  });
+};
+
+export const getDpsSummaryReport = async (
+  query: DpsSummaryReportQuery,
+  actor?: ReportActor,
+) => {
+  const fieldOfficerId =
+    actor?.role === "FIELD_OFFICER" ? actor.userId : query.fieldOfficerId;
+
+  return repository.getDpsSummaryReport({
     ...query,
     fieldOfficerId,
   });

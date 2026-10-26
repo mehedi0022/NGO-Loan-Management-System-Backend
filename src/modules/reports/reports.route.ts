@@ -8,12 +8,14 @@ import {
   getLoanPortfolioReport,
   getOverdueInstallmentsReport,
   getSavingsSummaryReport,
+  getDpsSummaryReport,
 } from "./controllers/reports.controller.js";
 import {
   dailyCollectionReportSchema,
   loanPortfolioReportSchema,
   overdueReportSchema,
   savingsSummaryReportSchema,
+  dpsSummaryReportSchema,
 } from "./validations/reports.validation.js";
 
 const router = Router();
@@ -43,6 +45,12 @@ router.get(
   "/savings-summary",
   validate(savingsSummaryReportSchema),
   getSavingsSummaryReport,
+);
+
+router.get(
+  "/dps-summary",
+  validate(dpsSummaryReportSchema),
+  getDpsSummaryReport,
 );
 
 export default router;
