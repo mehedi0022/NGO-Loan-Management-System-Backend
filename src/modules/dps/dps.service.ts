@@ -54,9 +54,10 @@ export const closeDpsAccount = async (
 };
 
 export const calculateDpsMaturity = (
-  monthlyAmount: number,
+  installmentAmount: number,
   durationMonths: number,
   interestRate: number,
+  frequency: "WEEKLY" | "MONTHLY" = "MONTHLY",
 ) => {
-  return dpsRepository.calculateDpsMaturity(monthlyAmount, durationMonths, interestRate);
+  return dpsRepository.calculateDpsMaturity(installmentAmount, durationMonths, interestRate, frequency);
 };

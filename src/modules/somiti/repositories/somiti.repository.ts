@@ -233,10 +233,33 @@ export const findSomitiMembers = async (
         "id",
         "memberId",
         "fullName",
+        "fatherName",
+        "guardianName",
         "mobileNumber",
         "status",
         "joinDate",
         "photoUrl",
+      )
+      .include("savingsAccount", (savings) =>
+        savings.select(
+          "id",
+          "accountId",
+          "generalSavingsBalance",
+          "specialSavingsBalance",
+        ),
+      )
+      .include("dpsAccounts", (dps) =>
+        dps
+          .select(
+            "id",
+            "dpsNumber",
+            "status",
+            "installmentAmount",
+            "totalPaidAmount",
+            "paidInstallments",
+            "durationMonths",
+          )
+          .where({ status: "ACTIVE" }),
       )
       .orderBy((member) => member.createdAt.desc())
       .offset(pageOffset(page, limit))

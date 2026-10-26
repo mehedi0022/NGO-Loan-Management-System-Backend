@@ -735,6 +735,19 @@
                   "kind": "scalar"
                 }
               },
+              "frequency": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "InstallmentFrequency",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -914,6 +927,9 @@
                 },
                 "durationMonths": {
                   "column": "durationMonths"
+                },
+                "frequency": {
+                  "column": "frequency"
                 },
                 "id": {
                   "column": "id"
@@ -4560,6 +4576,11 @@
             "dpsAccount": {
               "checks": [
                 {
+                  "expression": "\"frequency\" IN ('WEEKLY', 'MONTHLY')",
+                  "name": "dpsAccount_frequency_check_a03ca8f9",
+                  "prefix": "dpsAccount_frequency_check"
+                },
+                {
                   "expression": "\"status\" IN ('ACTIVE', 'MATURED', 'CLOSED')",
                   "name": "dpsAccount_status_check_c62bdaf7",
                   "prefix": "dpsAccount_status_check"
@@ -4584,6 +4605,21 @@
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
                   "nullable": false
+                },
+                "frequency": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "MONTHLY"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "InstallmentFrequency",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 },
                 "id": {
                   "codecId": "pg/int4@1",
@@ -7701,7 +7737,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "540cd940fb42ab06b8ffb43bd4242d7f2635370745164898d325fe0f6eb8f0c9"
+    "storageHash": "fd3adc1d510f0b5aae22d9e36e0cfbf7e10ce0b4977d2758cd74955ffbd2df9f"
   },
   "execution": {
     "executionHash": "ad25f9e5883003299c29ffcadb148b7a33cc3c2db17178e0cd846fe05998b1b7",

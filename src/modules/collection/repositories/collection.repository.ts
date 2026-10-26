@@ -374,6 +374,7 @@ const applyDpsDeposit = async (
       "id",
       "memberId",
       "status",
+      "frequency",
       "totalPaidAmount",
       "paidInstallments",
       "durationMonths",
@@ -384,6 +385,7 @@ const applyDpsDeposit = async (
       "id",
       "memberId",
       "status",
+      "frequency",
       "totalPaidAmount",
       "paidInstallments",
       "durationMonths",
@@ -399,38 +401,70 @@ const applyDpsDeposit = async (
   const currentPaidCents = cents(account.totalPaidAmount);
   const balanceAfterCents = currentPaidCents + depositCents;
 
-  const targetInstallment = await tx.orm.public.DpsInstallment.select(
+  const paymentDate = toInstant(collectionDate);
+
+  // Waterfall distribution across pending / partial installments
+  const allInstallments = await tx.orm.public.DpsInstallment.select(
     "id",
     "installmentNo",
     "amount",
     "paidAmount",
     "status",
   )
-    .where({ dpsAccountId: account.id, status: "PENDING" })
+    .where({ dpsAccountId: account.id })
     .orderBy((inst: any) => inst.installmentNo.asc())
-    .first();
+    .all();
 
-  const paymentDate = toInstant(collectionDate);
+  const pendingInstallments = allInstallments.filter(
+    (inst: any) => inst.status !== "PAID",
+  );
 
-  if (targetInstallment) {
-    const instAmountCents = cents(targetInstallment.amount);
-    const instPaidCents = cents(targetInstallment.paidAmount);
-    const newInstPaidCents = instPaidCents + depositCents;
-    const isFullyPaid = newInstPaidCents >= instAmountCents;
+  let remainingDepositCents = depositCents;
 
-    await tx.orm.public.DpsInstallment.where({ id: targetInstallment.id }).update({
-      paidAmount: money(newInstPaidCents),
-      status: isFullyPaid ? "PAID" : "PARTIAL",
-      paidAt: isFullyPaid ? paymentDate : null,
-    });
+  for (const inst of pendingInstallments) {
+    if (remainingDepositCents <= 0) break;
+
+    const instAmountCents = cents(inst.amount);
+    const currentInstPaidCents = cents(inst.paidAmount);
+    const neededCents = Math.max(0, instAmountCents - currentInstPaidCents);
+
+    if (neededCents === 0) continue;
+
+    if (remainingDepositCents >= neededCents) {
+      await tx.orm.public.DpsInstallment.where({ id: inst.id }).update({
+        paidAmount: money(instAmountCents),
+        status: "PAID",
+        paidAt: paymentDate,
+      });
+      remainingDepositCents -= neededCents;
+    } else {
+      const newPaidCents = currentInstPaidCents + remainingDepositCents;
+      await tx.orm.public.DpsInstallment.where({ id: inst.id }).update({
+        paidAmount: money(newPaidCents),
+        status: "PARTIAL",
+      });
+      remainingDepositCents = 0;
+    }
   }
 
-  const newPaidInstallments = account.paidInstallments + 1;
-  const isMatured = newPaidInstallments >= account.durationMonths;
+  // Count fully paid installments accurately
+  const { paidCount } = await tx.orm.public.DpsInstallment.where({
+    dpsAccountId: account.id,
+    status: "PAID",
+  }).aggregate((agg: any) => ({
+    paidCount: agg.count(),
+  }));
+
+  const isWeekly = account.frequency === "WEEKLY";
+  const totalInstallments = isWeekly
+    ? Math.round((account.durationMonths / 12) * 52)
+    : account.durationMonths;
+
+  const isMatured = paidCount >= totalInstallments;
 
   await tx.orm.public.DpsAccount.where({ id: account.id }).update({
     totalPaidAmount: money(balanceAfterCents),
-    paidInstallments: newPaidInstallments,
+    paidInstallments: paidCount,
     status: isMatured ? "MATURED" : "ACTIVE",
   });
 
@@ -760,6 +794,8 @@ export const findDueInstallments = async (
               "id",
               "memberId",
               "fullName",
+              "fatherName",
+              "guardianName",
               "mobileNumber",
               "photoUrl",
               "somitiId",

@@ -57,7 +57,15 @@ export const getDailyCollectionsReport = async (query: DailyCollectionReportQuer
   )
     .include("member", (member) =>
       member
-        .select("id", "memberId", "fullName", "mobileNumber", "somitiId")
+        .select(
+          "id",
+          "memberId",
+          "fullName",
+          "fatherName",
+          "guardianName",
+          "mobileNumber",
+          "somitiId",
+        )
         .include("somiti", (somiti) =>
           somiti.select("id", "somitiId", "name", "code", "fieldOfficerId"),
         ),
@@ -225,7 +233,15 @@ export const getLoanPortfolioReport = async (query: LoanPortfolioReportQuery) =>
   )
     .include("member", (member) =>
       member
-        .select("id", "memberId", "fullName", "mobileNumber", "somitiId")
+        .select(
+          "id",
+          "memberId",
+          "fullName",
+          "fatherName",
+          "guardianName",
+          "mobileNumber",
+          "somitiId",
+        )
         .include("somiti", (somiti) =>
           somiti.select("id", "somitiId", "name", "code", "fieldOfficerId"),
         ),
@@ -374,7 +390,15 @@ export const getOverdueInstallmentsReport = async (query: OverdueReportQuery) =>
         .select("id", "loanId", "principalAmount", "totalPayable", "status")
         .include("member", (member) =>
           member
-            .select("id", "memberId", "fullName", "mobileNumber", "somitiId")
+            .select(
+          "id",
+          "memberId",
+          "fullName",
+          "fatherName",
+          "guardianName",
+          "mobileNumber",
+          "somitiId",
+        )
             .include("somiti", (somiti) =>
               somiti
                 .select("id", "somitiId", "name", "code", "fieldOfficerId")
@@ -496,7 +520,15 @@ export const getSavingsSummaryReport = async (query: SavingsSummaryReportQuery) 
   )
     .include("member", (member) =>
       member
-        .select("id", "memberId", "fullName", "mobileNumber", "somitiId")
+        .select(
+          "id",
+          "memberId",
+          "fullName",
+          "fatherName",
+          "guardianName",
+          "mobileNumber",
+          "somitiId",
+        )
         .include("somiti", (somiti) =>
           somiti.select("id", "somitiId", "name", "code", "fieldOfficerId"),
         ),
@@ -603,7 +635,15 @@ export const getDpsSummaryReport = async (query: DpsSummaryReportQuery) => {
   )
     .include("member", (member) =>
       member
-        .select("id", "memberId", "fullName", "mobileNumber", "somitiId")
+        .select(
+          "id",
+          "memberId",
+          "fullName",
+          "fatherName",
+          "guardianName",
+          "mobileNumber",
+          "somitiId",
+        )
         .include("somiti", (somiti) =>
           somiti.select("id", "somitiId", "name", "code", "fieldOfficerId"),
         ),

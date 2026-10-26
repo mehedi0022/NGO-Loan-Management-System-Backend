@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'540cd940fb42ab06b8ffb43bd4242d7f2635370745164898d325fe0f6eb8f0c9'>;
+  StorageHashBase<'fd3adc1d510f0b5aae22d9e36e0cfbf7e10ce0b4977d2758cd74955ffbd2df9f'>;
 export type ExecutionHash =
   ExecutionHashBase<'ad25f9e5883003299c29ffcadb148b7a33cc3c2db17178e0cd846fe05998b1b7'>;
 export type ProfileHash =
@@ -272,6 +272,7 @@ export type FieldOutputTypes = {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly dpsNumber: CodecTypes['pg/text@1']['output'] | null;
       readonly memberId: CodecTypes['pg/int4@1']['output'];
+      readonly frequency: 'WEEKLY' | 'MONTHLY';
       readonly installmentAmount: CodecTypes['pg/numeric@1']['output'];
       readonly durationMonths: CodecTypes['pg/int4@1']['output'];
       readonly interestRate: CodecTypes['pg/numeric@1']['output'];
@@ -577,6 +578,7 @@ export type FieldInputTypes = {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly dpsNumber: CodecTypes['pg/text@1']['input'] | null;
       readonly memberId: CodecTypes['pg/int4@1']['input'];
+      readonly frequency: 'WEEKLY' | 'MONTHLY';
       readonly installmentAmount: CodecTypes['pg/numeric@1']['input'];
       readonly durationMonths: CodecTypes['pg/int4@1']['input'];
       readonly interestRate: CodecTypes['pg/numeric@1']['input'];
@@ -882,6 +884,7 @@ export type StorageColumnTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly dpsNumber: CodecTypes['pg/text@1']['output'] | null;
       readonly durationMonths: CodecTypes['pg/int4@1']['output'];
+      readonly frequency: 'WEEKLY' | 'MONTHLY';
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly installmentAmount: CodecTypes['pg/numeric@1']['output'];
       readonly interestRate: CodecTypes['pg/numeric@1']['output'];
@@ -1187,6 +1190,7 @@ export type StorageColumnInputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly dpsNumber: CodecTypes['pg/text@1']['input'] | null;
       readonly durationMonths: CodecTypes['pg/int4@1']['input'];
+      readonly frequency: 'WEEKLY' | 'MONTHLY';
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly installmentAmount: CodecTypes['pg/numeric@1']['input'];
       readonly interestRate: CodecTypes['pg/numeric@1']['input'];
@@ -1801,6 +1805,7 @@ export namespace Models {
     id: CodecTypes['pg/int4@1']['output'];
     dpsNumber: CodecTypes['pg/text@1']['output'] | null;
     memberId: CodecTypes['pg/int4@1']['output'];
+    frequency: 'WEEKLY' | 'MONTHLY';
     installmentAmount: CodecTypes['pg/numeric@1']['output'];
     durationMonths: CodecTypes['pg/int4@1']['output'];
     interestRate: CodecTypes['pg/numeric@1']['output'];
@@ -2162,6 +2167,15 @@ type ContractBase = Omit<
                   readonly nativeType: 'int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
+                };
+                readonly frequency: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'MONTHLY'>;
+                  };
                 };
                 readonly installmentAmount: {
                   readonly nativeType: 'numeric';
@@ -4811,6 +4825,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
+              readonly frequency: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly installmentAmount: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
@@ -4932,6 +4950,7 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly dpsNumber: { readonly column: 'dpsNumber' };
                 readonly memberId: { readonly column: 'memberId' };
+                readonly frequency: { readonly column: 'frequency' };
                 readonly installmentAmount: { readonly column: 'installmentAmount' };
                 readonly durationMonths: { readonly column: 'durationMonths' };
                 readonly interestRate: { readonly column: 'interestRate' };

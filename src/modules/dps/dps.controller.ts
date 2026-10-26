@@ -57,10 +57,18 @@ export const closeDpsAccount = asyncHandler(
 
 export const calculateDpsMaturity = asyncHandler(
   async (req: Request, res: Response) => {
-    const monthlyAmount = Number(req.query.monthlyAmount || 1000);
+    const installmentAmount = Number(
+      req.query.installmentAmount || req.query.monthlyAmount || 1000,
+    );
     const durationMonths = Number(req.query.durationMonths || 60);
     const interestRate = Number(req.query.interestRate || 8.5);
-    const result = dpsService.calculateDpsMaturity(monthlyAmount, durationMonths, interestRate);
+    const frequency = (req.query.frequency as "WEEKLY" | "MONTHLY") || "MONTHLY";
+    const result = dpsService.calculateDpsMaturity(
+      installmentAmount,
+      durationMonths,
+      interestRate,
+      frequency,
+    );
     res.status(200).json(successResponse("DPS maturity calculated successfully", result));
   },
 );

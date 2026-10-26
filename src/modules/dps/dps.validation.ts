@@ -13,6 +13,7 @@ export const createDpsAccountSchema = z.object({
   body: z
     .object({
       memberId: z.coerce.number().int().positive(),
+      frequency: z.enum(["WEEKLY", "MONTHLY"]).default("MONTHLY"),
       installmentAmount: z.coerce.number().positive(),
       durationMonths: z.coerce.number().int().min(6).max(240),
       interestRate: z.coerce.number().min(0).max(100).default(8.5),
@@ -54,6 +55,7 @@ export const dpsListQuerySchema = z.object({
     .extend({
       memberId: z.coerce.number().int().positive().optional(),
       somitiId: z.coerce.number().int().positive().optional(),
+      frequency: z.enum(["WEEKLY", "MONTHLY"]).optional(),
       status: z.enum(["ACTIVE", "MATURED", "CLOSED"]).optional(),
       search: z.string().trim().max(255).optional(),
       sortBy: z

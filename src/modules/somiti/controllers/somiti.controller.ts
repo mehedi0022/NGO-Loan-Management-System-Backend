@@ -80,7 +80,7 @@ export const getSomitiMembers = asyncHandler(
   async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const page = req.query.page ? Number(req.query.page) : 1;
-    const limit = req.query.limit ? Number(req.query.limit) : 20;
+    const limit = req.query.limit ? Number(req.query.limit) : 500;
     const { members, meta } = await service.getSomitiMembers(id, page, limit);
     return res
       .status(200)

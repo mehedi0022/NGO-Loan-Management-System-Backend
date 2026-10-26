@@ -1,0 +1,86 @@
+[
+  {
+    "id": "column.public.dpsAccount.frequency",
+    "label": "Add column \"frequency\" to \"dpsAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "frequency",
+        "table": "dpsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"frequency\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "dpsAccount",
+          "frequency"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"frequency\"",
+        "sql": "ALTER TABLE \"public\".\"dpsAccount\" ADD COLUMN \"frequency\" text DEFAULT 'MONTHLY' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"frequency\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "dpsAccount",
+          "frequency"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.dpsAccount.dpsAccount_frequency_check_a03ca8f9",
+    "label": "Add check constraint \"dpsAccount_frequency_check_a03ca8f9\" on \"dpsAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "dpsAccount_frequency_check_a03ca8f9",
+        "table": "dpsAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"dpsAccount_frequency_check_a03ca8f9\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsAccount_frequency_check_a03ca8f9",
+          "public",
+          "\"public\".\"dpsAccount\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"dpsAccount_frequency_check_a03ca8f9\"",
+        "sql": "ALTER TABLE \"public\".\"dpsAccount\" ADD CONSTRAINT \"dpsAccount_frequency_check_a03ca8f9\" CHECK (\"frequency\" IN ('WEEKLY', 'MONTHLY'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"dpsAccount_frequency_check_a03ca8f9\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dpsAccount_frequency_check_a03ca8f9",
+          "public",
+          "\"public\".\"dpsAccount\""
+        ]
+      }
+    ]
+  }
+]

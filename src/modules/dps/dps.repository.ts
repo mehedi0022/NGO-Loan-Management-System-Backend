@@ -18,20 +18,36 @@ const addMonths = (date: Date, months: number): Date => {
   return d;
 };
 
+const addDays = (date: Date, days: number): Date => {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+};
+
 export const calculateDpsMaturity = (
-  monthlyAmount: number,
+  installmentAmount: number,
   durationMonths: number,
   interestRate: number,
+  frequency: "WEEKLY" | "MONTHLY" = "MONTHLY",
 ) => {
-  const totalPrincipal = monthlyAmount * durationMonths;
+  const isWeekly = frequency === "WEEKLY";
+  const installmentCount = isWeekly
+    ? Math.round((durationMonths / 12) * 52)
+    : durationMonths;
+
+  const totalPrincipal = installmentAmount * installmentCount;
   // Standard statutory recurring deposit / DPS interest formula
+  // Monthly: (P * n * (n + 1) * r) / (2 * 12 * 100) = 2400
+  // Weekly:  (P * n * (n + 1) * r) / (2 * 52 * 100) = 10400
+  const divisor = isWeekly ? 10400 : 2400;
   const profit =
-    (monthlyAmount * durationMonths * (durationMonths + 1) * interestRate) / 2400;
+    (installmentAmount * installmentCount * (installmentCount + 1) * interestRate) / divisor;
   const maturityAmount = totalPrincipal + profit;
   return {
     totalPrincipal: totalPrincipal.toFixed(2),
     profit: profit.toFixed(2),
     maturityAmount: maturityAmount.toFixed(2),
+    installmentCount,
   };
 };
 
@@ -46,10 +62,14 @@ export const createDpsAccount = async (
     if (!member) return { kind: "NO_MEMBER" as const };
     if (member.status !== "ACTIVE") return { kind: "MEMBER_INACTIVE" as const };
 
-    const { totalPrincipal, maturityAmount } = calculateDpsMaturity(
+    const frequency = input.frequency || "MONTHLY";
+    const isWeekly = frequency === "WEEKLY";
+
+    const { totalPrincipal, maturityAmount, installmentCount } = calculateDpsMaturity(
       input.installmentAmount,
       input.durationMonths,
       input.interestRate,
+      frequency,
     );
 
     const startDate = input.startDate ? new Date(input.startDate) : new Date();
@@ -57,6 +77,7 @@ export const createDpsAccount = async (
 
     const created = await tx.orm.public.DpsAccount.create({
       memberId: input.memberId,
+      frequency,
       installmentAmount: input.installmentAmount.toFixed(2),
       durationMonths: input.durationMonths,
       interestRate: input.interestRate.toFixed(2),
@@ -76,9 +97,12 @@ export const createDpsAccount = async (
       dpsNumber,
     });
 
-    // Generate monthly installment schedule
-    for (let i = 1; i <= input.durationMonths; i += 1) {
-      const dueDate = addMonths(startDate, i);
+    // Generate installment schedule (Weekly vs Monthly)
+    for (let i = 1; i <= installmentCount; i += 1) {
+      const dueDate = isWeekly
+        ? addDays(startDate, i * 7)
+        : addMonths(startDate, i);
+
       await tx.orm.public.DpsInstallment.create({
         dpsAccountId: created.id,
         installmentNo: i,
@@ -103,6 +127,7 @@ export const findDpsAccounts = async (query: DpsListQuery) => {
     "id",
     "dpsNumber",
     "memberId",
+    "frequency",
     "installmentAmount",
     "durationMonths",
     "interestRate",
@@ -118,7 +143,16 @@ export const findDpsAccounts = async (query: DpsListQuery) => {
   )
     .include("member", (member: any) =>
       member
-        .select("id", "memberId", "fullName", "mobileNumber", "photoUrl", "somitiId")
+        .select(
+          "id",
+          "memberId",
+          "fullName",
+          "fatherName",
+          "guardianName",
+          "mobileNumber",
+          "photoUrl",
+          "somitiId",
+        )
         .include("somiti", (somiti: any) =>
           somiti.select("id", "somitiId", "name", "code", "meetingDay"),
         ),
@@ -129,6 +163,16 @@ export const findDpsAccounts = async (query: DpsListQuery) => {
 
   if (memberId) {
     filteredAccounts = filteredAccounts.where({ memberId });
+  }
+
+  if (query.somitiId) {
+    filteredAccounts = filteredAccounts.where((account: any) =>
+      account.member.somitiId.equals(query.somitiId),
+    );
+  }
+
+  if (query.frequency) {
+    filteredAccounts = filteredAccounts.where({ frequency: query.frequency });
   }
 
   if (status) {
@@ -183,6 +227,7 @@ export const findDpsAccountById = async (id: number) => {
     "id",
     "dpsNumber",
     "memberId",
+    "frequency",
     "installmentAmount",
     "durationMonths",
     "interestRate",
@@ -198,7 +243,16 @@ export const findDpsAccountById = async (id: number) => {
   )
     .include("member", (member: any) =>
       member
-        .select("id", "memberId", "fullName", "mobileNumber", "photoUrl", "somitiId")
+        .select(
+          "id",
+          "memberId",
+          "fullName",
+          "fatherName",
+          "guardianName",
+          "mobileNumber",
+          "photoUrl",
+          "somitiId",
+        )
         .include("somiti", (somiti: any) =>
           somiti.select("id", "somitiId", "name", "code", "meetingDay"),
         ),
@@ -248,6 +302,7 @@ export const depositDpsInstallment = async (
     const account = await tx.orm.public.DpsAccount.select(
       "id",
       "status",
+      "frequency",
       "totalPaidAmount",
       "paidInstallments",
       "durationMonths",
@@ -261,49 +316,70 @@ export const depositDpsInstallment = async (
     const currentPaidCents = cents(account.totalPaidAmount);
     const balanceAfterCents = currentPaidCents + depositCents;
 
-    let targetInstallment;
-    if (input.installmentNo) {
-      targetInstallment = await tx.orm.public.DpsInstallment.select(
-        "id",
-        "installmentNo",
-        "amount",
-        "paidAmount",
-        "status",
-      ).first({ dpsAccountId, installmentNo: input.installmentNo });
-    } else {
-      targetInstallment = await tx.orm.public.DpsInstallment.select(
-        "id",
-        "installmentNo",
-        "amount",
-        "paidAmount",
-        "status",
-      )
-        .where({ dpsAccountId, status: "PENDING" })
-        .orderBy((inst: any) => inst.installmentNo.asc())
-        .first();
-    }
-
     const transactionDate = input.transactionDate ? new Date(input.transactionDate) : new Date();
 
-    if (targetInstallment) {
-      const instAmountCents = cents(targetInstallment.amount);
-      const instPaidCents = cents(targetInstallment.paidAmount);
-      const newInstPaidCents = instPaidCents + depositCents;
-      const isFullyPaid = newInstPaidCents >= instAmountCents;
+    // Waterfall distribution across pending / partial installments
+    const allInstallments = await tx.orm.public.DpsInstallment.select(
+      "id",
+      "installmentNo",
+      "amount",
+      "paidAmount",
+      "status",
+    )
+      .where({ dpsAccountId })
+      .orderBy((inst: any) => inst.installmentNo.asc())
+      .all();
 
-      await tx.orm.public.DpsInstallment.where({ id: targetInstallment.id }).update({
-        paidAmount: money(newInstPaidCents),
-        status: isFullyPaid ? "PAID" : "PARTIAL",
-        paidAt: isFullyPaid ? toInstant(transactionDate) : null,
-      });
+    const pendingInstallments = allInstallments.filter(
+      (inst: any) => inst.status !== "PAID",
+    );
+
+    let remainingDepositCents = depositCents;
+
+    for (const inst of pendingInstallments) {
+      if (remainingDepositCents <= 0) break;
+
+      const instAmountCents = cents(inst.amount);
+      const currentInstPaidCents = cents(inst.paidAmount);
+      const neededCents = Math.max(0, instAmountCents - currentInstPaidCents);
+
+      if (neededCents === 0) continue;
+
+      if (remainingDepositCents >= neededCents) {
+        await tx.orm.public.DpsInstallment.where({ id: inst.id }).update({
+          paidAmount: money(instAmountCents),
+          status: "PAID",
+          paidAt: toInstant(transactionDate),
+        });
+        remainingDepositCents -= neededCents;
+      } else {
+        const newPaidCents = currentInstPaidCents + remainingDepositCents;
+        await tx.orm.public.DpsInstallment.where({ id: inst.id }).update({
+          paidAmount: money(newPaidCents),
+          status: "PARTIAL",
+        });
+        remainingDepositCents = 0;
+      }
     }
 
-    const newPaidInstallments = account.paidInstallments + 1;
-    const isMatured = newPaidInstallments >= account.durationMonths;
+    // Count fully paid installments accurately
+    const { paidCount } = await tx.orm.public.DpsInstallment.where({
+      dpsAccountId,
+      status: "PAID",
+    }).aggregate((agg: any) => ({
+      paidCount: agg.count(),
+    }));
+
+    const isWeekly = account.frequency === "WEEKLY";
+    const totalInstallments = isWeekly
+      ? Math.round((account.durationMonths / 12) * 52)
+      : account.durationMonths;
+
+    const isMatured = paidCount >= totalInstallments;
 
     await tx.orm.public.DpsAccount.where({ id: account.id }).update({
       totalPaidAmount: money(balanceAfterCents),
-      paidInstallments: newPaidInstallments,
+      paidInstallments: paidCount,
       status: isMatured ? "MATURED" : "ACTIVE",
     });
 

@@ -609,14 +609,14 @@ model OrganizationSetting {
   updatedAt                temporal.updatedAt()
 }
 
-
 model DpsAccount {
-  id                Int              @id @default(autoincrement())
-  dpsNumber         String?          @unique
+  id                Int                  @id @default(autoincrement())
+  dpsNumber         String?              @unique
 
   memberId          Int
-  member            Member           @relation(fields:[memberId], references:[id])
+  member            Member               @relation(fields:[memberId], references:[id])
 
+  frequency         InstallmentFrequency @default(MONTHLY)
   installmentAmount Decimal
   durationMonths    Int
   interestRate      Decimal
@@ -624,22 +624,22 @@ model DpsAccount {
   totalPrincipal    Decimal
   maturityAmount    Decimal
 
-  totalPaidAmount   Decimal          @default("0")
-  paidInstallments  Int              @default(0)
+  totalPaidAmount   Decimal              @default("0")
+  paidInstallments  Int                  @default(0)
 
-  startDate         DateTime         @default(now())
+  startDate         DateTime             @default(now())
   maturityDate      DateTime
 
-  status            DpsStatus        @default(ACTIVE)
+  status            DpsStatus            @default(ACTIVE)
   notes             String?
 
   openedById        Int?
-  openedBy          User?            @relation("DpsAccountOpenedBy", fields:[openedById], references:[id])
+  openedBy          User?                @relation("DpsAccountOpenedBy", fields:[openedById], references:[id])
 
   installments      DpsInstallment[]
   transactions      DpsTransaction[]
 
-  createdAt         DateTime         @default(now())
+  createdAt         DateTime             @default(now())
   updatedAt         temporal.updatedAt()
 
   @@index([dpsNumber])
@@ -648,18 +648,18 @@ model DpsAccount {
 }
 
 model DpsInstallment {
-  id            Int               @id @default(autoincrement())
+  id            Int                  @id @default(autoincrement())
   dpsAccountId  Int
-  dpsAccount    DpsAccount        @relation(fields:[dpsAccountId], references:[id], onDelete: Cascade)
+  dpsAccount    DpsAccount           @relation(fields:[dpsAccountId], references:[id], onDelete: Cascade)
 
   installmentNo Int
   dueDate       DateTime
   amount        Decimal
-  paidAmount    Decimal           @default("0")
-  status        InstallmentStatus @default(PENDING)
+  paidAmount    Decimal              @default("0")
+  status        InstallmentStatus    @default(PENDING)
   paidAt        DateTime?
 
-  createdAt     DateTime          @default(now())
+  createdAt     DateTime             @default(now())
   updatedAt     temporal.updatedAt()
 
   @@unique([dpsAccountId, installmentNo])
@@ -668,29 +668,29 @@ model DpsInstallment {
 }
 
 model DpsTransaction {
-  id            Int           @id @default(autoincrement())
-  transactionId String?       @unique
+  id              Int           @id @default(autoincrement())
+  transactionId   String?       @unique
 
-  dpsAccountId  Int
-  dpsAccount    DpsAccount    @relation(fields:[dpsAccountId], references:[id])
+  dpsAccountId    Int
+  dpsAccount      DpsAccount    @relation(fields:[dpsAccountId], references:[id])
 
-  collectionId  Int?
-  collection    Collection?   @relation(fields:[collectionId], references:[id])
+  collectionId    Int?
+  collection      Collection?   @relation(fields:[collectionId], references:[id])
 
-  processedById Int?
-  processedBy   User?         @relation("DpsTransactionProcessedBy", fields:[processedById], references:[id])
+  processedById   Int?
+  processedBy     User?         @relation("DpsTransactionProcessedBy", fields:[processedById], references:[id])
 
-  type          String
-  amount        Decimal
-  balanceBefore Decimal
-  balanceAfter  Decimal
+  type            String
+  amount          Decimal
+  balanceBefore   Decimal
+  balanceAfter    Decimal
 
-  transactionDate DateTime    @default(now())
-  paymentMethod PaymentMethod @default(CASH)
-  reference     String?
-  notes         String?
+  transactionDate DateTime      @default(now())
+  paymentMethod   PaymentMethod @default(CASH)
+  reference       String?
+  notes           String?
 
-  createdAt     DateTime      @default(now())
+  createdAt       DateTime      @default(now())
 
   @@index([dpsAccountId])
   @@index([collectionId])

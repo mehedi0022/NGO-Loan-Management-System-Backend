@@ -19,4 +19,15 @@ describe("DPS Calculation Engine", () => {
     expect(result.profit).toBe("2220.00");
     expect(result.maturityAmount).toBe("20220.00");
   });
+
+  it("calculates 1-year Weekly DPS correctly", () => {
+    // 250 Tk/week, 12 months = 52 weeks, 8.0% annual rate
+    const result = calculateDpsMaturity(250, 12, 8.0, "WEEKLY");
+    expect(result.installmentCount).toBe(52);
+    // Principal: 250 * 52 = 13000.00
+    expect(result.totalPrincipal).toBe("13000.00");
+    // Profit: (250 * 52 * 53 * 8.0) / 10400 = 530.00
+    expect(result.profit).toBe("530.00");
+    expect(result.maturityAmount).toBe("13530.00");
+  });
 });
