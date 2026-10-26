@@ -9,6 +9,8 @@ import collectionRoutes from "../modules/collection/collection.route.js";
 import savingsRoutes from "../modules/savings/savings.route.js";
 import dashboardRoutes from "../modules/dashboard/dashboard.route.js";
 import reportRoutes from "../modules/reports/reports.route.js";
+import { incomeExpenseRoutes } from "../modules/income-expense/income-expense.route.js";
+import { settingsRoutes } from "../modules/settings/settings.route.js";
 
 const router = Router();
 
@@ -21,5 +23,7 @@ router.use("/collections", collectionRoutes);
 router.use("/savings", savingsRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/reports", reportRoutes);
+router.use("/income-expense", incomeExpenseRoutes);
+router.use("/settings", settingsRoutes);
 
 export default router;

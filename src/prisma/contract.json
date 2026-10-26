@@ -16,6 +16,10 @@
       "model": "Guarantor",
       "namespace": "public"
     },
+    "incomeExpense": {
+      "model": "IncomeExpense",
+      "namespace": "public"
+    },
     "loan": {
       "model": "Loan",
       "namespace": "public"
@@ -36,6 +40,10 @@
       "model": "MemberAddress",
       "namespace": "public"
     },
+    "organizationSetting": {
+      "model": "OrganizationSetting",
+      "namespace": "public"
+    },
     "savingsAccount": {
       "model": "SavingsAccount",
       "namespace": "public"
@@ -50,6 +58,10 @@
     },
     "somiti": {
       "model": "Somiti",
+      "namespace": "public"
+    },
+    "transactionCategory": {
+      "model": "TransactionCategory",
       "namespace": "public"
     },
     "user": {
@@ -283,6 +295,19 @@
               {
                 "name": "INACTIVE",
                 "value": "INACTIVE"
+              }
+            ]
+          },
+          "TransactionType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "INCOME",
+                "value": "INCOME"
+              },
+              {
+                "name": "EXPENSE",
+                "value": "EXPENSE"
               }
             ]
           },
@@ -859,6 +884,208 @@
               },
               "namespaceId": "public",
               "table": "guarantor"
+            }
+          },
+          "IncomeExpense": {
+            "fields": {
+              "amount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "categoryId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdById": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "date": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "description": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "paymentMethod": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "PaymentMethod",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "reference": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "somitiId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "TransactionType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "voucherNo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "category": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "categoryId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "TransactionCategory",
+                  "namespace": "public"
+                }
+              },
+              "createdBy": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "createdById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "somiti": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "somitiId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Somiti",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "amount": {
+                  "column": "amount"
+                },
+                "categoryId": {
+                  "column": "categoryId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "createdById": {
+                  "column": "createdById"
+                },
+                "date": {
+                  "column": "date"
+                },
+                "description": {
+                  "column": "description"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "paymentMethod": {
+                  "column": "paymentMethod"
+                },
+                "reference": {
+                  "column": "reference"
+                },
+                "somitiId": {
+                  "column": "somitiId"
+                },
+                "type": {
+                  "column": "type"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "voucherNo": {
+                  "column": "voucherNo"
+                }
+              },
+              "namespaceId": "public",
+              "table": "incomeExpense"
             }
           },
           "Loan": {
@@ -1988,6 +2215,229 @@
               "table": "memberAddress"
             }
           },
+          "OrganizationSetting": {
+            "fields": {
+              "address": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "currencyCode": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "currencySymbol": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "defaultGraceDays": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "defaultLoanChargeType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "LoanChargeType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "defaultLoanChargeValue": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "defaultLoanFrequency": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "InstallmentFrequency",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "email": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "establishedYear": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "latePenaltyPercentage": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "logoUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "minGeneralSavingsDeposit": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "minSpecialSavingsDeposit": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "orgName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "orgShortName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "phone": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "registrationNo": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "website": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "address": {
+                  "column": "address"
+                },
+                "currencyCode": {
+                  "column": "currencyCode"
+                },
+                "currencySymbol": {
+                  "column": "currencySymbol"
+                },
+                "defaultGraceDays": {
+                  "column": "defaultGraceDays"
+                },
+                "defaultLoanChargeType": {
+                  "column": "defaultLoanChargeType"
+                },
+                "defaultLoanChargeValue": {
+                  "column": "defaultLoanChargeValue"
+                },
+                "defaultLoanFrequency": {
+                  "column": "defaultLoanFrequency"
+                },
+                "email": {
+                  "column": "email"
+                },
+                "establishedYear": {
+                  "column": "establishedYear"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "latePenaltyPercentage": {
+                  "column": "latePenaltyPercentage"
+                },
+                "logoUrl": {
+                  "column": "logoUrl"
+                },
+                "minGeneralSavingsDeposit": {
+                  "column": "minGeneralSavingsDeposit"
+                },
+                "minSpecialSavingsDeposit": {
+                  "column": "minSpecialSavingsDeposit"
+                },
+                "orgName": {
+                  "column": "orgName"
+                },
+                "orgShortName": {
+                  "column": "orgShortName"
+                },
+                "phone": {
+                  "column": "phone"
+                },
+                "registrationNo": {
+                  "column": "registrationNo"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "website": {
+                  "column": "website"
+                }
+              },
+              "namespaceId": "public",
+              "table": "organizationSetting"
+            }
+          },
           "SavingsAccount": {
             "fields": {
               "accountId": {
@@ -2653,6 +3103,21 @@
                   "namespace": "public"
                 }
               },
+              "incomeExpenses": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "somitiId"
+                  ]
+                },
+                "to": {
+                  "model": "IncomeExpense",
+                  "namespace": "public"
+                }
+              },
               "members": {
                 "cardinality": "1:N",
                 "on": {
@@ -2716,6 +3181,119 @@
               },
               "namespaceId": "public",
               "table": "somiti"
+            }
+          },
+          "TransactionCategory": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "description": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "isActive": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "isSystem": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "TransactionType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "transactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "categoryId"
+                  ]
+                },
+                "to": {
+                  "model": "IncomeExpense",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "description": {
+                  "column": "description"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "isActive": {
+                  "column": "isActive"
+                },
+                "isSystem": {
+                  "column": "isSystem"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "type": {
+                  "column": "type"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "transactionCategory"
             }
           },
           "User": {
@@ -2855,6 +3433,21 @@
                 },
                 "to": {
                   "model": "Collection",
+                  "namespace": "public"
+                }
+              },
+              "incomeExpenses": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "createdById"
+                  ]
+                },
+                "to": {
+                  "model": "IncomeExpense",
                   "namespace": "public"
                 }
               },
@@ -3428,6 +4021,235 @@
                 ]
               },
               "uniques": []
+            },
+            "incomeExpense": {
+              "checks": [
+                {
+                  "expression": "\"paymentMethod\" IN ('CASH', 'BANK_TRANSFER', 'MOBILE_PAYMENT', 'CHEQUE', 'OTHER')",
+                  "name": "incomeExpense_paymentMethod_check_1ac18d5d",
+                  "prefix": "incomeExpense_paymentMethod_check"
+                },
+                {
+                  "expression": "\"type\" IN ('INCOME', 'EXPENSE')",
+                  "name": "incomeExpense_type_check_5d925dfc",
+                  "prefix": "incomeExpense_type_check"
+                }
+              ],
+              "columns": {
+                "amount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "categoryId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "createdById": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "date": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "description": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "paymentMethod": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "CASH"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "PaymentMethod",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "reference": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "somitiId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "TransactionType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "voucherNo": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "categoryId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "incomeExpense"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "transactionCategory"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "somitiId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "incomeExpense"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "somiti"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "createdById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "incomeExpense"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "categoryId"
+                  ],
+                  "name": "incomeExpense_categoryId_idx_15c304f2",
+                  "prefix": "incomeExpense_categoryId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "createdById"
+                  ],
+                  "name": "incomeExpense_createdById_idx_8bf640ed",
+                  "prefix": "incomeExpense_createdById_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "date"
+                  ],
+                  "name": "incomeExpense_date_idx_b4ca319c",
+                  "prefix": "incomeExpense_date_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "paymentMethod"
+                  ],
+                  "name": "incomeExpense_paymentMethod_idx_25bac06e",
+                  "prefix": "incomeExpense_paymentMethod_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "somitiId"
+                  ],
+                  "name": "incomeExpense_somitiId_idx_7b1f646c",
+                  "prefix": "incomeExpense_somitiId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "type"
+                  ],
+                  "name": "incomeExpense_type_idx_b6b604ea",
+                  "prefix": "incomeExpense_type_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "voucherNo"
+                  ],
+                  "name": "incomeExpense_voucherNo_idx_b96efe4a",
+                  "prefix": "incomeExpense_voucherNo_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "voucherNo"
+                  ]
+                }
+              ]
             },
             "loan": {
               "checks": [
@@ -4397,6 +5219,210 @@
                 }
               ]
             },
+            "organizationSetting": {
+              "checks": [
+                {
+                  "expression": "\"defaultLoanChargeType\" IN ('FLAT', 'PERCENTAGE')",
+                  "name": "organizationSetting_defaultLoanChargeType_check_5a68d180",
+                  "prefix": "organizationSetting_defaultLoanChargeType_check"
+                },
+                {
+                  "expression": "\"defaultLoanFrequency\" IN ('WEEKLY', 'MONTHLY')",
+                  "name": "organizationSetting_defaultLoanFrequency_check_1812a53a",
+                  "prefix": "organizationSetting_defaultLoanFrequency_check"
+                }
+              ],
+              "columns": {
+                "address": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "Main Road, Branch Office, Bangladesh"
+                  },
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "currencyCode": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "BDT"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "currencySymbol": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "৳"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "defaultGraceDays": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "defaultLoanChargeType": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PERCENTAGE"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "LoanChargeType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "defaultLoanChargeValue": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "10"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "defaultLoanFrequency": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "WEEKLY"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "InstallmentFrequency",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "email": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "info@purbasha.org"
+                  },
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "establishedYear": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "2018"
+                  },
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "latePenaltyPercentage": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "logoUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "minGeneralSavingsDeposit": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "50"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "minSpecialSavingsDeposit": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "100"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "orgName": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "Purbasha Financial Development Organization"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "orgShortName": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PFDO"
+                  },
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "phone": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "+8801700000000"
+                  },
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "registrationNo": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "REG-NGO-2024-001"
+                  },
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "website": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "savingsAccount": {
               "checks": [
                 {
@@ -5108,6 +6134,111 @@
                 }
               ]
             },
+            "transactionCategory": {
+              "checks": [
+                {
+                  "expression": "\"type\" IN ('INCOME', 'EXPENSE')",
+                  "name": "transactionCategory_type_check_5d925dfc",
+                  "prefix": "transactionCategory_type_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "description": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "isActive": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "isSystem": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "TransactionType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "isActive"
+                  ],
+                  "name": "transactionCategory_isActive_idx_77fe3ba1",
+                  "prefix": "transactionCategory_isActive_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "type"
+                  ],
+                  "name": "transactionCategory_type_idx_b6b604ea",
+                  "prefix": "transactionCategory_type_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "name",
+                    "type"
+                  ]
+                }
+              ]
+            },
             "user": {
               "checks": [
                 {
@@ -5312,6 +6443,13 @@
                 "INACTIVE"
               ]
             },
+            "TransactionType": {
+              "kind": "valueSet",
+              "values": [
+                "INCOME",
+                "EXPENSE"
+              ]
+            },
             "UserRole": {
               "kind": "valueSet",
               "values": [
@@ -5327,10 +6465,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "384516f329987c62d90f0979d92e84161a9b40a26a181c555db15598091d5be3"
+    "storageHash": "b900b0724b652578e11ba114916c8d0436bad6d52ef689cccce2d37f2d3a670b"
   },
   "execution": {
-    "executionHash": "63b75a0ff1f48686ce2f7c0b438e298a510744ebc35779f38995d156bd16da43",
+    "executionHash": "48154abc0bc2a57ea1a2443fbb95c5e275667220c073786c22793e9035f38fe5",
     "mutations": {
       "defaults": [
         {
@@ -5361,6 +6499,21 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "guarantor"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "incomeExpense"
           }
         },
         {
@@ -5435,6 +6588,21 @@
           "ref": {
             "column": "updatedAt",
             "namespace": "public",
+            "table": "organizationSetting"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
             "table": "savingsAccount"
           }
         },
@@ -5473,6 +6641,21 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "somiti"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "transactionCategory"
           }
         },
         {

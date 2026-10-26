@@ -92,7 +92,11 @@ export type MemberLoanInstallmentDto = Pick<
   | "paidAmount"
   | "status"
   | "paidAt"
->;
+> & {
+  generalSavingsAmount?: string | null;
+  specialSavingsAmount?: string | null;
+  collectionReceipt?: string | null;
+};
 
 export type MemberLoanDto = Pick<
   LoanRecord,

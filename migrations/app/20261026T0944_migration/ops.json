@@ -1,0 +1,41 @@
+[
+  {
+    "id": "table.organizationSetting",
+    "label": "Create table \"organizationSetting\"",
+    "summary": "Creates table \"organizationSetting\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "organizationSetting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"organizationSetting\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"organizationSetting\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"organizationSetting\"",
+        "sql": "CREATE TABLE \"public\".\"organizationSetting\" (\n  \"address\" text DEFAULT 'Main Road, Branch Office, Bangladesh',\n  \"currencyCode\" text DEFAULT 'BDT' NOT NULL,\n  \"currencySymbol\" text DEFAULT '৳' NOT NULL,\n  \"defaultGraceDays\" int4 DEFAULT 0 NOT NULL,\n  \"defaultLoanChargeType\" text DEFAULT 'PERCENTAGE' NOT NULL,\n  \"defaultLoanChargeValue\" numeric DEFAULT '10'::numeric NOT NULL,\n  \"defaultLoanFrequency\" text DEFAULT 'WEEKLY' NOT NULL,\n  \"email\" text DEFAULT 'info@purbasha.org',\n  \"establishedYear\" text DEFAULT '2018',\n  \"id\" SERIAL NOT NULL,\n  \"latePenaltyPercentage\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"logoUrl\" text,\n  \"minGeneralSavingsDeposit\" numeric DEFAULT '50'::numeric NOT NULL,\n  \"minSpecialSavingsDeposit\" numeric DEFAULT '100'::numeric NOT NULL,\n  \"orgName\" text DEFAULT 'Purbasha Financial Development Organization' NOT NULL,\n  \"orgShortName\" text DEFAULT 'PFDO',\n  \"phone\" text DEFAULT '+8801700000000',\n  \"registrationNo\" text DEFAULT 'REG-NGO-2024-001',\n  \"updatedAt\" timestamptz NOT NULL,\n  \"website\" text,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"organizationSetting_defaultLoanChargeType_check_5a68d180\" CHECK (\"defaultLoanChargeType\" IN ('FLAT', 'PERCENTAGE')),\n  CONSTRAINT \"organizationSetting_defaultLoanFrequency_check_1812a53a\" CHECK (\"defaultLoanFrequency\" IN ('WEEKLY', 'MONTHLY'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"organizationSetting\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"organizationSetting\""
+        ]
+      }
+    ]
+  }
+]

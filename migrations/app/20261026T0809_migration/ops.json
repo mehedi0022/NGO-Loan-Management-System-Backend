@@ -1,0 +1,641 @@
+[
+  {
+    "id": "table.incomeExpense",
+    "label": "Create table \"incomeExpense\"",
+    "summary": "Creates table \"incomeExpense\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "incomeExpense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"incomeExpense\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"incomeExpense\"",
+        "sql": "CREATE TABLE \"public\".\"incomeExpense\" (\n  \"amount\" numeric NOT NULL,\n  \"categoryId\" int4 NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"createdById\" int4 NOT NULL,\n  \"date\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"id\" SERIAL NOT NULL,\n  \"paymentMethod\" text DEFAULT 'CASH' NOT NULL,\n  \"reference\" text,\n  \"somitiId\" int4,\n  \"type\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"voucherNo\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"incomeExpense_paymentMethod_check_1ac18d5d\" CHECK (\"paymentMethod\" IN ('CASH', 'BANK_TRANSFER', 'MOBILE_PAYMENT', 'CHEQUE', 'OTHER')),\n  CONSTRAINT \"incomeExpense_type_check_5d925dfc\" CHECK (\"type\" IN ('INCOME', 'EXPENSE'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"incomeExpense\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.transactionCategory",
+    "label": "Create table \"transactionCategory\"",
+    "summary": "Creates table \"transactionCategory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "transactionCategory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"transactionCategory\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transactionCategory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"transactionCategory\"",
+        "sql": "CREATE TABLE \"public\".\"transactionCategory\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"id\" SERIAL NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"isSystem\" bool DEFAULT false NOT NULL,\n  \"name\" text NOT NULL,\n  \"type\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"transactionCategory_type_check_5d925dfc\" CHECK (\"type\" IN ('INCOME', 'EXPENSE'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"transactionCategory\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transactionCategory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.incomeExpense.incomeExpense_voucherNo_key",
+    "label": "Add unique constraint on \"incomeExpense\" (voucherNo)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "incomeExpense_voucherNo_key",
+        "table": "incomeExpense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"incomeExpense_voucherNo_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "incomeExpense_voucherNo_key",
+          "public",
+          "\"public\".\"incomeExpense\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"incomeExpense_voucherNo_key\"",
+        "sql": "ALTER TABLE \"public\".\"incomeExpense\" ADD CONSTRAINT \"incomeExpense_voucherNo_key\" UNIQUE (\"voucherNo\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"incomeExpense_voucherNo_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "incomeExpense_voucherNo_key",
+          "public",
+          "\"public\".\"incomeExpense\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.transactionCategory.transactionCategory_name_type_key",
+    "label": "Add unique constraint on \"transactionCategory\" (name, type)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "transactionCategory_name_type_key",
+        "table": "transactionCategory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"transactionCategory_name_type_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "transactionCategory_name_type_key",
+          "public",
+          "\"public\".\"transactionCategory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"transactionCategory_name_type_key\"",
+        "sql": "ALTER TABLE \"public\".\"transactionCategory\" ADD CONSTRAINT \"transactionCategory_name_type_key\" UNIQUE (\"name\", \"type\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"transactionCategory_name_type_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "transactionCategory_name_type_key",
+          "public",
+          "\"public\".\"transactionCategory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.incomeExpense.incomeExpense_categoryId_idx_15c304f2",
+    "label": "Create index \"incomeExpense_categoryId_idx_15c304f2\" on \"incomeExpense\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "incomeExpense_categoryId_idx_15c304f2",
+        "table": "incomeExpense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"incomeExpense_categoryId_idx_15c304f2\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense_categoryId_idx_15c304f2\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"incomeExpense_categoryId_idx_15c304f2\"",
+        "sql": "CREATE INDEX \"incomeExpense_categoryId_idx_15c304f2\" ON \"public\".\"incomeExpense\" (\"categoryId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"incomeExpense_categoryId_idx_15c304f2\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense_categoryId_idx_15c304f2\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.incomeExpense.incomeExpense_createdById_idx_8bf640ed",
+    "label": "Create index \"incomeExpense_createdById_idx_8bf640ed\" on \"incomeExpense\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "incomeExpense_createdById_idx_8bf640ed",
+        "table": "incomeExpense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"incomeExpense_createdById_idx_8bf640ed\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense_createdById_idx_8bf640ed\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"incomeExpense_createdById_idx_8bf640ed\"",
+        "sql": "CREATE INDEX \"incomeExpense_createdById_idx_8bf640ed\" ON \"public\".\"incomeExpense\" (\"createdById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"incomeExpense_createdById_idx_8bf640ed\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense_createdById_idx_8bf640ed\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.incomeExpense.incomeExpense_date_idx_b4ca319c",
+    "label": "Create index \"incomeExpense_date_idx_b4ca319c\" on \"incomeExpense\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "incomeExpense_date_idx_b4ca319c",
+        "table": "incomeExpense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"incomeExpense_date_idx_b4ca319c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense_date_idx_b4ca319c\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"incomeExpense_date_idx_b4ca319c\"",
+        "sql": "CREATE INDEX \"incomeExpense_date_idx_b4ca319c\" ON \"public\".\"incomeExpense\" (\"date\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"incomeExpense_date_idx_b4ca319c\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense_date_idx_b4ca319c\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.incomeExpense.incomeExpense_paymentMethod_idx_25bac06e",
+    "label": "Create index \"incomeExpense_paymentMethod_idx_25bac06e\" on \"incomeExpense\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "incomeExpense_paymentMethod_idx_25bac06e",
+        "table": "incomeExpense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"incomeExpense_paymentMethod_idx_25bac06e\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense_paymentMethod_idx_25bac06e\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"incomeExpense_paymentMethod_idx_25bac06e\"",
+        "sql": "CREATE INDEX \"incomeExpense_paymentMethod_idx_25bac06e\" ON \"public\".\"incomeExpense\" (\"paymentMethod\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"incomeExpense_paymentMethod_idx_25bac06e\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense_paymentMethod_idx_25bac06e\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.incomeExpense.incomeExpense_somitiId_idx_7b1f646c",
+    "label": "Create index \"incomeExpense_somitiId_idx_7b1f646c\" on \"incomeExpense\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "incomeExpense_somitiId_idx_7b1f646c",
+        "table": "incomeExpense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"incomeExpense_somitiId_idx_7b1f646c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense_somitiId_idx_7b1f646c\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"incomeExpense_somitiId_idx_7b1f646c\"",
+        "sql": "CREATE INDEX \"incomeExpense_somitiId_idx_7b1f646c\" ON \"public\".\"incomeExpense\" (\"somitiId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"incomeExpense_somitiId_idx_7b1f646c\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense_somitiId_idx_7b1f646c\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.incomeExpense.incomeExpense_type_idx_b6b604ea",
+    "label": "Create index \"incomeExpense_type_idx_b6b604ea\" on \"incomeExpense\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "incomeExpense_type_idx_b6b604ea",
+        "table": "incomeExpense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"incomeExpense_type_idx_b6b604ea\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense_type_idx_b6b604ea\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"incomeExpense_type_idx_b6b604ea\"",
+        "sql": "CREATE INDEX \"incomeExpense_type_idx_b6b604ea\" ON \"public\".\"incomeExpense\" (\"type\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"incomeExpense_type_idx_b6b604ea\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense_type_idx_b6b604ea\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.incomeExpense.incomeExpense_voucherNo_idx_b96efe4a",
+    "label": "Create index \"incomeExpense_voucherNo_idx_b96efe4a\" on \"incomeExpense\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "incomeExpense_voucherNo_idx_b96efe4a",
+        "table": "incomeExpense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"incomeExpense_voucherNo_idx_b96efe4a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense_voucherNo_idx_b96efe4a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"incomeExpense_voucherNo_idx_b96efe4a\"",
+        "sql": "CREATE INDEX \"incomeExpense_voucherNo_idx_b96efe4a\" ON \"public\".\"incomeExpense\" (\"voucherNo\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"incomeExpense_voucherNo_idx_b96efe4a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"incomeExpense_voucherNo_idx_b96efe4a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.transactionCategory.transactionCategory_isActive_idx_77fe3ba1",
+    "label": "Create index \"transactionCategory_isActive_idx_77fe3ba1\" on \"transactionCategory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "transactionCategory_isActive_idx_77fe3ba1",
+        "table": "transactionCategory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"transactionCategory_isActive_idx_77fe3ba1\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transactionCategory_isActive_idx_77fe3ba1\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"transactionCategory_isActive_idx_77fe3ba1\"",
+        "sql": "CREATE INDEX \"transactionCategory_isActive_idx_77fe3ba1\" ON \"public\".\"transactionCategory\" (\"isActive\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"transactionCategory_isActive_idx_77fe3ba1\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transactionCategory_isActive_idx_77fe3ba1\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.transactionCategory.transactionCategory_type_idx_b6b604ea",
+    "label": "Create index \"transactionCategory_type_idx_b6b604ea\" on \"transactionCategory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "transactionCategory_type_idx_b6b604ea",
+        "table": "transactionCategory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"transactionCategory_type_idx_b6b604ea\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transactionCategory_type_idx_b6b604ea\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"transactionCategory_type_idx_b6b604ea\"",
+        "sql": "CREATE INDEX \"transactionCategory_type_idx_b6b604ea\" ON \"public\".\"transactionCategory\" (\"type\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"transactionCategory_type_idx_b6b604ea\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transactionCategory_type_idx_b6b604ea\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.incomeExpense.incomeExpense_categoryId_fkey",
+    "label": "Add foreign key \"incomeExpense_categoryId_fkey\" on \"incomeExpense\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "incomeExpense_categoryId_fkey",
+        "table": "incomeExpense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"incomeExpense_categoryId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "incomeExpense_categoryId_fkey",
+          "public",
+          "\"public\".\"incomeExpense\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"incomeExpense_categoryId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"incomeExpense\"\nADD CONSTRAINT \"incomeExpense_categoryId_fkey\"\nFOREIGN KEY (\"categoryId\")\nREFERENCES \"public\".\"transactionCategory\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"incomeExpense_categoryId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "incomeExpense_categoryId_fkey",
+          "public",
+          "\"public\".\"incomeExpense\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.incomeExpense.incomeExpense_somitiId_fkey",
+    "label": "Add foreign key \"incomeExpense_somitiId_fkey\" on \"incomeExpense\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "incomeExpense_somitiId_fkey",
+        "table": "incomeExpense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"incomeExpense_somitiId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "incomeExpense_somitiId_fkey",
+          "public",
+          "\"public\".\"incomeExpense\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"incomeExpense_somitiId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"incomeExpense\"\nADD CONSTRAINT \"incomeExpense_somitiId_fkey\"\nFOREIGN KEY (\"somitiId\")\nREFERENCES \"public\".\"somiti\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"incomeExpense_somitiId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "incomeExpense_somitiId_fkey",
+          "public",
+          "\"public\".\"incomeExpense\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.incomeExpense.incomeExpense_createdById_fkey",
+    "label": "Add foreign key \"incomeExpense_createdById_fkey\" on \"incomeExpense\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "incomeExpense_createdById_fkey",
+        "table": "incomeExpense"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"incomeExpense_createdById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "incomeExpense_createdById_fkey",
+          "public",
+          "\"public\".\"incomeExpense\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"incomeExpense_createdById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"incomeExpense\"\nADD CONSTRAINT \"incomeExpense_createdById_fkey\"\nFOREIGN KEY (\"createdById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"incomeExpense_createdById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "incomeExpense_createdById_fkey",
+          "public",
+          "\"public\".\"incomeExpense\""
+        ]
+      }
+    ]
+  }
+]

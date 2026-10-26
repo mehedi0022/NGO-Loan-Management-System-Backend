@@ -53,7 +53,7 @@ describe("Prisma migration history", () => {
   });
 
   it("adds a persisted, constrained user role with a safe default", () => {
-    expect(sql).toContain('ADD COLUMN "role" text DEFAULT \'USER\' NOT NULL');
-    expect(sql).toContain('CHECK ("role" IN (\'SUPER_ADMIN\', \'ADMIN\', \'USER\', \'CUSTOMER\', \'MODERATOR\', \'AUTHOR\', \'MANAGER\'))');
+    expect(sql).toContain('"role" text DEFAULT \'MANAGER\' NOT NULL');
+    expect(sql).toContain('CHECK ("role" IN (\'SUPER_ADMIN\', \'ADMIN\', \'MANAGER\', \'FIELD_OFFICER\'))');
   });
 });

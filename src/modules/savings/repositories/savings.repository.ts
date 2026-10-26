@@ -7,8 +7,8 @@ const cents = (value: string | number) => Math.round(Number(value) * 100);
 const money = (value: number) => (value / 100).toFixed(2);
 const toInstant = (date: Date) => Temporal.Instant.from(date.toISOString());
 
-export const findMemberSavings = async (memberId: number) =>
-  db.orm.public.Member.select(
+export const findMemberSavings = async (memberId: number) => {
+  const member = await db.orm.public.Member.select(
     "id",
     "memberId",
     "fullName",
@@ -29,6 +29,37 @@ export const findMemberSavings = async (memberId: number) =>
       ),
     )
     .first({ id: memberId });
+
+  if (!member) return null;
+
+  if (!member.savingsAccount) {
+    const createdAccount = await db.orm.public.SavingsAccount.create({
+      memberId: member.id,
+      generalSavingsBalance: "0.00",
+      specialSavingsBalance: "0.00",
+      status: "ACTIVE",
+    });
+    const accountId = `SAV-${String(createdAccount.id).padStart(6, "0")}`;
+    await db.orm.public.SavingsAccount.where({ id: createdAccount.id }).update({
+      accountId,
+    });
+    return {
+      ...member,
+      savingsAccount: {
+        id: createdAccount.id,
+        accountId,
+        generalSavingsBalance: "0.00",
+        specialSavingsBalance: "0.00",
+        status: "ACTIVE",
+        openedAt: createdAccount.openedAt,
+        closedAt: null,
+        notes: null,
+      },
+    };
+  }
+
+  return member;
+};
 
 export type WithdrawalResult =
   | { kind: "SUCCESS"; transactionId: number; accountId: number }

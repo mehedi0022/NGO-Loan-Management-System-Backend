@@ -113,25 +113,33 @@ enum SavingsTransactionType {
   WITHDRAWAL = "WITHDRAWAL"
 }
 
-model User {
-  id              Int                  @id @default(autoincrement())
-  email           String               @unique
-  userName        String?
-  fullName        String?
-  password        String
-  createdAt       DateTime             @default(now())
-  updatedAt       temporal.updatedAt()
-  role            UserRole             @default(MANAGER)
-  isActive        Boolean              @default(true)
-  emailVerifiedAt DateTime?
+enum TransactionType {
+  @@type("pg/text@1")
 
-  collections     Collection[]
+  INCOME = "INCOME"
+  EXPENSE = "EXPENSE"
+}
+
+model User {
+  id                           Int                  @id @default(autoincrement())
+  email                        String               @unique
+  userName                     String?
+  fullName                     String?
+  password                     String
+  createdAt                    DateTime             @default(now())
+  updatedAt                    temporal.updatedAt()
+  role                         UserRole             @default(MANAGER)
+  isActive                     Boolean              @default(true)
+  emailVerifiedAt              DateTime?
+
+  collections                  Collection[]
   processedSavingsTransactions SavingsTransaction[] @relation("SavingsTransactionProcessedBy")
-  sessions        Session[]
-  accountTokens   AccountToken[]
-  approvedLoans   Loan[]               @relation("LoanApprovedBy")
-  rejectedLoans   Loan[]               @relation("LoanRejectedBy")
-  assignedSomities Somiti[]            @relation("SomitiFieldOfficer")
+  sessions                     Session[]
+  accountTokens                AccountToken[]
+  approvedLoans                Loan[]               @relation("LoanApprovedBy")
+  rejectedLoans                Loan[]               @relation("LoanRejectedBy")
+  assignedSomities             Somiti[]             @relation("SomitiFieldOfficer")
+  incomeExpenses               IncomeExpense[]      @relation("IncomeExpenseCreatedBy")
 }
 
 model Session {
@@ -170,26 +178,27 @@ model AccountToken {
 }
 
 model Somiti {
-  id             Int          @id @default(autoincrement())
-  somitiId       String?      @unique
+  id             Int                  @id @default(autoincrement())
+  somitiId       String?              @unique
   name           String
-  code           String?      @unique
-  meetingDay     SomitiDay    @default(SUNDAY)
+  code           String?              @unique
+  meetingDay     SomitiDay            @default(SUNDAY)
   meetingTime    String?
 
   fieldOfficerId Int?
-  fieldOfficer   User?        @relation("SomitiFieldOfficer", fields:[fieldOfficerId], references:[id])
+  fieldOfficer   User?                @relation("SomitiFieldOfficer", fields:[fieldOfficerId], references:[id])
 
   village        String?
   union          String?
   upazila        String?
   district       String?
 
-  status         SomitiStatus @default(ACTIVE)
+  status         SomitiStatus         @default(ACTIVE)
 
   members        Member[]
+  incomeExpenses IncomeExpense[]
 
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime             @default(now())
   updatedAt      temporal.updatedAt()
 
   @@index([somitiId])
@@ -473,33 +482,116 @@ model SavingsTransaction {
 }
 
 model Collection {
-  id                  Int                  @id @default(autoincrement())
-  collectionId        String?              @unique
+  id                   Int                  @id @default(autoincrement())
+  collectionId         String?              @unique
 
-  memberId            Int
-  member              Member               @relation(fields:[memberId], references:[id])
+  memberId             Int
+  member               Member               @relation(fields:[memberId], references:[id])
 
-  collectedById       Int
-  collectedBy         User                 @relation(fields:[collectedById], references:[id])
+  collectedById        Int
+  collectedBy          User                 @relation(fields:[collectedById], references:[id])
 
-    loanCollectionAmount  Decimal  @default("0")
-  generalSavingsAmount  Decimal  @default("0")
-  specialSavingsAmount  Decimal  @default("0")
-  totalAmount           Decimal  @default("0")
+  loanCollectionAmount Decimal              @default("0")
+  generalSavingsAmount Decimal              @default("0")
+  specialSavingsAmount Decimal              @default("0")
+  totalAmount          Decimal              @default("0")
 
-  collectionDate      DateTime             @default(now())
-  paymentMethod       PaymentMethod        @default(CASH)
+  collectionDate       DateTime             @default(now())
+  paymentMethod        PaymentMethod        @default(CASH)
 
-  reference           String?
-  notes               String?
+  reference            String?
+  notes                String?
 
-  loanPayments        LoanPayment[]
-  savingsTransactions SavingsTransaction[]
+  loanPayments         LoanPayment[]
+  savingsTransactions  SavingsTransaction[]
 
-  createdAt           DateTime             @default(now())
-  updatedAt           temporal.updatedAt()
+  createdAt            DateTime             @default(now())
+  updatedAt            temporal.updatedAt()
 
   @@index([memberId])
   @@index([collectionId])
   @@index([collectionDate])
+}
+
+model TransactionCategory {
+  id           Int                  @id @default(autoincrement())
+  name         String
+  type         TransactionType
+  description  String?
+  isSystem     Boolean              @default(false)
+  isActive     Boolean              @default(true)
+
+  transactions IncomeExpense[]
+
+  createdAt    DateTime             @default(now())
+  updatedAt    temporal.updatedAt()
+
+  @@unique([name, type])
+  @@index([type])
+  @@index([isActive])
+}
+
+model IncomeExpense {
+  id            Int                  @id @default(autoincrement())
+  voucherNo     String               @unique
+
+  type          TransactionType
+
+  categoryId    Int
+  category      TransactionCategory  @relation(fields:[categoryId], references:[id])
+
+  amount        Decimal
+  date          DateTime             @default(now())
+  paymentMethod PaymentMethod        @default(CASH)
+  reference     String?
+  description   String?
+
+  somitiId      Int?
+  somiti        Somiti?              @relation(fields:[somitiId], references:[id])
+
+  createdById   Int
+  createdBy     User                 @relation("IncomeExpenseCreatedBy", fields:[createdById], references:[id])
+
+  createdAt     DateTime             @default(now())
+  updatedAt     temporal.updatedAt()
+
+  @@index([voucherNo])
+  @@index([type])
+  @@index([categoryId])
+  @@index([date])
+  @@index([paymentMethod])
+  @@index([somitiId])
+  @@index([createdById])
+}
+
+model OrganizationSetting {
+  id                       Int                  @id @default(autoincrement())
+
+  // Organization Info
+  orgName                  String               @default("Purbasha Financial Development Organization")
+  orgShortName             String?              @default("PFDO")
+  registrationNo           String?              @default("REG-NGO-2024-001")
+  establishedYear          String?              @default("2018")
+  logoUrl                  String?
+
+  // Contact & Address
+  email                    String?              @default("info@purbasha.org")
+  phone                    String?              @default("+8801700000000")
+  address                  String?              @default("Main Road, Branch Office, Bangladesh")
+  website                  String?
+
+  // Financial & Policy Defaults
+  currencySymbol           String               @default("৳")
+  currencyCode             String               @default("BDT")
+  defaultLoanChargeType    LoanChargeType       @default(PERCENTAGE)
+  defaultLoanChargeValue   Decimal              @default("10")
+  defaultLoanFrequency     InstallmentFrequency @default(WEEKLY)
+  defaultGraceDays         Int                  @default(0)
+  latePenaltyPercentage    Decimal              @default("0")
+
+  // Savings Defaults
+  minGeneralSavingsDeposit Decimal              @default("50")
+  minSpecialSavingsDeposit Decimal              @default("100")
+
+  updatedAt                temporal.updatedAt()
 }

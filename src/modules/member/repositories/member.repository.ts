@@ -211,16 +211,31 @@ export const findMemberById = async (id: number) => {
           "status",
         )
         .include("installments", (installments) =>
-          installments.select(
-            "id",
-            "loanId",
-            "installmentNo",
-            "dueDate",
-            "amount",
-            "paidAmount",
-            "status",
-            "paidAt",
-          ),
+          installments
+            .select(
+              "id",
+              "loanId",
+              "installmentNo",
+              "dueDate",
+              "amount",
+              "paidAmount",
+              "status",
+              "paidAt",
+            )
+            .include("payments", (payments) =>
+              payments
+                .select("id", "amount", "paymentDate", "collectionId")
+                .include("collection", (collection) =>
+                  collection.select(
+                    "id",
+                    "collectionId",
+                    "collectionDate",
+                    "generalSavingsAmount",
+                    "specialSavingsAmount",
+                    "totalAmount",
+                  ),
+                ),
+            ),
         ),
     )
     .include("savingsAccount", (account) =>
@@ -238,6 +253,29 @@ export const findMemberById = async (id: number) => {
 
   if (!member) {
     return null;
+  }
+
+  let savingsAccount = member.savingsAccount;
+  if (!savingsAccount) {
+    const createdAccount = await db.orm.public.SavingsAccount.create({
+      memberId: member.id,
+      generalSavingsBalance: "0.00",
+      specialSavingsBalance: "0.00",
+      status: "ACTIVE",
+    });
+    const accountId = `SAV-${String(createdAccount.id).padStart(6, "0")}`;
+    await db.orm.public.SavingsAccount.where({ id: createdAccount.id }).update({
+      accountId,
+    });
+    savingsAccount = {
+      id: createdAccount.id,
+      accountId,
+      generalSavingsBalance: "0.00",
+      specialSavingsBalance: "0.00",
+      status: "ACTIVE",
+      openedAt: createdAccount.openedAt,
+      closedAt: null,
+    };
   }
 
   // 2. Address + Guarantor
@@ -292,6 +330,7 @@ export const findMemberById = async (id: number) => {
 
   return {
     ...member,
+    savingsAccount,
     addresses,
     guarantors,
   };
@@ -435,6 +474,19 @@ export const createMember = async (data: CreateMemberInput) => {
         });
       }
     }
+
+    // 4. Create default active savings account for the new member
+    const savingsAccount = await tx.orm.public.SavingsAccount.create({
+      memberId: member.id,
+      generalSavingsBalance: "0.00",
+      specialSavingsBalance: "0.00",
+      status: "ACTIVE",
+    });
+    await tx.orm.public.SavingsAccount.where({
+      id: savingsAccount.id,
+    }).update({
+      accountId: `SAV-${String(savingsAccount.id).padStart(6, "0")}`,
+    });
 
     return member;
   });
@@ -682,6 +734,16 @@ export const findMemberSavingsTransactions = async (
     "createdAt",
   )
     .include("processedBy", (user) => user.select("id", "userName", "fullName"))
+    .include("collection", (collection) =>
+      collection.select(
+        "id",
+        "collectionId",
+        "collectionDate",
+        "generalSavingsAmount",
+        "specialSavingsAmount",
+        "totalAmount",
+      ),
+    )
     .where({ savingsAccountId: member.savingsAccount.id });
 
   const transactionsQuery = selectedTransactions.orderBy([

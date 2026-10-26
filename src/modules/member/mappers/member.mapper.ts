@@ -75,17 +75,46 @@ export const toGuarantorDto = (guarantor: GuarantorDto): GuarantorDto => ({
 });
 
 const toMemberLoanInstallmentDto = (
-  installment: MemberLoanInstallmentDto,
-): MemberLoanInstallmentDto => ({
-  id: installment.id,
-  loanId: installment.loanId,
-  installmentNo: installment.installmentNo,
-  dueDate: installment.dueDate,
-  amount: installment.amount,
-  paidAmount: installment.paidAmount,
-  status: installment.status,
-  paidAt: installment.paidAt,
-});
+  installment: any,
+): MemberLoanInstallmentDto => {
+  let generalSavingsAmount: string | null = null;
+  let specialSavingsAmount: string | null = null;
+  let collectionReceipt: string | null = null;
+  let effectivePaidAt: string | null = installment.paidAt;
+
+  if (installment.payments && Array.isArray(installment.payments)) {
+    let genSum = 0;
+    let spcSum = 0;
+    for (const payment of installment.payments) {
+      if (!effectivePaidAt && payment.paymentDate) {
+        effectivePaidAt = payment.paymentDate;
+      }
+      if (payment.collection) {
+        if (!collectionReceipt && payment.collection.collectionId) {
+          collectionReceipt = payment.collection.collectionId;
+        }
+        genSum += Number(payment.collection.generalSavingsAmount || 0);
+        spcSum += Number(payment.collection.specialSavingsAmount || 0);
+      }
+    }
+    if (genSum > 0) generalSavingsAmount = genSum.toFixed(2);
+    if (spcSum > 0) specialSavingsAmount = spcSum.toFixed(2);
+  }
+
+  return {
+    id: installment.id,
+    loanId: installment.loanId,
+    installmentNo: installment.installmentNo,
+    dueDate: installment.dueDate,
+    amount: installment.amount,
+    paidAmount: installment.paidAmount,
+    status: installment.status,
+    paidAt: effectivePaidAt,
+    generalSavingsAmount,
+    specialSavingsAmount,
+    collectionReceipt,
+  };
+};
 
 const toMemberLoanDto = (loan: MemberLoanDto): MemberLoanDto => ({
   id: loan.id,

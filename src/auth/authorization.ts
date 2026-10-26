@@ -43,6 +43,16 @@ export const permissions = {
 
   // Reports
   reportsReadAny: "reports:read:any",
+
+  // Income & Expense
+  incomeExpenseReadAny: "income-expense:read:any",
+  incomeExpenseCreate: "income-expense:create",
+  incomeExpenseUpdateAny: "income-expense:update:any",
+  incomeExpenseDeleteAny: "income-expense:delete:any",
+
+  // Settings
+  settingsRead: "settings:read",
+  settingsUpdate: "settings:update",
 } as const;
 
 export type Permission = (typeof permissions)[keyof typeof permissions];
@@ -91,6 +101,16 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
 
     // Reports
     permissions.reportsReadAny,
+
+    // Income & Expense
+    permissions.incomeExpenseReadAny,
+    permissions.incomeExpenseCreate,
+    permissions.incomeExpenseUpdateAny,
+    permissions.incomeExpenseDeleteAny,
+
+    // Settings
+    permissions.settingsRead,
+    permissions.settingsUpdate,
   ]),
 
   // Daily operational manager access
@@ -124,6 +144,14 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
 
     // Reports
     permissions.reportsReadAny,
+
+    // Income & Expense
+    permissions.incomeExpenseReadAny,
+    permissions.incomeExpenseCreate,
+    permissions.incomeExpenseUpdateAny,
+
+    // Settings
+    permissions.settingsRead,
   ]),
 
   // Field officer operational access
@@ -154,6 +182,13 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
 
     // Reports
     permissions.reportsReadAny,
+
+    // Income & Expense
+    permissions.incomeExpenseReadAny,
+    permissions.incomeExpenseCreate,
+
+    // Settings
+    permissions.settingsRead,
   ]),
 };
 
