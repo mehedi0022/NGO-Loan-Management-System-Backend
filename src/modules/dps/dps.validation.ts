@@ -40,7 +40,9 @@ export const closeDpsSchema = z.object({
   params: z.object({ id: z.coerce.number().int().positive() }).strict(),
   body: z
     .object({
+      closeType: z.enum(["MATURITY_PAYOUT", "PREMATURE_CLOSE"]).optional(),
       payoutAmount: z.coerce.number().min(0).optional(),
+      transactionDate: z.coerce.date().default(() => new Date()),
       paymentMethod: paymentMethod.default("CASH"),
       notes: z.string().trim().max(2000).optional(),
     })

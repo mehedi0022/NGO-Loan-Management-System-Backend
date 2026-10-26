@@ -344,33 +344,53 @@ export const closeDpsAccount = async (
       "status",
       "totalPaidAmount",
       "maturityAmount",
+      "paidInstallments",
+      "durationMonths",
     ).first({ id: dpsAccountId });
 
     if (!account) return { kind: "NO_ACCOUNT" as const };
     if (account.status === "CLOSED") return { kind: "ALREADY_CLOSED" as const };
 
+    const isMatured =
+      account.status === "MATURED" ||
+      account.paidInstallments >= account.durationMonths;
+
+    const closeType =
+      input.closeType || (isMatured ? "MATURITY_PAYOUT" : "PREMATURE_CLOSE");
+
+    const defaultPayout =
+      closeType === "MATURITY_PAYOUT"
+        ? account.maturityAmount
+        : account.totalPaidAmount;
+
     const payoutAmount =
       input.payoutAmount !== undefined
         ? input.payoutAmount.toFixed(2)
-        : account.status === "MATURED"
-          ? account.maturityAmount
-          : account.totalPaidAmount;
+        : defaultPayout;
 
     await tx.orm.public.DpsAccount.where({ id: account.id }).update({
       status: "CLOSED",
       notes: input.notes || null,
     });
 
+    const txDate = input.transactionDate
+      ? new Date(input.transactionDate)
+      : new Date();
+
     const transaction = await tx.orm.public.DpsTransaction.create({
       dpsAccountId: account.id,
       processedById,
-      type: account.status === "MATURED" ? "MATURITY_PAYOUT" : "PREMATURE_CLOSE",
+      type: closeType,
       amount: payoutAmount,
       balanceBefore: account.totalPaidAmount,
       balanceAfter: "0.00",
-      transactionDate: toInstant(new Date()),
+      transactionDate: toInstant(txDate),
       paymentMethod: input.paymentMethod || "CASH",
-      notes: input.notes || `DPS closed with payout of ${payoutAmount}`,
+      notes:
+        input.notes ||
+        (closeType === "MATURITY_PAYOUT"
+          ? `Maturity settlement with payout of ${payoutAmount}`
+          : `Premature DPS closure with refund of ${payoutAmount}`),
     });
 
     const transactionId = `DTX-${String(transaction.id).padStart(6, "0")}`;
@@ -380,6 +400,8 @@ export const closeDpsAccount = async (
 
     return {
       kind: "SUCCESS" as const,
+      transactionId,
       payoutAmount,
+      closeType,
     };
   });
