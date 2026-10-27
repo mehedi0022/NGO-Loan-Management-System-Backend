@@ -1,6 +1,7 @@
 import { Temporal } from "temporal-polyfill";
 
 import { db } from "../../../prisma/db.js";
+import { recordTransaction } from "../../accounts/repositories/accounts.repository.js";
 import type { WithdrawSavingsInput } from "../savings.types.js";
 
 const cents = (value: string | number) => Math.round(Number(value) * 100);
@@ -134,9 +135,34 @@ export const withdrawSavings = async (
       notes: data.notes || null,
     });
 
+    const transactionId = `STX-${String(transaction.id).padStart(6, "0")}`;
     await tx.orm.public.SavingsTransaction.where({ id: transaction.id }).update({
-      transactionId: `STX-${String(transaction.id).padStart(6, "0")}`,
+      transactionId,
     });
+
+    // Auto-record in cash accounting ledger
+    try {
+      const defaultAccount =
+        (await tx.orm.public.FinancialAccount.select("id")
+          .first({ isDefault: true, isActive: true })) ||
+        (await tx.orm.public.FinancialAccount.select("id")
+          .first({ isActive: true }));
+
+      if (defaultAccount && withdrawalAmount > 0) {
+        await recordTransaction(tx, {
+          accountId: defaultAccount.id,
+          type: "CREDIT",
+          amount: withdrawalAmount / 100,
+          sourceModule: "SAVINGS_WITHDRAWAL",
+          referenceId: transactionId,
+          description: `Savings withdrawal (${data.savingsType}) for member #${data.memberId}`,
+          transactionDate: toInstant(data.transactionDate),
+          createdById: processedById,
+        });
+      }
+    } catch (e) {
+      console.warn("Could not record savings withdrawal ledger entry:", e);
+    }
 
     return {
       kind: "SUCCESS",

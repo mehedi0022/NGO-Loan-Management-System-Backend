@@ -38,27 +38,55 @@ export const loanIdSchema = z.object({
 
 export const updateLoanSchema = z.object({
   params: loanIdParams,
-  body: z.object({
-    memberId: z.coerce.number().int().positive().optional(), principalAmount: z.coerce.number().positive().optional(),
-    chargeType: z.enum(["FLAT", "PERCENTAGE"]).optional(), chargeValue: z.coerce.number().min(0).optional(),
-    installmentCount: z.coerce.number().int().positive().optional(), frequency: z.enum(["WEEKLY", "MONTHLY"]).optional(),
-    purpose: z.string().trim().nullable().optional(), notes: z.string().trim().nullable().optional(),
-  }).strict().superRefine((data, ctx) => {
-    if (data.chargeType === "PERCENTAGE" && data.chargeValue !== undefined && data.chargeValue > 100) ctx.addIssue({ code: "custom", path: ["chargeValue"], message: "Percentage charge cannot be greater than 100" });
-  }).refine((data) => Object.keys(data).length > 0, { message: "At least one loan field is required" }),
+  body: z
+    .object({
+      memberId: z.coerce.number().int().positive().optional(),
+      principalAmount: z.coerce.number().positive().optional(),
+      chargeType: z.enum(["FLAT", "PERCENTAGE"]).optional(),
+      chargeValue: z.coerce.number().min(0).optional(),
+      installmentCount: z.coerce.number().int().positive().optional(),
+      frequency: z.enum(["WEEKLY", "MONTHLY"]).optional(),
+      purpose: z.string().trim().nullable().optional(),
+      notes: z.string().trim().nullable().optional(),
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      if (
+        data.chargeType === "PERCENTAGE" &&
+        data.chargeValue !== undefined &&
+        data.chargeValue > 100
+      )
+        ctx.addIssue({
+          code: "custom",
+          path: ["chargeValue"],
+          message: "Percentage charge cannot be greater than 100",
+        });
+    })
+    .refine((data) => Object.keys(data).length > 0, {
+      message: "At least one loan field is required",
+    }),
 });
 
-export const rejectLoanSchema = z.object({ params: loanIdParams, body: z.object({ rejectionReason: z.string().trim().min(1).max(1000) }).strict() });
+export const rejectLoanSchema = z.object({
+  params: loanIdParams,
+  body: z
+    .object({ rejectionReason: z.string().trim().min(1).max(1000) })
+    .strict(),
+});
 
 export const disburseLoanSchema = z.object({
   params: loanIdParams,
-  body: z.object({
-    disbursementDate: z.coerce.date(),
-    firstDueDate: z.coerce.date(),
-  }).strict().refine((data) => data.firstDueDate > data.disbursementDate, {
-    path: ["firstDueDate"],
-    message: "First installment due date must be after disbursement date",
-  }),
+  body: z
+    .object({
+      disbursementDate: z.coerce.date(),
+      firstDueDate: z.coerce.date(),
+      accountId: z.coerce.number().int().positive().optional(),
+    })
+    .strict()
+    .refine((data) => data.firstDueDate > data.disbursementDate, {
+      path: ["firstDueDate"],
+      message: "First installment due date must be after disbursement date",
+    }),
 });
 
 /**

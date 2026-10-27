@@ -141,6 +141,8 @@ export const createMemberSchema = z.object({
 
       joinDate: z.coerce.date().optional(),
 
+      admissionFee: z.coerce.number().min(0, "Admission fee cannot be negative").optional().default(0),
+
       notes: z.string().trim().optional(),
 
       addresses: z

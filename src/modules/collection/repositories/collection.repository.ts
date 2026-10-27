@@ -1,6 +1,7 @@
 import { db } from "../../../prisma/db.js";
 import { Temporal } from "temporal-polyfill";
 import { pageOffset, paginationMeta } from "../../../utils/pagination.js";
+import { recordTransaction } from "../../accounts/repositories/accounts.repository.js";
 
 import type {
   BatchCollectionInput,
@@ -456,16 +457,17 @@ const applyDpsDeposit = async (
     paidCount: agg.count(),
   }));
 
+  const paidCountNum = Number(paidCount || 0);
   const isWeekly = account.frequency === "WEEKLY";
   const totalInstallments = isWeekly
     ? Math.round((account.durationMonths / 12) * 52)
     : account.durationMonths;
 
-  const isMatured = paidCount >= totalInstallments;
+  const isMatured = paidCountNum >= totalInstallments;
 
   await tx.orm.public.DpsAccount.where({ id: account.id }).update({
     totalPaidAmount: money(balanceAfterCents),
-    paidInstallments: paidCount,
+    paidInstallments: paidCountNum,
     status: isMatured ? "MATURED" : "ACTIVE",
   });
 
@@ -652,6 +654,57 @@ const applyCollection = async (
     if (dpsResult.kind !== "SUCCESS") {
       return dpsResult;
     }
+  }
+
+  // Auto-record accounting ledger entry
+  try {
+    const defaultAccount =
+      (await tx.orm.public.FinancialAccount.select("id")
+        .first({ isDefault: true, isActive: true })) ||
+      (await tx.orm.public.FinancialAccount.select("id")
+        .first({ isActive: true }));
+
+    if (defaultAccount && totalAmount > 0) {
+      const colRef = `COL-${String(collection.id).padStart(6, "0")}`;
+      if (loanAmount > 0) {
+        await recordTransaction(tx, {
+          accountId: defaultAccount.id,
+          type: "DEBIT",
+          amount: loanAmount / 100,
+          sourceModule: "LOAN_COLLECTION",
+          referenceId: colRef,
+          description: `Loan collection for member #${input.memberId}`,
+          transactionDate: toInstant(input.collectionDate),
+          createdById: input.collectedById,
+        });
+      }
+      if (generalAmount > 0 || specialAmount > 0) {
+        await recordTransaction(tx, {
+          accountId: defaultAccount.id,
+          type: "DEBIT",
+          amount: (generalAmount + specialAmount) / 100,
+          sourceModule: "SAVINGS_DEPOSIT",
+          referenceId: colRef,
+          description: `Savings deposit for member #${input.memberId}`,
+          transactionDate: toInstant(input.collectionDate),
+          createdById: input.collectedById,
+        });
+      }
+      if (dpsAmount > 0) {
+        await recordTransaction(tx, {
+          accountId: defaultAccount.id,
+          type: "DEBIT",
+          amount: dpsAmount / 100,
+          sourceModule: "DPS_DEPOSIT",
+          referenceId: colRef,
+          description: `DPS deposit for member #${input.memberId}`,
+          transactionDate: toInstant(input.collectionDate),
+          createdById: input.collectedById,
+        });
+      }
+    }
+  } catch (err) {
+    console.warn("Could not record collection ledger entry:", err);
   }
 
   return {
@@ -978,7 +1031,7 @@ export const findDueInstallments = async (
   const dpsOnlyRows: any[] = [];
   const processedDpsMemberIds = new Set<number>();
 
-  for (const dpsInst of dpsDueInstallments) {
+  for (const dpsInst of (dpsDueInstallments as any[])) {
     if (dpsInst.status !== "PENDING" && dpsInst.status !== "PARTIAL") continue;
     if (dpsInst.dpsAccount?.status !== "ACTIVE") continue;
 

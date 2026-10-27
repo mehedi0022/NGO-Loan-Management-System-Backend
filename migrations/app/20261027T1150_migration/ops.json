@@ -1,0 +1,599 @@
+[
+  {
+    "id": "table.accountTransaction",
+    "label": "Create table \"accountTransaction\"",
+    "summary": "Creates table \"accountTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "accountTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"accountTransaction\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"accountTransaction\"",
+        "sql": "CREATE TABLE \"public\".\"accountTransaction\" (\n  \"accountId\" int4 NOT NULL,\n  \"amount\" numeric NOT NULL,\n  \"balanceAfter\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"balanceBefore\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"createdById\" int4,\n  \"description\" text,\n  \"id\" SERIAL NOT NULL,\n  \"referenceId\" text,\n  \"sourceModule\" text NOT NULL,\n  \"transactionDate\" timestamptz DEFAULT (now()) NOT NULL,\n  \"transactionId\" text,\n  \"type\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"accountTransaction_sourceModule_check_3daa8bba\" CHECK (\"sourceModule\" IN ('CAPITAL_INJECTION', 'MEMBER_ADMISSION', 'LOAN_DISBURSEMENT', 'LOAN_COLLECTION', 'SAVINGS_DEPOSIT', 'SAVINGS_WITHDRAWAL', 'DPS_DEPOSIT', 'DPS_WITHDRAWAL', 'OFFICE_EXPENSE', 'OTHER_INCOME', 'FUND_TRANSFER')),\n  CONSTRAINT \"accountTransaction_type_check_4b8e93d7\" CHECK (\"type\" IN ('DEBIT', 'CREDIT'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"accountTransaction\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.financialAccount",
+    "label": "Create table \"financialAccount\"",
+    "summary": "Creates table \"financialAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "financialAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"financialAccount\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"financialAccount\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"financialAccount\"",
+        "sql": "CREATE TABLE \"public\".\"financialAccount\" (\n  \"accountName\" text NOT NULL,\n  \"accountNumber\" text,\n  \"accountType\" text DEFAULT 'CASH' NOT NULL,\n  \"bankName\" text,\n  \"branchName\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"currentBalance\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"isDefault\" bool DEFAULT false NOT NULL,\n  \"notes\" text,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"financialAccount_accountType_check_2016956a\" CHECK (\"accountType\" IN ('CASH', 'BANK', 'MOBILE_BANKING'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"financialAccount\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"financialAccount\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.member.admissionFee",
+    "label": "Add column \"admissionFee\" to \"member\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "admissionFee",
+        "table": "member"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"admissionFee\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "member",
+          "admissionFee"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"admissionFee\"",
+        "sql": "ALTER TABLE \"public\".\"member\" ADD COLUMN \"admissionFee\" numeric DEFAULT '0'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"admissionFee\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "member",
+          "admissionFee"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.accountTransaction.accountTransaction_transactionId_key",
+    "label": "Add unique constraint on \"accountTransaction\" (transactionId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "accountTransaction_transactionId_key",
+        "table": "accountTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"accountTransaction_transactionId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "accountTransaction_transactionId_key",
+          "public",
+          "\"public\".\"accountTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"accountTransaction_transactionId_key\"",
+        "sql": "ALTER TABLE \"public\".\"accountTransaction\" ADD CONSTRAINT \"accountTransaction_transactionId_key\" UNIQUE (\"transactionId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"accountTransaction_transactionId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "accountTransaction_transactionId_key",
+          "public",
+          "\"public\".\"accountTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.accountTransaction.accountTransaction_accountId_idx_cbfb3085",
+    "label": "Create index \"accountTransaction_accountId_idx_cbfb3085\" on \"accountTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "accountTransaction_accountId_idx_cbfb3085",
+        "table": "accountTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"accountTransaction_accountId_idx_cbfb3085\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountTransaction_accountId_idx_cbfb3085\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"accountTransaction_accountId_idx_cbfb3085\"",
+        "sql": "CREATE INDEX \"accountTransaction_accountId_idx_cbfb3085\" ON \"public\".\"accountTransaction\" (\"accountId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"accountTransaction_accountId_idx_cbfb3085\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountTransaction_accountId_idx_cbfb3085\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.accountTransaction.accountTransaction_createdById_idx_8bf640ed",
+    "label": "Create index \"accountTransaction_createdById_idx_8bf640ed\" on \"accountTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "accountTransaction_createdById_idx_8bf640ed",
+        "table": "accountTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"accountTransaction_createdById_idx_8bf640ed\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountTransaction_createdById_idx_8bf640ed\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"accountTransaction_createdById_idx_8bf640ed\"",
+        "sql": "CREATE INDEX \"accountTransaction_createdById_idx_8bf640ed\" ON \"public\".\"accountTransaction\" (\"createdById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"accountTransaction_createdById_idx_8bf640ed\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountTransaction_createdById_idx_8bf640ed\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.accountTransaction.accountTransaction_sourceModule_idx_9c8fc029",
+    "label": "Create index \"accountTransaction_sourceModule_idx_9c8fc029\" on \"accountTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "accountTransaction_sourceModule_idx_9c8fc029",
+        "table": "accountTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"accountTransaction_sourceModule_idx_9c8fc029\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountTransaction_sourceModule_idx_9c8fc029\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"accountTransaction_sourceModule_idx_9c8fc029\"",
+        "sql": "CREATE INDEX \"accountTransaction_sourceModule_idx_9c8fc029\" ON \"public\".\"accountTransaction\" (\"sourceModule\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"accountTransaction_sourceModule_idx_9c8fc029\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountTransaction_sourceModule_idx_9c8fc029\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.accountTransaction.accountTransaction_transactionDate_idx_b449edf8",
+    "label": "Create index \"accountTransaction_transactionDate_idx_b449edf8\" on \"accountTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "accountTransaction_transactionDate_idx_b449edf8",
+        "table": "accountTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"accountTransaction_transactionDate_idx_b449edf8\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountTransaction_transactionDate_idx_b449edf8\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"accountTransaction_transactionDate_idx_b449edf8\"",
+        "sql": "CREATE INDEX \"accountTransaction_transactionDate_idx_b449edf8\" ON \"public\".\"accountTransaction\" (\"transactionDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"accountTransaction_transactionDate_idx_b449edf8\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountTransaction_transactionDate_idx_b449edf8\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.accountTransaction.accountTransaction_transactionId_idx_d3180832",
+    "label": "Create index \"accountTransaction_transactionId_idx_d3180832\" on \"accountTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "accountTransaction_transactionId_idx_d3180832",
+        "table": "accountTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"accountTransaction_transactionId_idx_d3180832\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountTransaction_transactionId_idx_d3180832\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"accountTransaction_transactionId_idx_d3180832\"",
+        "sql": "CREATE INDEX \"accountTransaction_transactionId_idx_d3180832\" ON \"public\".\"accountTransaction\" (\"transactionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"accountTransaction_transactionId_idx_d3180832\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountTransaction_transactionId_idx_d3180832\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.accountTransaction.accountTransaction_type_idx_b6b604ea",
+    "label": "Create index \"accountTransaction_type_idx_b6b604ea\" on \"accountTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "accountTransaction_type_idx_b6b604ea",
+        "table": "accountTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"accountTransaction_type_idx_b6b604ea\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountTransaction_type_idx_b6b604ea\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"accountTransaction_type_idx_b6b604ea\"",
+        "sql": "CREATE INDEX \"accountTransaction_type_idx_b6b604ea\" ON \"public\".\"accountTransaction\" (\"type\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"accountTransaction_type_idx_b6b604ea\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"accountTransaction_type_idx_b6b604ea\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.financialAccount.financialAccount_accountType_idx_177ee31e",
+    "label": "Create index \"financialAccount_accountType_idx_177ee31e\" on \"financialAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "financialAccount_accountType_idx_177ee31e",
+        "table": "financialAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"financialAccount_accountType_idx_177ee31e\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"financialAccount_accountType_idx_177ee31e\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"financialAccount_accountType_idx_177ee31e\"",
+        "sql": "CREATE INDEX \"financialAccount_accountType_idx_177ee31e\" ON \"public\".\"financialAccount\" (\"accountType\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"financialAccount_accountType_idx_177ee31e\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"financialAccount_accountType_idx_177ee31e\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.financialAccount.financialAccount_isActive_idx_77fe3ba1",
+    "label": "Create index \"financialAccount_isActive_idx_77fe3ba1\" on \"financialAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "financialAccount_isActive_idx_77fe3ba1",
+        "table": "financialAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"financialAccount_isActive_idx_77fe3ba1\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"financialAccount_isActive_idx_77fe3ba1\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"financialAccount_isActive_idx_77fe3ba1\"",
+        "sql": "CREATE INDEX \"financialAccount_isActive_idx_77fe3ba1\" ON \"public\".\"financialAccount\" (\"isActive\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"financialAccount_isActive_idx_77fe3ba1\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"financialAccount_isActive_idx_77fe3ba1\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.financialAccount.financialAccount_isDefault_idx_2a24e9d7",
+    "label": "Create index \"financialAccount_isDefault_idx_2a24e9d7\" on \"financialAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "financialAccount_isDefault_idx_2a24e9d7",
+        "table": "financialAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"financialAccount_isDefault_idx_2a24e9d7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"financialAccount_isDefault_idx_2a24e9d7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"financialAccount_isDefault_idx_2a24e9d7\"",
+        "sql": "CREATE INDEX \"financialAccount_isDefault_idx_2a24e9d7\" ON \"public\".\"financialAccount\" (\"isDefault\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"financialAccount_isDefault_idx_2a24e9d7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"financialAccount_isDefault_idx_2a24e9d7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.accountTransaction.accountTransaction_accountId_fkey",
+    "label": "Add foreign key \"accountTransaction_accountId_fkey\" on \"accountTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "accountTransaction_accountId_fkey",
+        "table": "accountTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"accountTransaction_accountId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "accountTransaction_accountId_fkey",
+          "public",
+          "\"public\".\"accountTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"accountTransaction_accountId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"accountTransaction\"\nADD CONSTRAINT \"accountTransaction_accountId_fkey\"\nFOREIGN KEY (\"accountId\")\nREFERENCES \"public\".\"financialAccount\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"accountTransaction_accountId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "accountTransaction_accountId_fkey",
+          "public",
+          "\"public\".\"accountTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.accountTransaction.accountTransaction_createdById_fkey",
+    "label": "Add foreign key \"accountTransaction_createdById_fkey\" on \"accountTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "accountTransaction_createdById_fkey",
+        "table": "accountTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"accountTransaction_createdById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "accountTransaction_createdById_fkey",
+          "public",
+          "\"public\".\"accountTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"accountTransaction_createdById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"accountTransaction\"\nADD CONSTRAINT \"accountTransaction_createdById_fkey\"\nFOREIGN KEY (\"createdById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"accountTransaction_createdById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "accountTransaction_createdById_fkey",
+          "public",
+          "\"public\".\"accountTransaction\""
+        ]
+      }
+    ]
+  }
+]

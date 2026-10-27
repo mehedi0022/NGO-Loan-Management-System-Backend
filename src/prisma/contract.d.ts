@@ -34,9 +34,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'fd3adc1d510f0b5aae22d9e36e0cfbf7e10ce0b4977d2758cd74955ffbd2df9f'>;
+  StorageHashBase<'a355720713e26aa0cd849ef1fbcf026e50eb88d6d2fb0ba8405a6a667bfe0a40'>;
 export type ExecutionHash =
-  ExecutionHashBase<'ad25f9e5883003299c29ffcadb148b7a33cc3c2db17178e0cd846fe05998b1b7'>;
+  ExecutionHashBase<'52c0a5815845a4ced1e64c2374193a892cb49b8823741e7ebd0fa96dc5ef9ada'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -251,6 +251,32 @@ export type FieldOutputTypes = {
       readonly consumedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
+    readonly AccountTransaction: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly transactionId: CodecTypes['pg/text@1']['output'] | null;
+      readonly accountId: CodecTypes['pg/int4@1']['output'];
+      readonly type: 'DEBIT' | 'CREDIT';
+      readonly amount: CodecTypes['pg/numeric@1']['output'];
+      readonly balanceBefore: CodecTypes['pg/numeric@1']['output'];
+      readonly balanceAfter: CodecTypes['pg/numeric@1']['output'];
+      readonly sourceModule:
+        | 'CAPITAL_INJECTION'
+        | 'MEMBER_ADMISSION'
+        | 'LOAN_DISBURSEMENT'
+        | 'LOAN_COLLECTION'
+        | 'SAVINGS_DEPOSIT'
+        | 'SAVINGS_WITHDRAWAL'
+        | 'DPS_DEPOSIT'
+        | 'DPS_WITHDRAWAL'
+        | 'OFFICE_EXPENSE'
+        | 'OTHER_INCOME'
+        | 'FUND_TRANSFER';
+      readonly referenceId: CodecTypes['pg/text@1']['output'] | null;
+      readonly description: CodecTypes['pg/text@1']['output'] | null;
+      readonly transactionDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly createdById: CodecTypes['pg/int4@1']['output'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    };
     readonly Collection: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly collectionId: CodecTypes['pg/text@1']['output'] | null;
@@ -315,6 +341,20 @@ export type FieldOutputTypes = {
       readonly reference: CodecTypes['pg/text@1']['output'] | null;
       readonly notes: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    };
+    readonly FinancialAccount: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly accountName: CodecTypes['pg/text@1']['output'];
+      readonly accountType: 'CASH' | 'BANK' | 'MOBILE_BANKING';
+      readonly accountNumber: CodecTypes['pg/text@1']['output'] | null;
+      readonly bankName: CodecTypes['pg/text@1']['output'] | null;
+      readonly branchName: CodecTypes['pg/text@1']['output'] | null;
+      readonly currentBalance: CodecTypes['pg/numeric@1']['output'];
+      readonly isDefault: CodecTypes['pg/bool@1']['output'];
+      readonly isActive: CodecTypes['pg/bool@1']['output'];
+      readonly notes: CodecTypes['pg/text@1']['output'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
     readonly Guarantor: {
       readonly id: CodecTypes['pg/int4@1']['output'];
@@ -419,6 +459,7 @@ export type FieldOutputTypes = {
       readonly occupation: CodecTypes['pg/text@1']['output'] | null;
       readonly joinDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+      readonly admissionFee: CodecTypes['pg/numeric@1']['output'];
       readonly somitiId: CodecTypes['pg/int4@1']['output'] | null;
       readonly notes: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -557,6 +598,32 @@ export type FieldInputTypes = {
       readonly consumedAt: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
+    readonly AccountTransaction: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly transactionId: CodecTypes['pg/text@1']['input'] | null;
+      readonly accountId: CodecTypes['pg/int4@1']['input'];
+      readonly type: 'DEBIT' | 'CREDIT';
+      readonly amount: CodecTypes['pg/numeric@1']['input'];
+      readonly balanceBefore: CodecTypes['pg/numeric@1']['input'];
+      readonly balanceAfter: CodecTypes['pg/numeric@1']['input'];
+      readonly sourceModule:
+        | 'CAPITAL_INJECTION'
+        | 'MEMBER_ADMISSION'
+        | 'LOAN_DISBURSEMENT'
+        | 'LOAN_COLLECTION'
+        | 'SAVINGS_DEPOSIT'
+        | 'SAVINGS_WITHDRAWAL'
+        | 'DPS_DEPOSIT'
+        | 'DPS_WITHDRAWAL'
+        | 'OFFICE_EXPENSE'
+        | 'OTHER_INCOME'
+        | 'FUND_TRANSFER';
+      readonly referenceId: CodecTypes['pg/text@1']['input'] | null;
+      readonly description: CodecTypes['pg/text@1']['input'] | null;
+      readonly transactionDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly createdById: CodecTypes['pg/int4@1']['input'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+    };
     readonly Collection: {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly collectionId: CodecTypes['pg/text@1']['input'] | null;
@@ -621,6 +688,20 @@ export type FieldInputTypes = {
       readonly reference: CodecTypes['pg/text@1']['input'] | null;
       readonly notes: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+    };
+    readonly FinancialAccount: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly accountName: CodecTypes['pg/text@1']['input'];
+      readonly accountType: 'CASH' | 'BANK' | 'MOBILE_BANKING';
+      readonly accountNumber: CodecTypes['pg/text@1']['input'] | null;
+      readonly bankName: CodecTypes['pg/text@1']['input'] | null;
+      readonly branchName: CodecTypes['pg/text@1']['input'] | null;
+      readonly currentBalance: CodecTypes['pg/numeric@1']['input'];
+      readonly isDefault: CodecTypes['pg/bool@1']['input'];
+      readonly isActive: CodecTypes['pg/bool@1']['input'];
+      readonly notes: CodecTypes['pg/text@1']['input'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
     readonly Guarantor: {
       readonly id: CodecTypes['pg/int4@1']['input'];
@@ -725,6 +806,7 @@ export type FieldInputTypes = {
       readonly occupation: CodecTypes['pg/text@1']['input'] | null;
       readonly joinDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+      readonly admissionFee: CodecTypes['pg/numeric@1']['input'];
       readonly somitiId: CodecTypes['pg/int4@1']['input'] | null;
       readonly notes: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -863,6 +945,32 @@ export type StorageColumnTypes = {
       readonly type: 'PASSWORD_RESET' | 'EMAIL_VERIFICATION';
       readonly userId: CodecTypes['pg/int4@1']['output'];
     };
+    readonly accountTransaction: {
+      readonly accountId: CodecTypes['pg/int4@1']['output'];
+      readonly amount: CodecTypes['pg/numeric@1']['output'];
+      readonly balanceAfter: CodecTypes['pg/numeric@1']['output'];
+      readonly balanceBefore: CodecTypes['pg/numeric@1']['output'];
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly createdById: CodecTypes['pg/int4@1']['output'] | null;
+      readonly description: CodecTypes['pg/text@1']['output'] | null;
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly referenceId: CodecTypes['pg/text@1']['output'] | null;
+      readonly sourceModule:
+        | 'CAPITAL_INJECTION'
+        | 'MEMBER_ADMISSION'
+        | 'LOAN_DISBURSEMENT'
+        | 'LOAN_COLLECTION'
+        | 'SAVINGS_DEPOSIT'
+        | 'SAVINGS_WITHDRAWAL'
+        | 'DPS_DEPOSIT'
+        | 'DPS_WITHDRAWAL'
+        | 'OFFICE_EXPENSE'
+        | 'OTHER_INCOME'
+        | 'FUND_TRANSFER';
+      readonly transactionDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly transactionId: CodecTypes['pg/text@1']['output'] | null;
+      readonly type: 'DEBIT' | 'CREDIT';
+    };
     readonly collection: {
       readonly collectedById: CodecTypes['pg/int4@1']['output'];
       readonly collectionDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -927,6 +1035,20 @@ export type StorageColumnTypes = {
       readonly transactionDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly transactionId: CodecTypes['pg/text@1']['output'] | null;
       readonly type: CodecTypes['pg/text@1']['output'];
+    };
+    readonly financialAccount: {
+      readonly accountName: CodecTypes['pg/text@1']['output'];
+      readonly accountNumber: CodecTypes['pg/text@1']['output'] | null;
+      readonly accountType: 'CASH' | 'BANK' | 'MOBILE_BANKING';
+      readonly bankName: CodecTypes['pg/text@1']['output'] | null;
+      readonly branchName: CodecTypes['pg/text@1']['output'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly currentBalance: CodecTypes['pg/numeric@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly isActive: CodecTypes['pg/bool@1']['output'];
+      readonly isDefault: CodecTypes['pg/bool@1']['output'];
+      readonly notes: CodecTypes['pg/text@1']['output'] | null;
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
     readonly guarantor: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -1018,6 +1140,7 @@ export type StorageColumnTypes = {
       readonly reference: CodecTypes['pg/text@1']['output'] | null;
     };
     readonly member: {
+      readonly admissionFee: CodecTypes['pg/numeric@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly email: CodecTypes['pg/text@1']['output'] | null;
       readonly fatherName: CodecTypes['pg/text@1']['output'];
@@ -1169,6 +1292,32 @@ export type StorageColumnInputTypes = {
       readonly type: 'PASSWORD_RESET' | 'EMAIL_VERIFICATION';
       readonly userId: CodecTypes['pg/int4@1']['input'];
     };
+    readonly accountTransaction: {
+      readonly accountId: CodecTypes['pg/int4@1']['input'];
+      readonly amount: CodecTypes['pg/numeric@1']['input'];
+      readonly balanceAfter: CodecTypes['pg/numeric@1']['input'];
+      readonly balanceBefore: CodecTypes['pg/numeric@1']['input'];
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly createdById: CodecTypes['pg/int4@1']['input'] | null;
+      readonly description: CodecTypes['pg/text@1']['input'] | null;
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly referenceId: CodecTypes['pg/text@1']['input'] | null;
+      readonly sourceModule:
+        | 'CAPITAL_INJECTION'
+        | 'MEMBER_ADMISSION'
+        | 'LOAN_DISBURSEMENT'
+        | 'LOAN_COLLECTION'
+        | 'SAVINGS_DEPOSIT'
+        | 'SAVINGS_WITHDRAWAL'
+        | 'DPS_DEPOSIT'
+        | 'DPS_WITHDRAWAL'
+        | 'OFFICE_EXPENSE'
+        | 'OTHER_INCOME'
+        | 'FUND_TRANSFER';
+      readonly transactionDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly transactionId: CodecTypes['pg/text@1']['input'] | null;
+      readonly type: 'DEBIT' | 'CREDIT';
+    };
     readonly collection: {
       readonly collectedById: CodecTypes['pg/int4@1']['input'];
       readonly collectionDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -1233,6 +1382,20 @@ export type StorageColumnInputTypes = {
       readonly transactionDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly transactionId: CodecTypes['pg/text@1']['input'] | null;
       readonly type: CodecTypes['pg/text@1']['input'];
+    };
+    readonly financialAccount: {
+      readonly accountName: CodecTypes['pg/text@1']['input'];
+      readonly accountNumber: CodecTypes['pg/text@1']['input'] | null;
+      readonly accountType: 'CASH' | 'BANK' | 'MOBILE_BANKING';
+      readonly bankName: CodecTypes['pg/text@1']['input'] | null;
+      readonly branchName: CodecTypes['pg/text@1']['input'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly currentBalance: CodecTypes['pg/numeric@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly isActive: CodecTypes['pg/bool@1']['input'];
+      readonly isDefault: CodecTypes['pg/bool@1']['input'];
+      readonly notes: CodecTypes['pg/text@1']['input'] | null;
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
     readonly guarantor: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -1324,6 +1487,7 @@ export type StorageColumnInputTypes = {
       readonly reference: CodecTypes['pg/text@1']['input'] | null;
     };
     readonly member: {
+      readonly admissionFee: CodecTypes['pg/numeric@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly email: CodecTypes['pg/text@1']['input'] | null;
       readonly fatherName: CodecTypes['pg/text@1']['input'];
@@ -1478,6 +1642,7 @@ export namespace Models {
     isActive: CodecTypes['pg/bool@1']['output'];
     emailVerifiedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
     accountTokens: public_AccountToken[];
+    accountTransactions: public_AccountTransaction[];
     approvedLoans: public_Loan[];
     assignedSomities: public_Somiti[];
     collections: public_Collection[];
@@ -1489,6 +1654,7 @@ export namespace Models {
     sessions: public_Session[];
     readonly [RelationKeys]?:
       | 'accountTokens'
+      | 'accountTransactions'
       | 'approvedLoans'
       | 'assignedSomities'
       | 'collections'
@@ -1560,6 +1726,7 @@ export namespace Models {
     occupation: CodecTypes['pg/text@1']['output'] | null;
     joinDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
     status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+    admissionFee: CodecTypes['pg/numeric@1']['output'];
     somitiId: CodecTypes['pg/int4@1']['output'] | null;
     notes: CodecTypes['pg/text@1']['output'] | null;
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -1860,6 +2027,51 @@ export namespace Models {
     processedBy: public_User | null;
     readonly [RelationKeys]?: 'collection' | 'dpsAccount' | 'processedBy';
   };
+  export type public_FinancialAccount = {
+    id: CodecTypes['pg/int4@1']['output'];
+    accountName: CodecTypes['pg/text@1']['output'];
+    accountType: 'CASH' | 'BANK' | 'MOBILE_BANKING';
+    accountNumber: CodecTypes['pg/text@1']['output'] | null;
+    bankName: CodecTypes['pg/text@1']['output'] | null;
+    branchName: CodecTypes['pg/text@1']['output'] | null;
+    currentBalance: CodecTypes['pg/numeric@1']['output'];
+    isDefault: CodecTypes['pg/bool@1']['output'];
+    isActive: CodecTypes['pg/bool@1']['output'];
+    notes: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    transactions: public_AccountTransaction[];
+    readonly [RelationKeys]?: 'transactions';
+  };
+  export type public_AccountTransaction = {
+    id: CodecTypes['pg/int4@1']['output'];
+    transactionId: CodecTypes['pg/text@1']['output'] | null;
+    accountId: CodecTypes['pg/int4@1']['output'];
+    type: 'DEBIT' | 'CREDIT';
+    amount: CodecTypes['pg/numeric@1']['output'];
+    balanceBefore: CodecTypes['pg/numeric@1']['output'];
+    balanceAfter: CodecTypes['pg/numeric@1']['output'];
+    sourceModule:
+      | 'CAPITAL_INJECTION'
+      | 'MEMBER_ADMISSION'
+      | 'LOAN_DISBURSEMENT'
+      | 'LOAN_COLLECTION'
+      | 'SAVINGS_DEPOSIT'
+      | 'SAVINGS_WITHDRAWAL'
+      | 'DPS_DEPOSIT'
+      | 'DPS_WITHDRAWAL'
+      | 'OFFICE_EXPENSE'
+      | 'OTHER_INCOME'
+      | 'FUND_TRANSFER';
+    referenceId: CodecTypes['pg/text@1']['output'] | null;
+    description: CodecTypes['pg/text@1']['output'] | null;
+    transactionDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    createdById: CodecTypes['pg/int4@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    account: public_FinancialAccount;
+    createdBy: public_User | null;
+    readonly [RelationKeys]?: 'account' | 'createdBy';
+  };
 }
 
 export declare const models: {
@@ -1883,6 +2095,8 @@ export declare const models: {
     DpsAccount: Models.public_DpsAccount;
     DpsInstallment: Models.public_DpsInstallment;
     DpsTransaction: Models.public_DpsTransaction;
+    FinancialAccount: Models.public_FinancialAccount;
+    AccountTransaction: Models.public_AccountTransaction;
   };
 };
 
@@ -1975,6 +2189,155 @@ type ContractBase = Omit<
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'accountToken';
                     readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'user';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly accountTransaction: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly transactionId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly accountId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                };
+                readonly type: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly amount: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                };
+                readonly balanceBefore: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly balanceAfter: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly sourceModule: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly referenceId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly description: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly transactionDate: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly createdById: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['transactionId'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'accountTransaction_transactionId_idx_d3180832';
+                  readonly prefix: 'accountTransaction_transactionId_idx';
+                  readonly columns: readonly ['transactionId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'accountTransaction_accountId_idx_cbfb3085';
+                  readonly prefix: 'accountTransaction_accountId_idx';
+                  readonly columns: readonly ['accountId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'accountTransaction_type_idx_b6b604ea';
+                  readonly prefix: 'accountTransaction_type_idx';
+                  readonly columns: readonly ['type'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'accountTransaction_sourceModule_idx_9c8fc029';
+                  readonly prefix: 'accountTransaction_sourceModule_idx';
+                  readonly columns: readonly ['sourceModule'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'accountTransaction_transactionDate_idx_b449edf8';
+                  readonly prefix: 'accountTransaction_transactionDate_idx';
+                  readonly columns: readonly ['transactionDate'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'accountTransaction_createdById_idx_8bf640ed';
+                  readonly prefix: 'accountTransaction_createdById_idx';
+                  readonly columns: readonly ['createdById'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'accountTransaction';
+                    readonly columns: readonly ['accountId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'financialAccount';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'accountTransaction';
+                    readonly columns: readonly ['createdById'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
@@ -2557,6 +2920,114 @@ type ContractBase = Omit<
                   };
                 },
               ];
+            };
+            readonly financialAccount: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly accountName: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly accountType: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'CASH'>;
+                  };
+                };
+                readonly accountNumber: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly bankName: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly branchName: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly currentBalance: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly isDefault: {
+                  readonly nativeType: 'bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
+                  };
+                };
+                readonly isActive: {
+                  readonly nativeType: 'bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', true>;
+                  };
+                };
+                readonly notes: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly updatedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'financialAccount_accountType_idx_177ee31e';
+                  readonly prefix: 'financialAccount_accountType_idx';
+                  readonly columns: readonly ['accountType'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'financialAccount_isDefault_idx_2a24e9d7';
+                  readonly prefix: 'financialAccount_isDefault_idx';
+                  readonly columns: readonly ['isDefault'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'financialAccount_isActive_idx_77fe3ba1';
+                  readonly prefix: 'financialAccount_isActive_idx';
+                  readonly columns: readonly ['isActive'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
             };
             readonly guarantor: {
               columns: {
@@ -3395,6 +3866,15 @@ type ContractBase = Omit<
                   readonly default: {
                     readonly kind: 'literal';
                     readonly value: DefaultLiteralValue<'pg/text@1', 'ACTIVE'>;
+                  };
+                };
+                readonly admissionFee: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
                   };
                 };
                 readonly somitiId: {
@@ -4437,9 +4917,29 @@ type ContractBase = Omit<
             };
           };
           readonly valueSet: {
+            readonly AccountSourceModule: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'CAPITAL_INJECTION',
+                'MEMBER_ADMISSION',
+                'LOAN_DISBURSEMENT',
+                'LOAN_COLLECTION',
+                'SAVINGS_DEPOSIT',
+                'SAVINGS_WITHDRAWAL',
+                'DPS_DEPOSIT',
+                'DPS_WITHDRAWAL',
+                'OFFICE_EXPENSE',
+                'OTHER_INCOME',
+                'FUND_TRANSFER',
+              ];
+            };
             readonly AccountTokenType: {
               readonly kind: 'valueSet';
               readonly values: readonly ['PASSWORD_RESET', 'EMAIL_VERIFICATION'];
+            };
+            readonly AccountTransactionType: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['DEBIT', 'CREDIT'];
             };
             readonly AddressType: {
               readonly kind: 'valueSet';
@@ -4448,6 +4948,10 @@ type ContractBase = Omit<
             readonly DpsStatus: {
               readonly kind: 'valueSet';
               readonly values: readonly ['ACTIVE', 'MATURED', 'CLOSED'];
+            };
+            readonly FinancialAccountType: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['CASH', 'BANK', 'MOBILE_BANKING'];
             };
             readonly InstallmentFrequency: {
               readonly kind: 'valueSet';
@@ -4591,6 +5095,14 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'DpsTransaction';
     };
+    readonly financialAccount: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'FinancialAccount';
+    };
+    readonly accountTransaction: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'AccountTransaction';
+    };
   };
   readonly domain: {
     readonly namespaces: {
@@ -4657,6 +5169,110 @@ type ContractBase = Omit<
                 readonly tokenHash: { readonly column: 'tokenHash' };
                 readonly expiresAt: { readonly column: 'expiresAt' };
                 readonly consumedAt: { readonly column: 'consumedAt' };
+                readonly createdAt: { readonly column: 'createdAt' };
+              };
+            };
+          };
+          readonly AccountTransaction: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly transactionId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly accountId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly type: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly amount: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly balanceBefore: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly balanceAfter: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly sourceModule: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly referenceId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly description: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly transactionDate: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly createdById: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly account: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'FinancialAccount';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['accountId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly createdBy: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['createdById'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'accountTransaction';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly transactionId: { readonly column: 'transactionId' };
+                readonly accountId: { readonly column: 'accountId' };
+                readonly type: { readonly column: 'type' };
+                readonly amount: { readonly column: 'amount' };
+                readonly balanceBefore: { readonly column: 'balanceBefore' };
+                readonly balanceAfter: { readonly column: 'balanceAfter' };
+                readonly sourceModule: { readonly column: 'sourceModule' };
+                readonly referenceId: { readonly column: 'referenceId' };
+                readonly description: { readonly column: 'description' };
+                readonly transactionDate: { readonly column: 'transactionDate' };
+                readonly createdById: { readonly column: 'createdById' };
                 readonly createdAt: { readonly column: 'createdAt' };
               };
             };
@@ -5172,6 +5788,95 @@ type ContractBase = Omit<
                 readonly reference: { readonly column: 'reference' };
                 readonly notes: { readonly column: 'notes' };
                 readonly createdAt: { readonly column: 'createdAt' };
+              };
+            };
+          };
+          readonly FinancialAccount: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly accountName: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly accountType: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly accountNumber: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly bankName: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly branchName: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly currentBalance: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly isDefault: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+              readonly isActive: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+              readonly notes: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly transactions: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'AccountTransaction';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['accountId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'financialAccount';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly accountName: { readonly column: 'accountName' };
+                readonly accountType: { readonly column: 'accountType' };
+                readonly accountNumber: { readonly column: 'accountNumber' };
+                readonly bankName: { readonly column: 'bankName' };
+                readonly branchName: { readonly column: 'branchName' };
+                readonly currentBalance: { readonly column: 'currentBalance' };
+                readonly isDefault: { readonly column: 'isDefault' };
+                readonly isActive: { readonly column: 'isActive' };
+                readonly notes: { readonly column: 'notes' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };
           };
@@ -5894,6 +6599,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly admissionFee: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
               readonly somitiId: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
@@ -6012,6 +6721,7 @@ type ContractBase = Omit<
                 readonly occupation: { readonly column: 'occupation' };
                 readonly joinDate: { readonly column: 'joinDate' };
                 readonly status: { readonly column: 'status' };
+                readonly admissionFee: { readonly column: 'admissionFee' };
                 readonly somitiId: { readonly column: 'somitiId' };
                 readonly notes: { readonly column: 'notes' };
                 readonly createdAt: { readonly column: 'createdAt' };
@@ -6804,6 +7514,17 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['userId'];
                 };
               };
+              readonly accountTransactions: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'AccountTransaction';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['createdById'];
+                };
+              };
               readonly approvedLoans: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Loan' };
                 readonly cardinality: '1:N';
@@ -7046,6 +7767,37 @@ type ContractBase = Omit<
               { readonly name: 'CLOSED'; readonly value: 'CLOSED' },
             ];
           };
+          readonly FinancialAccountType: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'CASH'; readonly value: 'CASH' },
+              { readonly name: 'BANK'; readonly value: 'BANK' },
+              { readonly name: 'MOBILE_BANKING'; readonly value: 'MOBILE_BANKING' },
+            ];
+          };
+          readonly AccountTransactionType: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'DEBIT'; readonly value: 'DEBIT' },
+              { readonly name: 'CREDIT'; readonly value: 'CREDIT' },
+            ];
+          };
+          readonly AccountSourceModule: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'CAPITAL_INJECTION'; readonly value: 'CAPITAL_INJECTION' },
+              { readonly name: 'MEMBER_ADMISSION'; readonly value: 'MEMBER_ADMISSION' },
+              { readonly name: 'LOAN_DISBURSEMENT'; readonly value: 'LOAN_DISBURSEMENT' },
+              { readonly name: 'LOAN_COLLECTION'; readonly value: 'LOAN_COLLECTION' },
+              { readonly name: 'SAVINGS_DEPOSIT'; readonly value: 'SAVINGS_DEPOSIT' },
+              { readonly name: 'SAVINGS_WITHDRAWAL'; readonly value: 'SAVINGS_WITHDRAWAL' },
+              { readonly name: 'DPS_DEPOSIT'; readonly value: 'DPS_DEPOSIT' },
+              { readonly name: 'DPS_WITHDRAWAL'; readonly value: 'DPS_WITHDRAWAL' },
+              { readonly name: 'OFFICE_EXPENSE'; readonly value: 'OFFICE_EXPENSE' },
+              { readonly name: 'OTHER_INCOME'; readonly value: 'OTHER_INCOME' },
+              { readonly name: 'FUND_TRANSFER'; readonly value: 'FUND_TRANSFER' },
+            ];
+          };
         };
       };
     };
@@ -7095,6 +7847,15 @@ type ContractBase = Omit<
           readonly ref: {
             readonly namespace: 'public';
             readonly table: 'dpsInstallment';
+            readonly column: 'updatedAt';
+          };
+          readonly onCreate: { readonly kind: 'generator'; readonly id: 'instantNow' };
+          readonly onUpdate: { readonly kind: 'generator'; readonly id: 'instantNow' };
+        },
+        {
+          readonly ref: {
+            readonly namespace: 'public';
+            readonly table: 'financialAccount';
             readonly column: 'updatedAt';
           };
           readonly onCreate: { readonly kind: 'generator'; readonly id: 'instantNow' };

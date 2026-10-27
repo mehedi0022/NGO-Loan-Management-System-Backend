@@ -1,5 +1,7 @@
 import { db } from "../../../prisma/db.js";
 import { Temporal } from "temporal-polyfill";
+import { recordTransaction } from "../../accounts/repositories/accounts.repository.js";
+import { ValidationError } from "../../../errors/AppError.js";
 
 import type {
   CreateLoanInput,
@@ -99,7 +101,11 @@ export const findAllLoans = async ({
     "createdAt",
     "updatedAt",
   ).include("member", (member) =>
-    member.select("id", "memberId", "fullName", "mobileNumber"),
+    member
+      .select("id", "memberId", "fullName", "mobileNumber")
+      .include("somiti", (somiti) =>
+        somiti.select("id", "somitiId", "name", "meetingDay"),
+      ),
   );
 
   let filteredLoans = selectedLoans;
@@ -378,6 +384,8 @@ export const disburseApprovedLoan = async (
   db.transaction(async (tx) => {
     const loan = await tx.orm.public.Loan.select(
       "id",
+      "loanId",
+      "principalAmount",
       "totalPayable",
       "installmentCount",
       "installmentAmount",
@@ -396,6 +404,46 @@ export const disburseApprovedLoan = async (
     // financial records rather than trying to recreate or delete them.
     if (existingInstallment) {
       return null;
+    }
+
+    // Check financial account balance before proceeding with disbursement
+    const requiredAmount = Number(loan.principalAmount) || 0;
+    let targetAccount = null;
+
+    if (requiredAmount > 0) {
+      targetAccount = data.accountId
+        ? await tx.orm.public.FinancialAccount.select(
+            "id",
+            "accountName",
+            "currentBalance",
+            "isActive",
+          ).first({ id: data.accountId })
+        : (await tx.orm.public.FinancialAccount.select(
+            "id",
+            "accountName",
+            "currentBalance",
+            "isActive",
+          ).first({ isDefault: true, isActive: true })) ||
+          (await tx.orm.public.FinancialAccount.select(
+            "id",
+            "accountName",
+            "currentBalance",
+            "isActive",
+          ).first({ isActive: true }));
+
+      if (!targetAccount) {
+        throw new ValidationError(
+          "No active financial account found for loan disbursement. Please create a Cash or Bank account in Accounts & Cash.",
+        );
+      }
+
+      const availableBalance = Number(targetAccount.currentBalance) || 0;
+      if (availableBalance < requiredAmount) {
+        const shortage = requiredAmount - availableBalance;
+        throw new ValidationError(
+          `Insufficient balance in ${targetAccount.accountName}. Available: ৳${availableBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })}, Required: ৳${requiredAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} (Shortage: ৳${shortage.toLocaleString("en-US", { minimumFractionDigits: 2 })}). Please transfer funds from your bank account to cash or inject capital before disbursing this loan.`,
+        );
+      }
     }
 
     const schedule = generateInstallmentSchedule({
@@ -423,7 +471,7 @@ export const disburseApprovedLoan = async (
       });
     }
 
-    return tx.orm.public.Loan.where({
+    const updated = await tx.orm.public.Loan.where({
       id,
       status: "APPROVED",
     }).update({
@@ -432,4 +480,19 @@ export const disburseApprovedLoan = async (
       firstDueDate,
       maturityDate,
     });
+
+    // Record accounting ledger entry
+    if (targetAccount && requiredAmount > 0) {
+      await recordTransaction(tx, {
+        accountId: targetAccount.id,
+        type: "CREDIT",
+        amount: requiredAmount,
+        sourceModule: "LOAN_DISBURSEMENT",
+        referenceId: loan.loanId || `LOAN-${loan.id}`,
+        description: `Loan disbursement for ${loan.loanId || `#${loan.id}`}`,
+        transactionDate: disbursementDate,
+      });
+    }
+
+    return updated;
   });

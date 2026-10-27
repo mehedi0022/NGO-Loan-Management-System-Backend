@@ -1,6 +1,7 @@
 import { Temporal } from "temporal-polyfill";
 import { db } from "../../prisma/db.js";
 import { pageOffset, paginationMeta } from "../../utils/pagination.js";
+import { recordTransaction } from "../accounts/repositories/accounts.repository.js";
 import type {
   CreateDpsAccountInput,
   DepositDpsInput,
@@ -72,10 +73,11 @@ export const createDpsAccount = async (
       frequency,
     );
 
-    const startDateStr = input.startDate
-      ? typeof input.startDate === "string"
-        ? input.startDate.slice(0, 10)
-        : input.startDate.toISOString().slice(0, 10)
+    const rawStartDate = input.startDate as any;
+    const startDateStr = rawStartDate
+      ? typeof rawStartDate === "string"
+        ? rawStartDate.slice(0, 10)
+        : rawStartDate.toISOString().slice(0, 10)
       : new Date().toISOString().slice(0, 10);
     const startPlain = Temporal.PlainDate.from(startDateStr);
     const startInstant = Temporal.Instant.from(`${startDateStr}T00:00:00Z`);
@@ -422,6 +424,30 @@ export const depositDpsInstallment = async (
       transactionId,
     });
 
+    // Auto-record in cash accounting ledger
+    try {
+      const defaultAccount =
+        (await tx.orm.public.FinancialAccount.select("id")
+          .first({ isDefault: true, isActive: true })) ||
+        (await tx.orm.public.FinancialAccount.select("id")
+          .first({ isActive: true }));
+
+      if (defaultAccount && depositCents > 0) {
+        await recordTransaction(tx, {
+          accountId: defaultAccount.id,
+          type: "DEBIT",
+          amount: depositCents / 100,
+          sourceModule: "DPS_DEPOSIT",
+          referenceId: transactionId,
+          description: `Direct DPS deposit for ${account.dpsNumber || `#${account.id}`}`,
+          transactionDate: toInstant(transactionDate),
+          createdById: processedById,
+        });
+      }
+    } catch (e) {
+      console.warn("Could not record dps deposit ledger entry:", e);
+    }
+
     return {
       kind: "SUCCESS" as const,
       transactionId,
@@ -494,6 +520,31 @@ export const closeDpsAccount = async (
     await tx.orm.public.DpsTransaction.where({ id: transaction.id }).update({
       transactionId,
     });
+
+    // Auto-record DPS payout in cash accounting ledger
+    try {
+      const defaultAccount =
+        (await tx.orm.public.FinancialAccount.select("id")
+          .first({ isDefault: true, isActive: true })) ||
+        (await tx.orm.public.FinancialAccount.select("id")
+          .first({ isActive: true }));
+
+      const payoutNum = Number(payoutAmount);
+      if (defaultAccount && payoutNum > 0) {
+        await recordTransaction(tx, {
+          accountId: defaultAccount.id,
+          type: "CREDIT",
+          amount: payoutNum,
+          sourceModule: "DPS_WITHDRAWAL",
+          referenceId: transactionId,
+          description: `DPS ${closeType} payout for ${account.dpsNumber || `#${account.id}`}`,
+          transactionDate: toInstant(txDate),
+          createdById: processedById,
+        });
+      }
+    } catch (e) {
+      console.warn("Could not record dps closure payout ledger entry:", e);
+    }
 
     return {
       kind: "SUCCESS" as const,

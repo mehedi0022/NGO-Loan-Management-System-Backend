@@ -56,6 +56,13 @@ export const permissions = {
   incomeExpenseUpdateAny: "income-expense:update:any",
   incomeExpenseDeleteAny: "income-expense:delete:any",
 
+  // Accounts
+  accountsReadAny: "accounts:read:any",
+  accountsCreate: "accounts:create",
+  accountsUpdateAny: "accounts:update:any",
+  accountsTransfer: "accounts:transfer",
+  accountsInjectCapital: "accounts:inject-capital",
+
   // Settings
   settingsRead: "settings:read",
   settingsUpdate: "settings:update",
@@ -94,6 +101,8 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.loansReadAny,
     permissions.loansCreate,
     permissions.loansUpdateAny,
+    permissions.loansApprove,
+    permissions.loansDisburse,
 
     // Collections
     permissions.collectionsReadAny,
@@ -120,6 +129,13 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.incomeExpenseUpdateAny,
     permissions.incomeExpenseDeleteAny,
 
+    // Accounts
+    permissions.accountsReadAny,
+    permissions.accountsCreate,
+    permissions.accountsUpdateAny,
+    permissions.accountsTransfer,
+    permissions.accountsInjectCapital,
+
     // Settings
     permissions.settingsRead,
     permissions.settingsUpdate,
@@ -144,6 +160,8 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.loansReadAny,
     permissions.loansCreate,
     permissions.loansUpdateAny,
+    permissions.loansApprove,
+    permissions.loansDisburse,
 
     // Collections
     permissions.collectionsReadAny,
@@ -167,6 +185,13 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.incomeExpenseReadAny,
     permissions.incomeExpenseCreate,
     permissions.incomeExpenseUpdateAny,
+
+    // Accounts
+    permissions.accountsReadAny,
+    permissions.accountsCreate,
+    permissions.accountsUpdateAny,
+    permissions.accountsTransfer,
+    permissions.accountsInjectCapital,
 
     // Settings
     permissions.settingsRead,
@@ -210,6 +235,9 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     // Income & Expense
     permissions.incomeExpenseReadAny,
     permissions.incomeExpenseCreate,
+
+    // Accounts
+    permissions.accountsReadAny,
 
     // Settings
     permissions.settingsRead,

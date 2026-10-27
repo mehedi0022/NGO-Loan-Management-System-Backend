@@ -1,5 +1,6 @@
 import { db } from "../../../prisma/db.js";
 import { or } from "@prisma/orm-postgres/orm-client";
+import { recordTransaction } from "../../accounts/repositories/accounts.repository.js";
 import type {
   CreateMemberInput,
   MemberListQuery,
@@ -453,6 +454,8 @@ export const createMember = async (data: CreateMemberInput) => {
         ? Temporal.Instant.from(data.joinDate.toISOString())
         : undefined,
 
+      admissionFee: String(data.admissionFee || "0"),
+
       notes: data.notes,
     });
 
@@ -511,6 +514,32 @@ export const createMember = async (data: CreateMemberInput) => {
     }).update({
       accountId: `SAV-${String(savingsAccount.id).padStart(6, "0")}`,
     });
+
+    // Auto-record admission fee in accounting ledger if fee > 0
+    const fee = Number(data.admissionFee || 0);
+    if (fee > 0) {
+      try {
+        const defaultAccount =
+          (await tx.orm.public.FinancialAccount.select("id")
+            .first({ isDefault: true, isActive: true })) ||
+          (await tx.orm.public.FinancialAccount.select("id")
+            .first({ isActive: true }));
+
+        if (defaultAccount) {
+          await recordTransaction(tx, {
+            accountId: defaultAccount.id,
+            type: "DEBIT",
+            amount: fee,
+            sourceModule: "MEMBER_ADMISSION",
+            referenceId: member.memberId || `MEM-${member.id}`,
+            description: `Admission fee for ${member.fullName}`,
+            transactionDate: member.joinDate,
+          });
+        }
+      } catch (e) {
+        console.warn("Could not record member admission fee ledger entry:", e);
+      }
+    }
 
     return member;
   });

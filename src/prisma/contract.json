@@ -8,6 +8,10 @@
       "model": "AccountToken",
       "namespace": "public"
     },
+    "accountTransaction": {
+      "model": "AccountTransaction",
+      "namespace": "public"
+    },
     "collection": {
       "model": "Collection",
       "namespace": "public"
@@ -22,6 +26,10 @@
     },
     "dpsTransaction": {
       "model": "DpsTransaction",
+      "namespace": "public"
+    },
+    "financialAccount": {
+      "model": "FinancialAccount",
       "namespace": "public"
     },
     "guarantor": {
@@ -85,6 +93,55 @@
     "namespaces": {
       "public": {
         "enum": {
+          "AccountSourceModule": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "CAPITAL_INJECTION",
+                "value": "CAPITAL_INJECTION"
+              },
+              {
+                "name": "MEMBER_ADMISSION",
+                "value": "MEMBER_ADMISSION"
+              },
+              {
+                "name": "LOAN_DISBURSEMENT",
+                "value": "LOAN_DISBURSEMENT"
+              },
+              {
+                "name": "LOAN_COLLECTION",
+                "value": "LOAN_COLLECTION"
+              },
+              {
+                "name": "SAVINGS_DEPOSIT",
+                "value": "SAVINGS_DEPOSIT"
+              },
+              {
+                "name": "SAVINGS_WITHDRAWAL",
+                "value": "SAVINGS_WITHDRAWAL"
+              },
+              {
+                "name": "DPS_DEPOSIT",
+                "value": "DPS_DEPOSIT"
+              },
+              {
+                "name": "DPS_WITHDRAWAL",
+                "value": "DPS_WITHDRAWAL"
+              },
+              {
+                "name": "OFFICE_EXPENSE",
+                "value": "OFFICE_EXPENSE"
+              },
+              {
+                "name": "OTHER_INCOME",
+                "value": "OTHER_INCOME"
+              },
+              {
+                "name": "FUND_TRANSFER",
+                "value": "FUND_TRANSFER"
+              }
+            ]
+          },
           "AccountTokenType": {
             "codecId": "pg/text@1",
             "members": [
@@ -95,6 +152,19 @@
               {
                 "name": "EMAIL_VERIFICATION",
                 "value": "EMAIL_VERIFICATION"
+              }
+            ]
+          },
+          "AccountTransactionType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "DEBIT",
+                "value": "DEBIT"
+              },
+              {
+                "name": "CREDIT",
+                "value": "CREDIT"
               }
             ]
           },
@@ -125,6 +195,23 @@
               {
                 "name": "CLOSED",
                 "value": "CLOSED"
+              }
+            ]
+          },
+          "FinancialAccountType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "CASH",
+                "value": "CASH"
+              },
+              {
+                "name": "BANK",
+                "value": "BANK"
+              },
+              {
+                "name": "MOBILE_BANKING",
+                "value": "MOBILE_BANKING"
               }
             ]
           },
@@ -465,6 +552,192 @@
               },
               "namespaceId": "public",
               "table": "accountToken"
+            }
+          },
+          "AccountTransaction": {
+            "fields": {
+              "accountId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "amount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "balanceAfter": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "balanceBefore": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "description": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "referenceId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sourceModule": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "AccountSourceModule",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "transactionDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "transactionId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "AccountTransactionType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              }
+            },
+            "relations": {
+              "account": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "accountId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "FinancialAccount",
+                  "namespace": "public"
+                }
+              },
+              "createdBy": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "createdById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "accountId": {
+                  "column": "accountId"
+                },
+                "amount": {
+                  "column": "amount"
+                },
+                "balanceAfter": {
+                  "column": "balanceAfter"
+                },
+                "balanceBefore": {
+                  "column": "balanceBefore"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "createdById": {
+                  "column": "createdById"
+                },
+                "description": {
+                  "column": "description"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "referenceId": {
+                  "column": "referenceId"
+                },
+                "sourceModule": {
+                  "column": "sourceModule"
+                },
+                "transactionDate": {
+                  "column": "transactionDate"
+                },
+                "transactionId": {
+                  "column": "transactionId"
+                },
+                "type": {
+                  "column": "type"
+                }
+              },
+              "namespaceId": "public",
+              "table": "accountTransaction"
             }
           },
           "Collection": {
@@ -1316,6 +1589,159 @@
               },
               "namespaceId": "public",
               "table": "dpsTransaction"
+            }
+          },
+          "FinancialAccount": {
+            "fields": {
+              "accountName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "accountNumber": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "accountType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "FinancialAccountType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "bankName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "branchName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "currentBalance": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "isActive": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "isDefault": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "notes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "transactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "accountId"
+                  ]
+                },
+                "to": {
+                  "model": "AccountTransaction",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "accountName": {
+                  "column": "accountName"
+                },
+                "accountNumber": {
+                  "column": "accountNumber"
+                },
+                "accountType": {
+                  "column": "accountType"
+                },
+                "bankName": {
+                  "column": "bankName"
+                },
+                "branchName": {
+                  "column": "branchName"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "currentBalance": {
+                  "column": "currentBalance"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "isActive": {
+                  "column": "isActive"
+                },
+                "isDefault": {
+                  "column": "isDefault"
+                },
+                "notes": {
+                  "column": "notes"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "financialAccount"
             }
           },
           "Guarantor": {
@@ -2433,6 +2859,13 @@
           },
           "Member": {
             "fields": {
+              "admissionFee": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -2670,6 +3103,9 @@
             },
             "storage": {
               "fields": {
+                "admissionFee": {
+                  "column": "admissionFee"
+                },
                 "createdAt": {
                   "column": "createdAt"
                 },
@@ -4066,6 +4502,21 @@
                   "namespace": "public"
                 }
               },
+              "accountTransactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "createdById"
+                  ]
+                },
+                "to": {
+                  "model": "AccountTransaction",
+                  "namespace": "public"
+                }
+              },
               "approvedLoans": {
                 "cardinality": "1:N",
                 "on": {
@@ -4361,6 +4812,215 @@
                 {
                   "columns": [
                     "tokenHash"
+                  ]
+                }
+              ]
+            },
+            "accountTransaction": {
+              "checks": [
+                {
+                  "expression": "\"sourceModule\" IN ('CAPITAL_INJECTION', 'MEMBER_ADMISSION', 'LOAN_DISBURSEMENT', 'LOAN_COLLECTION', 'SAVINGS_DEPOSIT', 'SAVINGS_WITHDRAWAL', 'DPS_DEPOSIT', 'DPS_WITHDRAWAL', 'OFFICE_EXPENSE', 'OTHER_INCOME', 'FUND_TRANSFER')",
+                  "name": "accountTransaction_sourceModule_check_3daa8bba",
+                  "prefix": "accountTransaction_sourceModule_check"
+                },
+                {
+                  "expression": "\"type\" IN ('DEBIT', 'CREDIT')",
+                  "name": "accountTransaction_type_check_4b8e93d7",
+                  "prefix": "accountTransaction_type_check"
+                }
+              ],
+              "columns": {
+                "accountId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "amount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "balanceAfter": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "balanceBefore": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "createdById": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "description": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "referenceId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "sourceModule": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "AccountSourceModule",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "transactionDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "transactionId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "AccountTransactionType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "accountId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "accountTransaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "financialAccount"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "createdById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "accountTransaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "accountId"
+                  ],
+                  "name": "accountTransaction_accountId_idx_cbfb3085",
+                  "prefix": "accountTransaction_accountId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "createdById"
+                  ],
+                  "name": "accountTransaction_createdById_idx_8bf640ed",
+                  "prefix": "accountTransaction_createdById_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "sourceModule"
+                  ],
+                  "name": "accountTransaction_sourceModule_idx_9c8fc029",
+                  "prefix": "accountTransaction_sourceModule_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "transactionDate"
+                  ],
+                  "name": "accountTransaction_transactionDate_idx_b449edf8",
+                  "prefix": "accountTransaction_transactionDate_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "transactionId"
+                  ],
+                  "name": "accountTransaction_transactionId_idx_d3180832",
+                  "prefix": "accountTransaction_transactionId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "type"
+                  ],
+                  "name": "accountTransaction_type_idx_b6b604ea",
+                  "prefix": "accountTransaction_type_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "transactionId"
                   ]
                 }
               ]
@@ -5122,6 +5782,140 @@
                   ]
                 }
               ]
+            },
+            "financialAccount": {
+              "checks": [
+                {
+                  "expression": "\"accountType\" IN ('CASH', 'BANK', 'MOBILE_BANKING')",
+                  "name": "financialAccount_accountType_check_2016956a",
+                  "prefix": "financialAccount_accountType_check"
+                }
+              ],
+              "columns": {
+                "accountName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "accountNumber": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "accountType": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "CASH"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "FinancialAccountType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "bankName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "branchName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "currentBalance": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "isActive": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "isDefault": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "notes": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "accountType"
+                  ],
+                  "name": "financialAccount_accountType_idx_177ee31e",
+                  "prefix": "financialAccount_accountType_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "isActive"
+                  ],
+                  "name": "financialAccount_isActive_idx_77fe3ba1",
+                  "prefix": "financialAccount_isActive_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "isDefault"
+                  ],
+                  "name": "financialAccount_isDefault_idx_2a24e9d7",
+                  "prefix": "financialAccount_isDefault_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
             },
             "guarantor": {
               "columns": {
@@ -6141,6 +6935,15 @@
                 }
               ],
               "columns": {
+                "admissionFee": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
                 "createdAt": {
                   "codecId": "pg/timestamptz-temporal@1",
                   "default": {
@@ -7602,11 +8405,34 @@
             }
           },
           "valueSet": {
+            "AccountSourceModule": {
+              "kind": "valueSet",
+              "values": [
+                "CAPITAL_INJECTION",
+                "MEMBER_ADMISSION",
+                "LOAN_DISBURSEMENT",
+                "LOAN_COLLECTION",
+                "SAVINGS_DEPOSIT",
+                "SAVINGS_WITHDRAWAL",
+                "DPS_DEPOSIT",
+                "DPS_WITHDRAWAL",
+                "OFFICE_EXPENSE",
+                "OTHER_INCOME",
+                "FUND_TRANSFER"
+              ]
+            },
             "AccountTokenType": {
               "kind": "valueSet",
               "values": [
                 "PASSWORD_RESET",
                 "EMAIL_VERIFICATION"
+              ]
+            },
+            "AccountTransactionType": {
+              "kind": "valueSet",
+              "values": [
+                "DEBIT",
+                "CREDIT"
               ]
             },
             "AddressType": {
@@ -7622,6 +8448,14 @@
                 "ACTIVE",
                 "MATURED",
                 "CLOSED"
+              ]
+            },
+            "FinancialAccountType": {
+              "kind": "valueSet",
+              "values": [
+                "CASH",
+                "BANK",
+                "MOBILE_BANKING"
               ]
             },
             "InstallmentFrequency": {
@@ -7737,10 +8571,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "fd3adc1d510f0b5aae22d9e36e0cfbf7e10ce0b4977d2758cd74955ffbd2df9f"
+    "storageHash": "a355720713e26aa0cd849ef1fbcf026e50eb88d6d2fb0ba8405a6a667bfe0a40"
   },
   "execution": {
-    "executionHash": "ad25f9e5883003299c29ffcadb148b7a33cc3c2db17178e0cd846fe05998b1b7",
+    "executionHash": "52c0a5815845a4ced1e64c2374193a892cb49b8823741e7ebd0fa96dc5ef9ada",
     "mutations": {
       "defaults": [
         {
@@ -7786,6 +8620,21 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "dpsInstallment"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "financialAccount"
           }
         },
         {

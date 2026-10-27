@@ -128,6 +128,37 @@ enum DpsStatus {
   CLOSED = "CLOSED"
 }
 
+enum FinancialAccountType {
+  @@type("pg/text@1")
+
+  CASH = "CASH"
+  BANK = "BANK"
+  MOBILE_BANKING = "MOBILE_BANKING"
+}
+
+enum AccountTransactionType {
+  @@type("pg/text@1")
+
+  DEBIT = "DEBIT"
+  CREDIT = "CREDIT"
+}
+
+enum AccountSourceModule {
+  @@type("pg/text@1")
+
+  CAPITAL_INJECTION = "CAPITAL_INJECTION"
+  MEMBER_ADMISSION = "MEMBER_ADMISSION"
+  LOAN_DISBURSEMENT = "LOAN_DISBURSEMENT"
+  LOAN_COLLECTION = "LOAN_COLLECTION"
+  SAVINGS_DEPOSIT = "SAVINGS_DEPOSIT"
+  SAVINGS_WITHDRAWAL = "SAVINGS_WITHDRAWAL"
+  DPS_DEPOSIT = "DPS_DEPOSIT"
+  DPS_WITHDRAWAL = "DPS_WITHDRAWAL"
+  OFFICE_EXPENSE = "OFFICE_EXPENSE"
+  OTHER_INCOME = "OTHER_INCOME"
+  FUND_TRANSFER = "FUND_TRANSFER"
+}
+
 model User {
   id                           Int                  @id @default(autoincrement())
   email                        String               @unique
@@ -150,6 +181,7 @@ model User {
   incomeExpenses               IncomeExpense[]      @relation("IncomeExpenseCreatedBy")
   openedDpsAccounts            DpsAccount[]         @relation("DpsAccountOpenedBy")
   processedDpsTransactions     DpsTransaction[]     @relation("DpsTransactionProcessedBy")
+  accountTransactions          AccountTransaction[] @relation("AccountTransactionCreatedBy")
 }
 
 model Session {
@@ -239,6 +271,7 @@ model Member {
   // Membership
   joinDate       DateTime             @default(now())
   status         MemberStatus         @default(ACTIVE)
+  admissionFee   Decimal              @default("0")
 
   // Somiti
   somitiId       Int?
@@ -695,4 +728,54 @@ model DpsTransaction {
   @@index([dpsAccountId])
   @@index([collectionId])
   @@index([processedById])
+}
+
+model FinancialAccount {
+  id             Int                  @id @default(autoincrement())
+  accountName    String
+  accountType    FinancialAccountType @default(CASH)
+  accountNumber  String?
+  bankName       String?
+  branchName     String?
+  currentBalance Decimal              @default("0")
+  isDefault      Boolean              @default(false)
+  isActive       Boolean              @default(true)
+  notes          String?
+
+  transactions   AccountTransaction[]
+
+  createdAt      DateTime             @default(now())
+  updatedAt      temporal.updatedAt()
+
+  @@index([accountType])
+  @@index([isDefault])
+  @@index([isActive])
+}
+
+model AccountTransaction {
+  id              Int                    @id @default(autoincrement())
+  transactionId   String?                @unique
+  accountId       Int
+  account         FinancialAccount       @relation(fields:[accountId], references:[id])
+
+  type            AccountTransactionType
+  amount          Decimal
+  balanceBefore   Decimal                @default("0")
+  balanceAfter    Decimal                @default("0")
+
+  sourceModule    AccountSourceModule
+  referenceId     String?
+  description     String?
+
+  transactionDate DateTime               @default(now())
+  createdById     Int?
+  createdBy       User?                  @relation("AccountTransactionCreatedBy", fields:[createdById], references:[id])
+
+  createdAt       DateTime               @default(now())
+
+  @@index([transactionId])
+  @@index([accountId])
+  @@index([type])
+  @@index([sourceModule])
+  @@index([transactionDate])
 }

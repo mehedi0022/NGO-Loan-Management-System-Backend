@@ -1,6 +1,7 @@
 import { Temporal } from "temporal-polyfill";
 import { db } from "../../../prisma/db.js";
 import { pageOffset, paginationMeta } from "../../../utils/pagination.js";
+import { recordTransaction } from "../../accounts/repositories/accounts.repository.js";
 import type {
   CategoryQuery,
   CreateCategoryDTO,
@@ -368,7 +369,7 @@ export const createIncomeExpense = async (
   const targetDate = data.date ? new Date(data.date) : new Date();
   const voucherNo = await generateVoucherNo(data.type, targetDate);
 
-  return await db.orm.public.IncomeExpense.select(
+  const voucher = await db.orm.public.IncomeExpense.select(
     "id",
     "voucherNo",
     "type",
@@ -393,6 +394,32 @@ export const createIncomeExpense = async (
     somitiId: data.somitiId ?? null,
     createdById,
   });
+
+  // Auto-record in financial accounting ledger
+  try {
+    const defaultAccount =
+      (await db.orm.public.FinancialAccount.select("id")
+        .first({ isDefault: true, isActive: true })) ||
+      (await db.orm.public.FinancialAccount.select("id")
+        .first({ isActive: true }));
+
+    if (defaultAccount && Number(data.amount) > 0) {
+      await recordTransaction(db, {
+        accountId: defaultAccount.id,
+        type: data.type === "INCOME" ? "DEBIT" : "CREDIT",
+        amount: Number(data.amount),
+        sourceModule: data.type === "INCOME" ? "OTHER_INCOME" : "OFFICE_EXPENSE",
+        referenceId: voucher.voucherNo,
+        description: data.description || `${data.type} voucher ${voucher.voucherNo}`,
+        transactionDate: targetDate,
+        createdById,
+      });
+    }
+  } catch (err) {
+    console.warn("Could not record income-expense accounting transaction:", err);
+  }
+
+  return voucher;
 };
 
 export const updateIncomeExpense = async (
@@ -432,6 +459,36 @@ export const updateIncomeExpense = async (
 };
 
 export const deleteIncomeExpense = async (id: number) => {
+  const existing = await db.orm.public.IncomeExpense.select(
+    "id",
+    "voucherNo",
+    "type",
+    "amount",
+  ).first({ id });
+
+  if (existing) {
+    try {
+      const defaultAccount =
+        (await db.orm.public.FinancialAccount.select("id")
+          .first({ isDefault: true, isActive: true })) ||
+        (await db.orm.public.FinancialAccount.select("id")
+          .first({ isActive: true }));
+
+      if (defaultAccount && Number(existing.amount) > 0) {
+        await recordTransaction(db, {
+          accountId: defaultAccount.id,
+          type: existing.type === "INCOME" ? "CREDIT" : "DEBIT",
+          amount: Number(existing.amount),
+          sourceModule: existing.type === "INCOME" ? "OTHER_INCOME" : "OFFICE_EXPENSE",
+          referenceId: existing.voucherNo,
+          description: `Voucher deleted/reversed: ${existing.voucherNo}`,
+        });
+      }
+    } catch (err) {
+      console.warn("Could not reverse income-expense accounting transaction:", err);
+    }
+  }
+
   return await db.orm.public.IncomeExpense.select("id")
     .where({ id })
     .delete();
