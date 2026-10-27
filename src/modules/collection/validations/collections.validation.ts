@@ -8,6 +8,11 @@ const paymentMethod = z.enum([
   "OTHER",
 ]);
 
+const dpsCollectionItemSchema = z.object({
+  dpsAccountId: z.coerce.number().int().positive(),
+  amount: z.coerce.number().min(0),
+});
+
 /**
  * Shared collection item shape.
  *
@@ -19,19 +24,36 @@ const paymentMethod = z.enum([
  * - General Savings only
  * - Special Savings only
  * - Both Savings
+ * - Multiple DPS installments
  */
 const collectionItemShape = {
   memberId: z.coerce.number().int().positive(),
 
   // Optional because savings/dps can be collected without a loan.
-  loanId: z.coerce.number().int().positive().optional(),
-  installmentId: z.coerce.number().int().positive().optional(),
-  dpsAccountId: z.coerce.number().int().positive().optional(),
+  loanId: z.preprocess(
+    (val) => (val === null || val === "" || val === 0 ? undefined : val),
+    z.coerce.number().int().positive().optional(),
+  ),
+  installmentId: z.preprocess(
+    (val) =>
+      val === null ||
+      val === "" ||
+      val === 0 ||
+      (typeof val === "string" && !/^\d+$/.test(val))
+        ? undefined
+        : val,
+    z.coerce.number().int().positive().optional(),
+  ),
+  dpsAccountId: z.preprocess(
+    (val) => (val === null || val === "" || val === 0 ? undefined : val),
+    z.coerce.number().int().positive().optional(),
+  ),
 
   loanCollectionAmount: z.coerce.number().min(0).default(0),
   generalSavingsAmount: z.coerce.number().min(0).default(0),
   specialSavingsAmount: z.coerce.number().min(0).default(0),
   dpsAmount: z.coerce.number().min(0).default(0),
+  dpsCollections: z.array(dpsCollectionItemSchema).optional(),
 };
 
 type CollectionItem = {
@@ -43,6 +65,7 @@ type CollectionItem = {
   generalSavingsAmount: number;
   specialSavingsAmount: number;
   dpsAmount?: number;
+  dpsCollections?: Array<{ dpsAccountId: number; amount: number }>;
 };
 
 /**
@@ -57,7 +80,13 @@ const validateCollectionItem = (data: CollectionItem, ctx: z.RefinementCtx) => {
     generalSavingsAmount,
     specialSavingsAmount,
   } = data;
-  const dpsAmount = data.dpsAmount ?? 0;
+  const dpsCollectionsSum = Array.isArray(data.dpsCollections)
+    ? data.dpsCollections.reduce(
+        (sum, item) => sum + (Number(item.amount) || 0),
+        0,
+      )
+    : 0;
+  const dpsAmount = (data.dpsAmount ?? 0) + dpsCollectionsSum;
 
   const totalAmount =
     loanCollectionAmount + generalSavingsAmount + specialSavingsAmount + dpsAmount;

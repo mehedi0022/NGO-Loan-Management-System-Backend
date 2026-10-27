@@ -72,8 +72,23 @@ export const createDpsAccount = async (
       frequency,
     );
 
-    const startDate = input.startDate ? new Date(input.startDate) : new Date();
-    const maturityDate = addMonths(startDate, input.durationMonths);
+    const startDateStr = input.startDate
+      ? typeof input.startDate === "string"
+        ? input.startDate.slice(0, 10)
+        : input.startDate.toISOString().slice(0, 10)
+      : new Date().toISOString().slice(0, 10);
+    const startPlain = Temporal.PlainDate.from(startDateStr);
+    const startInstant = Temporal.Instant.from(`${startDateStr}T00:00:00Z`);
+
+    const maturityPlain = isWeekly
+      ? startPlain.add({ weeks: installmentCount })
+      : startPlain.with({ day: 1 }).add({ months: input.durationMonths }).with({
+          day: Math.min(
+            startPlain.day,
+            startPlain.with({ day: 1 }).add({ months: input.durationMonths }).daysInMonth,
+          ),
+        });
+    const maturityInstant = Temporal.Instant.from(`${maturityPlain.toString()}T00:00:00Z`);
 
     const created = await tx.orm.public.DpsAccount.create({
       memberId: input.memberId,
@@ -85,8 +100,8 @@ export const createDpsAccount = async (
       maturityAmount,
       totalPaidAmount: "0.00",
       paidInstallments: 0,
-      startDate: toInstant(startDate),
-      maturityDate: toInstant(maturityDate),
+      startDate: startInstant,
+      maturityDate: maturityInstant,
       status: "ACTIVE",
       notes: input.notes || null,
       openedById,
@@ -98,15 +113,21 @@ export const createDpsAccount = async (
     });
 
     // Generate installment schedule (Weekly vs Monthly)
+    // First installment is due on startDate (index 0)
     for (let i = 1; i <= installmentCount; i += 1) {
-      const dueDate = isWeekly
-        ? addDays(startDate, i * 7)
-        : addMonths(startDate, i);
+      const instPlain = isWeekly
+        ? startPlain.add({ weeks: i - 1 })
+        : startPlain.with({ day: 1 }).add({ months: i - 1 }).with({
+            day: Math.min(
+              startPlain.day,
+              startPlain.with({ day: 1 }).add({ months: i - 1 }).daysInMonth,
+            ),
+          });
 
       await tx.orm.public.DpsInstallment.create({
         dpsAccountId: created.id,
         installmentNo: i,
-        dueDate: toInstant(dueDate),
+        dueDate: Temporal.Instant.from(`${instPlain.toString()}T00:00:00Z`),
         amount: input.installmentAmount.toFixed(2),
         paidAmount: "0.00",
         status: "PENDING",

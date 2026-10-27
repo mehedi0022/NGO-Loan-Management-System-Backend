@@ -27,6 +27,7 @@ type CollectionItemInput = {
   generalSavingsAmount: number;
   specialSavingsAmount: number;
   dpsAmount?: number;
+  dpsCollections?: Array<{ dpsAccountId: number; amount: number }>;
 
   collectionDate: Date;
   allowAdvance: boolean;
@@ -513,7 +514,20 @@ const applyCollection = async (
   const loanAmount = cents(input.loanCollectionAmount);
   const generalAmount = cents(input.generalSavingsAmount);
   const specialAmount = cents(input.specialSavingsAmount);
-  const dpsAmount = cents(input.dpsAmount || 0);
+
+  const dpsCollectionsList =
+    Array.isArray(input.dpsCollections) && input.dpsCollections.length > 0
+      ? input.dpsCollections.filter((d) => Number(d.amount) > 0)
+      : [];
+
+  const dpsCollectionsSumCents = dpsCollectionsList.reduce(
+    (sum, d) => sum + cents(d.amount),
+    0,
+  );
+
+  const fallbackDpsCents = cents(input.dpsAmount || 0);
+  const dpsAmount =
+    dpsCollectionsList.length > 0 ? dpsCollectionsSumCents : fallbackDpsCents;
 
   const totalAmount = loanAmount + generalAmount + specialAmount + dpsAmount;
 
@@ -600,23 +614,44 @@ const applyCollection = async (
   }
 
   /**
-   * 4. DPS Installment
+   * 4. DPS Installment(s)
    */
-  const dpsResult = await applyDpsDeposit(
-    tx,
-    collection.id,
-    input.collectedById,
-    input.memberId,
-    input.dpsAccountId,
-    input.dpsAmount || 0,
-    input.collectionDate,
-    input.paymentMethod,
-    input.reference,
-    input.notes,
-  );
+  if (dpsCollectionsList.length > 0) {
+    for (const dpsItem of dpsCollectionsList) {
+      const dpsResult = await applyDpsDeposit(
+        tx,
+        collection.id,
+        input.collectedById,
+        input.memberId,
+        dpsItem.dpsAccountId,
+        dpsItem.amount,
+        input.collectionDate,
+        input.paymentMethod,
+        input.reference,
+        input.notes,
+      );
 
-  if (dpsResult.kind !== "SUCCESS") {
-    return dpsResult;
+      if (dpsResult.kind !== "SUCCESS") {
+        return dpsResult;
+      }
+    }
+  } else if ((input.dpsAmount || 0) > 0) {
+    const dpsResult = await applyDpsDeposit(
+      tx,
+      collection.id,
+      input.collectedById,
+      input.memberId,
+      input.dpsAccountId,
+      input.dpsAmount || 0,
+      input.collectionDate,
+      input.paymentMethod,
+      input.reference,
+      input.notes,
+    );
+
+    if (dpsResult.kind !== "SUCCESS") {
+      return dpsResult;
+    }
   }
 
   return {
@@ -666,6 +701,7 @@ export const createCollection = async (
 
         dpsAccountId: data.dpsAccountId,
         dpsAmount: data.dpsAmount,
+        dpsCollections: data.dpsCollections,
 
         collectionDate: data.collectionDate,
         allowAdvance: data.allowAdvance,
@@ -728,6 +764,7 @@ export const createBatchCollections = async (
 
           dpsAccountId: item.dpsAccountId,
           dpsAmount: item.dpsAmount,
+          dpsCollections: item.dpsCollections,
 
           collectionDate: data.collectionDate,
           allowAdvance: data.allowAdvance,
@@ -774,7 +811,9 @@ export const findDueInstallments = async (
   somitiId?: number,
   fieldOfficerId?: number,
 ) => {
-  const date = toInstant(dueDate);
+  const dateStr = dueDate.toISOString().slice(0, 10);
+  const startOfDay = Temporal.Instant.from(`${dateStr}T00:00:00Z`);
+  const endOfDay = Temporal.Instant.from(`${dateStr}T23:59:59.999Z`);
 
   const installments = await db.orm.public.LoanInstallment.select(
     "id",
@@ -814,6 +853,7 @@ export const findDueInstallments = async (
                   "id",
                   "dpsNumber",
                   "status",
+                  "frequency",
                   "installmentAmount",
                   "totalPaidAmount",
                   "paidInstallments",
@@ -837,13 +877,12 @@ export const findDueInstallments = async (
             ),
         ),
     )
-    .where({
-      dueDate: date,
-    })
+    .where((inst: any) => inst.dueDate.gte(startOfDay))
+    .where((inst: any) => inst.dueDate.lte(endOfDay))
     .orderBy((installment) => installment.installmentNo.asc())
     .all();
 
-  return installments.filter((installment) => {
+  const validLoanInstallments = installments.filter((installment) => {
     if (installment.loan?.status !== "ACTIVE") return false;
     if (installment.status !== "PENDING" && installment.status !== "PARTIAL") {
       return false;
@@ -862,6 +901,117 @@ export const findDueInstallments = async (
 
     return true;
   });
+
+  const memberIdsWithLoan = new Set(
+    validLoanInstallments
+      .map((i) => i.loan?.member?.id)
+      .filter(Boolean),
+  );
+
+  // Fetch DPS installments strictly due on this date (PENDING or PARTIAL only)
+  const dpsDueInstallments = await db.orm.public.DpsInstallment.select(
+    "id",
+    "dpsAccountId",
+    "installmentNo",
+    "dueDate",
+    "amount",
+    "paidAmount",
+    "status",
+  )
+    .include("dpsAccount", (dps: any) =>
+      dps
+        .select("id", "dpsNumber", "status", "frequency", "memberId")
+        .include("member", (member: any) =>
+          member
+            .select(
+              "id",
+              "memberId",
+              "fullName",
+              "fatherName",
+              "guardianName",
+              "mobileNumber",
+              "photoUrl",
+              "somitiId",
+            )
+            .include("savingsAccount", (savings: any) =>
+              savings.select(
+                "id",
+                "accountId",
+                "generalSavingsBalance",
+                "specialSavingsBalance",
+              ),
+            )
+            .include("dpsAccounts", (mDps: any) =>
+              mDps
+                .select(
+                  "id",
+                  "dpsNumber",
+                  "status",
+                  "frequency",
+                  "installmentAmount",
+                  "totalPaidAmount",
+                  "paidInstallments",
+                  "durationMonths",
+                )
+                .where({ status: "ACTIVE" }),
+            )
+            .include("somiti", (somiti: any) =>
+              somiti
+                .select(
+                  "id",
+                  "somitiId",
+                  "name",
+                  "code",
+                  "meetingDay",
+                  "fieldOfficerId",
+                )
+                .include("fieldOfficer", (officer: any) =>
+                  officer.select("id", "fullName", "userName", "email", "role"),
+                ),
+            ),
+        ),
+    )
+    .where((inst: any) => inst.dueDate.gte(startOfDay))
+    .where((inst: any) => inst.dueDate.lte(endOfDay))
+    .all();
+
+  const dpsOnlyRows: any[] = [];
+  const processedDpsMemberIds = new Set<number>();
+
+  for (const dpsInst of dpsDueInstallments) {
+    if (dpsInst.status !== "PENDING" && dpsInst.status !== "PARTIAL") continue;
+    if (dpsInst.dpsAccount?.status !== "ACTIVE") continue;
+
+    const m = dpsInst.dpsAccount?.member;
+    if (!m) continue;
+
+    if (memberIdsWithLoan.has(m.id)) continue;
+    if (processedDpsMemberIds.has(m.id)) continue;
+
+    if (somitiId && m.somitiId !== somitiId) continue;
+    if (fieldOfficerId && m.somiti?.fieldOfficerId !== fieldOfficerId) continue;
+
+    processedDpsMemberIds.add(m.id);
+
+    dpsOnlyRows.push({
+      id: `dps-mem-${m.id}`,
+      loanId: null,
+      installmentNo: dpsInst.installmentNo,
+      dueDate: startOfDay,
+      amount: dpsInst.amount,
+      paidAmount: dpsInst.paidAmount,
+      status: dpsInst.status,
+      isDpsOnly: true,
+      loan: {
+        id: null,
+        loanId: "DPS Only",
+        status: "NONE",
+        member: m,
+      },
+    });
+  }
+
+  return [...validLoanInstallments, ...dpsOnlyRows];
 };
 
 /**

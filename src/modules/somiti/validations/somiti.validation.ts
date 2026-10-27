@@ -29,6 +29,9 @@ export const createSomitiSchema = z.object({
       union: z.string().trim().max(100).optional(),
       upazila: z.string().trim().max(100).optional(),
       district: z.string().trim().max(100).optional(),
+      area: z.string().trim().max(100).nullable().optional(),
+      address: z.string().trim().max(255).nullable().optional(),
+      description: z.string().trim().max(2000).nullable().optional(),
       status: z.enum(somitiStatuses).default("ACTIVE"),
     })
     .strict(),
@@ -49,6 +52,9 @@ export const updateSomitiSchema = z.object({
       union: z.string().trim().max(100).nullable().optional(),
       upazila: z.string().trim().max(100).nullable().optional(),
       district: z.string().trim().max(100).nullable().optional(),
+      area: z.string().trim().max(100).nullable().optional(),
+      address: z.string().trim().max(255).nullable().optional(),
+      description: z.string().trim().max(2000).nullable().optional(),
       status: z.enum(somitiStatuses).optional(),
     })
     .strict(),

@@ -35,8 +35,8 @@ export const createSomiti = async (data: CreateSomitiInput) => {
       meetingDay: data.meetingDay,
       meetingTime: data.meetingTime || null,
       fieldOfficerId: data.fieldOfficerId || null,
-      village: data.village || null,
-      union: data.union || null,
+      village: data.village || data.area || null,
+      union: data.union || data.address || null,
       upazila: data.upazila || null,
       district: data.district || null,
       status: data.status || "ACTIVE",
@@ -207,8 +207,18 @@ export const updateSomiti = async (id: number, data: UpdateSomitiInput) => {
       ...(data.fieldOfficerId !== undefined && {
         fieldOfficerId: data.fieldOfficerId || null,
       }),
-      ...(data.village !== undefined && { village: data.village || null }),
-      ...(data.union !== undefined && { union: data.union || null }),
+      ...((data.village !== undefined || data.area !== undefined) && {
+        village:
+          data.village !== undefined
+            ? data.village || null
+            : data.area || null,
+      }),
+      ...((data.union !== undefined || data.address !== undefined) && {
+        union:
+          data.union !== undefined
+            ? data.union || null
+            : data.address || null,
+      }),
       ...(data.upazila !== undefined && { upazila: data.upazila || null }),
       ...(data.district !== undefined && { district: data.district || null }),
       ...(data.status !== undefined && { status: data.status }),

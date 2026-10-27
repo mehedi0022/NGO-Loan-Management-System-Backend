@@ -21,6 +21,8 @@ export type SomitiDto = {
   union: string | null;
   upazila: string | null;
   district: string | null;
+  area: string | null;
+  address: string | null;
   status: SomitiStatus;
   memberCount?: number;
   createdAt: string | Date;
@@ -51,6 +53,8 @@ export const toSomitiDto = (
   union: somiti.union,
   upazila: somiti.upazila,
   district: somiti.district,
+  area: somiti.village || null,
+  address: somiti.union || [somiti.upazila, somiti.district].filter(Boolean).join(", ") || null,
   status: somiti.status,
   memberCount: extra?.memberCount ?? somiti.memberCount ?? 0,
   createdAt: somiti.createdAt,

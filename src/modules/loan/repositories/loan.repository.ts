@@ -215,19 +215,72 @@ export const findLoanById = async (id: number) => {
     "updatedAt",
   )
     .include("member", (member) =>
-      member.select("id", "memberId", "fullName", "mobileNumber"),
+      member
+        .select(
+          "id",
+          "memberId",
+          "fullName",
+          "fatherName",
+          "guardianName",
+          "mobileNumber",
+          "photoUrl",
+          "somitiId",
+        )
+        .include("savingsAccount", (savings) =>
+          savings.select(
+            "id",
+            "accountId",
+            "generalSavingsBalance",
+            "specialSavingsBalance",
+          ),
+        )
+        .include("dpsAccounts", (dps) =>
+          dps
+            .select(
+              "id",
+              "dpsNumber",
+              "status",
+              "frequency",
+              "installmentAmount",
+              "totalPaidAmount",
+              "paidInstallments",
+              "durationMonths",
+            )
+            .where({ status: "ACTIVE" }),
+        )
+        .include("somiti", (somiti) =>
+          somiti.select("id", "somitiId", "name", "meetingDay"),
+        ),
     )
     .include("installments", (installments) =>
-      installments.select(
-        "id",
-        "loanId",
-        "installmentNo",
-        "dueDate",
-        "amount",
-        "paidAmount",
-        "status",
-        "paidAt",
-      ),
+      installments
+        .select(
+          "id",
+          "loanId",
+          "installmentNo",
+          "dueDate",
+          "amount",
+          "paidAmount",
+          "status",
+          "paidAt",
+        )
+        .orderBy((inst) => inst.installmentNo.asc()),
+    )
+    .include("payments", (payments) =>
+      payments
+        .select(
+          "id",
+          "paymentId",
+          "amount",
+          "paymentDate",
+          "paymentMethod",
+          "reference",
+          "notes",
+        )
+        .include("installment", (installment) =>
+          installment.select("id", "installmentNo"),
+        )
+        .orderBy((payment) => payment.paymentDate.desc()),
     )
     .first({ id });
 };
