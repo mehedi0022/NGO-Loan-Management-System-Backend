@@ -10,6 +10,7 @@ import {
   depositDpsInstallment,
   closeDpsAccount,
   calculateDpsMaturity,
+  reverseDpsTransaction,
 } from "./dps.controller.js";
 import {
   createDpsAccountSchema,
@@ -17,6 +18,7 @@ import {
   closeDpsSchema,
   dpsListQuerySchema,
   dpsIdParamsSchema,
+  reverseDpsTransactionSchema,
 } from "./dps.validation.js";
 
 const router = Router();
@@ -25,6 +27,13 @@ router.use(requireAuth);
 router.get(
   "/calculator",
   calculateDpsMaturity,
+);
+
+router.post(
+  "/transactions/:transactionId/reverse",
+  validate(reverseDpsTransactionSchema),
+  requirePermission(permissions.dpsReverse),
+  reverseDpsTransaction,
 );
 
 router.post(

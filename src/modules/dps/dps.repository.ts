@@ -553,3 +553,129 @@ export const closeDpsAccount = async (
       closeType,
     };
   });
+
+export const reverseDpsTransaction = async (
+  transactionId: number,
+  reason: string,
+  cancelledById: number,
+) => {
+  return db.transaction(async (tx: any) => {
+    const transaction = await tx.orm.public.DpsTransaction.select(
+      "id",
+      "transactionId",
+      "dpsAccountId",
+      "type",
+      "amount",
+      "collectionId",
+    ).first({ id: transactionId });
+
+    if (!transaction) {
+      return { kind: "NOT_FOUND" as const };
+    }
+
+    const txCode =
+      transaction.transactionId ||
+      `DTX-${String(transaction.id).padStart(6, "0")}`;
+
+    const account = await tx.orm.public.DpsAccount.select(
+      "id",
+      "totalPaidAmount",
+      "paidInstallments",
+      "status",
+    ).first({ id: transaction.dpsAccountId });
+
+    if (!account) {
+      return { kind: "NO_ACCOUNT" as const };
+    }
+
+    const txAmountCents = cents(transaction.amount);
+    const currentTotalCents = cents(account.totalPaidAmount);
+    const newTotalCents = Math.max(0, currentTotalCents - txAmountCents);
+
+    // Reverse installments in descending order
+    const dpsInstallments = await tx.orm.public.DpsInstallment.select(
+      "id",
+      "installmentNo",
+      "amount",
+      "paidAmount",
+      "status",
+    )
+      .where({ dpsAccountId: account.id })
+      .orderBy((i: any) => i.installmentNo.desc())
+      .all();
+
+    let remainingToDeduct = txAmountCents;
+    for (const dInst of dpsInstallments) {
+      if (remainingToDeduct <= 0) break;
+      const instPaidCents = cents(dInst.paidAmount);
+      if (instPaidCents <= 0) continue;
+
+      if (instPaidCents <= remainingToDeduct) {
+        await tx.orm.public.DpsInstallment.where({ id: dInst.id }).update({
+          paidAmount: "0.00",
+          status: "PENDING",
+          paidAt: null,
+        });
+        remainingToDeduct -= instPaidCents;
+      } else {
+        const updatedPaidCents = instPaidCents - remainingToDeduct;
+        await tx.orm.public.DpsInstallment.where({ id: dInst.id }).update({
+          paidAmount: money(updatedPaidCents),
+          status: "PARTIAL",
+          paidAt: null,
+        });
+        remainingToDeduct = 0;
+      }
+    }
+
+    // Recalculate paid count
+    const { paidCount } = await tx.orm.public.DpsInstallment.where({
+      dpsAccountId: account.id,
+      status: "PAID",
+    }).aggregate((agg: any) => ({
+      paidCount: agg.count(),
+    }));
+
+    await tx.orm.public.DpsAccount.where({ id: account.id }).update({
+      totalPaidAmount: money(newTotalCents),
+      paidInstallments: Number(paidCount || 0),
+      status: "ACTIVE",
+    });
+
+    // Cash ledger
+    try {
+      const defaultAccount =
+        (await tx.orm.public.FinancialAccount.select("id").first({
+          isDefault: true,
+          isActive: true,
+        })) ||
+        (await tx.orm.public.FinancialAccount.select("id").first({
+          isActive: true,
+        }));
+
+      if (defaultAccount && txAmountCents > 0) {
+        await recordTransaction(tx, {
+          accountId: defaultAccount.id,
+          type: "CREDIT",
+          amount: txAmountCents / 100,
+          sourceModule: "DPS_DEPOSIT",
+          referenceId: txCode,
+          description: `Reversal of DPS ${txCode}: ${reason}`,
+          transactionDate: Temporal.Now.instant(),
+          createdById: cancelledById,
+        });
+      }
+    } catch (err) {
+      console.warn("Could not record DPS reversal in accounts:", err);
+    }
+
+    // Delete DpsTransaction
+    await tx.orm.public.DpsTransaction.where({ id: transaction.id }).select("id").delete();
+
+    return {
+      kind: "SUCCESS" as const,
+      transactionId: transaction.id,
+      transactionCode: txCode,
+    };
+  });
+};

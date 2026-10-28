@@ -30,6 +30,7 @@ export const permissions = {
   loansUpdateAny: "loans:update:any",
   loansApprove: "loans:approve:any",
   loansDisburse: "loans:disburse:any",
+  loansReverse: "loans:reverse",
 
   // Collections
   collectionsReadAny: "collections:read:any",
@@ -40,12 +41,14 @@ export const permissions = {
   savingsReadAny: "savings:read:any",
   savingsDeposit: "savings:deposit",
   savingsWithdraw: "savings:withdraw",
+  savingsReverse: "savings:reverse",
 
   // DPS
   dpsReadAny: "dps:read:any",
   dpsCreate: "dps:create",
   dpsDeposit: "dps:deposit",
   dpsClose: "dps:close",
+  dpsReverse: "dps:reverse",
 
   // Reports
   reportsReadAny: "reports:read:any",
@@ -103,6 +106,7 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.loansUpdateAny,
     permissions.loansApprove,
     permissions.loansDisburse,
+    permissions.loansReverse,
 
     // Collections
     permissions.collectionsReadAny,
@@ -113,12 +117,14 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.savingsReadAny,
     permissions.savingsDeposit,
     permissions.savingsWithdraw,
+    permissions.savingsReverse,
 
     // DPS
     permissions.dpsReadAny,
     permissions.dpsCreate,
     permissions.dpsDeposit,
     permissions.dpsClose,
+    permissions.dpsReverse,
 
     // Reports
     permissions.reportsReadAny,

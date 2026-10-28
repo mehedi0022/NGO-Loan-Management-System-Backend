@@ -25,3 +25,16 @@ export const withdrawSavingsSchema = z.object({
     })
     .strict(),
 });
+
+export const reverseSavingsTransactionSchema = z.object({
+  params: z
+    .object({
+      transactionId: z.coerce.number().int().positive(),
+    })
+    .strict(),
+  body: z
+    .object({
+      reason: z.string().trim().min(3, "Reason must be at least 3 characters").max(500),
+    })
+    .strict(),
+});

@@ -1089,6 +1089,7 @@ export const findCollections = async (filters: {
     "loanCollectionAmount",
     "generalSavingsAmount",
     "specialSavingsAmount",
+    "dpsAmount",
     "totalAmount",
     "collectionDate",
     "paymentMethod",
@@ -1120,6 +1121,18 @@ export const findCollections = async (filters: {
     });
   }
 
+  if (somitiId) {
+    const somitiMembers = await db.orm.public.Member.select("id").where({ somitiId }).all();
+    const memberIds = somitiMembers.map((m: any) => m.id);
+    if (memberIds.length === 0) {
+      return {
+        data: [],
+        pagination: paginationMeta(page, limit, 0),
+      };
+    }
+    query = query.where((c: any) => c.memberId.in(memberIds));
+  }
+
   if (collectedById) {
     query = query.where({
       collectedById,
@@ -1127,12 +1140,16 @@ export const findCollections = async (filters: {
   }
 
   if (fromDate) {
-    const fromInstant = toInstant(fromDate);
+    const startOfDay = new Date(fromDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const fromInstant = toInstant(startOfDay);
     query = query.where((c) => c.collectionDate.gte(fromInstant));
   }
 
   if (toDate) {
-    const toInstantVal = toInstant(toDate);
+    const endOfDay = new Date(toDate);
+    endOfDay.setHours(23, 59, 59, 999);
+    const toInstantVal = toInstant(endOfDay);
     query = query.where((c) => c.collectionDate.lte(toInstantVal));
   }
 
@@ -1208,3 +1225,284 @@ export const findCollectionById = (collectionId: number) =>
     .first({
       id: collectionId,
     });
+
+export const reverseCollection = async (
+  collectionId: number,
+  reason: string,
+  cancelledById: number,
+) => {
+  return db.transaction(async (tx) => {
+    const collection = await tx.orm.public.Collection.select(
+      "id",
+      "collectionId",
+      "memberId",
+      "loanCollectionAmount",
+      "generalSavingsAmount",
+      "specialSavingsAmount",
+      "dpsAmount",
+      "totalAmount",
+      "notes",
+    )
+      .include("loanPayments", (p: any) =>
+        p.select("id", "loanId", "installmentId", "amount"),
+      )
+      .include("savingsTransactions", (s: any) =>
+        s.select("id", "savingsAccountId", "savingsType", "type", "amount"),
+      )
+      .include("dpsTransactions", (d: any) =>
+        d.select("id", "dpsAccountId", "type", "amount"),
+      )
+      .first({ id: collectionId });
+
+    if (!collection) {
+      return { kind: "NOT_FOUND" as const };
+    }
+
+    const colCode = collection.collectionId || `COL-${String(collection.id).padStart(6, "0")}`;
+
+    // Rollback Loan Payments
+    for (const payment of collection.loanPayments || []) {
+      if (payment.installmentId && payment.loanId) {
+        const inst = await tx.orm.public.LoanInstallment.select(
+          "id",
+          "paidAmount",
+          "amount",
+          "status",
+        ).first({ id: payment.installmentId });
+
+        if (inst) {
+          const instPaidCents = cents(inst.paidAmount);
+          const paymentCents = cents(payment.amount);
+          const newPaidCents = Math.max(0, instPaidCents - paymentCents);
+          const newStatus = newPaidCents === 0 ? "PENDING" : "PARTIAL";
+
+          await tx.orm.public.LoanInstallment.where({ id: inst.id }).update({
+            paidAmount: money(newPaidCents),
+            status: newStatus,
+            paidAt: null,
+          });
+
+          await tx.orm.public.Loan.where({ id: payment.loanId, status: "COMPLETED" }).update({
+            status: "ACTIVE",
+          });
+        }
+      }
+      await tx.orm.public.LoanPayment.where({ id: payment.id }).select("id").delete();
+    }
+
+    // Rollback Savings Transactions
+    for (const stx of collection.savingsTransactions || []) {
+      if (stx.savingsAccountId && stx.type === "DEPOSIT") {
+        const savAcc = await tx.orm.public.SavingsAccount.select(
+          "id",
+          "generalSavingsBalance",
+          "specialSavingsBalance",
+        ).first({ id: stx.savingsAccountId });
+
+        if (savAcc) {
+          const stxAmountCents = cents(stx.amount);
+          if (stx.savingsType === "GENERAL") {
+            const currentCents = cents(savAcc.generalSavingsBalance);
+            const newCents = Math.max(0, currentCents - stxAmountCents);
+            await tx.orm.public.SavingsAccount.where({ id: savAcc.id }).update({
+              generalSavingsBalance: money(newCents),
+            });
+          } else {
+            const currentCents = cents(savAcc.specialSavingsBalance);
+            const newCents = Math.max(0, currentCents - stxAmountCents);
+            await tx.orm.public.SavingsAccount.where({ id: savAcc.id }).update({
+              specialSavingsBalance: money(newCents),
+            });
+          }
+        }
+      }
+      await tx.orm.public.SavingsTransaction.where({ id: stx.id }).select("id").delete();
+    }
+
+    // Rollback DPS Transactions
+    for (const dtx of collection.dpsTransactions || []) {
+      if (dtx.dpsAccountId && dtx.type === "DEPOSIT") {
+        const dpsAcc = await tx.orm.public.DpsAccount.select(
+          "id",
+          "totalPaidAmount",
+          "paidInstallments",
+          "status",
+        ).first({ id: dtx.dpsAccountId });
+
+        if (dpsAcc) {
+          const dtxAmountCents = cents(dtx.amount);
+          const currentTotalCents = cents(dpsAcc.totalPaidAmount);
+          const newTotalCents = Math.max(0, currentTotalCents - dtxAmountCents);
+
+          const dpsInstallments = await tx.orm.public.DpsInstallment.select(
+            "id",
+            "installmentNo",
+            "amount",
+            "paidAmount",
+            "status",
+          )
+            .where({ dpsAccountId: dpsAcc.id })
+            .orderBy((i: any) => i.installmentNo.desc())
+            .all();
+
+          let remainingToDeduct = dtxAmountCents;
+          for (const dInst of dpsInstallments) {
+            if (remainingToDeduct <= 0) break;
+            const instPaidCents = cents(dInst.paidAmount);
+            if (instPaidCents <= 0) continue;
+
+            if (instPaidCents <= remainingToDeduct) {
+              await tx.orm.public.DpsInstallment.where({ id: dInst.id }).update({
+                paidAmount: "0.00",
+                status: "PENDING",
+                paidAt: null,
+              });
+              remainingToDeduct -= instPaidCents;
+            } else {
+              const updatedPaidCents = instPaidCents - remainingToDeduct;
+              await tx.orm.public.DpsInstallment.where({ id: dInst.id }).update({
+                paidAmount: money(updatedPaidCents),
+                status: "PARTIAL",
+                paidAt: null,
+              });
+              remainingToDeduct = 0;
+            }
+          }
+
+          const { paidCount } = await tx.orm.public.DpsInstallment.where({
+            dpsAccountId: dpsAcc.id,
+            status: "PAID",
+          }).aggregate((agg: any) => ({
+            paidCount: agg.count(),
+          }));
+
+          await tx.orm.public.DpsAccount.where({ id: dpsAcc.id }).update({
+            totalPaidAmount: money(newTotalCents),
+            paidInstallments: Number(paidCount || 0),
+            status: "ACTIVE",
+          });
+        }
+      }
+      await tx.orm.public.DpsTransaction.where({ id: dtx.id }).select("id").delete();
+    }
+
+    // Reverse Cash Ledger Entry in FinancialAccount
+    const totalCents = cents(collection.totalAmount);
+    if (totalCents > 0) {
+      try {
+        const defaultAccount =
+          (await tx.orm.public.FinancialAccount.select("id")
+            .first({ isDefault: true, isActive: true })) ||
+          (await tx.orm.public.FinancialAccount.select("id")
+            .first({ isActive: true }));
+
+        if (defaultAccount) {
+          await recordTransaction(tx, {
+            accountId: defaultAccount.id,
+            type: "CREDIT",
+            amount: totalCents / 100,
+            sourceModule: "LOAN_COLLECTION",
+            referenceId: colCode,
+            description: `Reversal of ${colCode}: ${reason}`,
+            transactionDate: Temporal.Now.instant(),
+            createdById: cancelledById,
+          });
+        }
+      } catch (err) {
+        console.warn("Could not record collection reversal in financial accounts:", err);
+      }
+    }
+
+    // Delete Collection
+    await tx.orm.public.Collection.where({ id: collection.id }).select("id").delete();
+
+    return {
+      kind: "SUCCESS" as const,
+      collectionId: collection.id,
+      collectionCode: colCode,
+    };
+  });
+};
+
+export const reverseLoanPayment = async (
+  paymentId: number,
+  reason: string,
+  cancelledById: number,
+) => {
+  return db.transaction(async (tx) => {
+    const payment = await tx.orm.public.LoanPayment.select(
+      "id",
+      "paymentId",
+      "loanId",
+      "installmentId",
+      "amount",
+      "collectionId",
+    ).first({ id: paymentId });
+
+    if (!payment) {
+      return { kind: "NOT_FOUND" as const };
+    }
+
+    const payCode = payment.paymentId || `PAY-${String(payment.id).padStart(6, "0")}`;
+
+    if (payment.installmentId && payment.loanId) {
+      const inst = await tx.orm.public.LoanInstallment.select(
+        "id",
+        "paidAmount",
+        "amount",
+        "status",
+      ).first({ id: payment.installmentId });
+
+      if (inst) {
+        const instPaidCents = cents(inst.paidAmount);
+        const paymentCents = cents(payment.amount);
+        const newPaidCents = Math.max(0, instPaidCents - paymentCents);
+        const newStatus = newPaidCents === 0 ? "PENDING" : "PARTIAL";
+
+        await tx.orm.public.LoanInstallment.where({ id: inst.id }).update({
+          paidAmount: money(newPaidCents),
+          status: newStatus,
+          paidAt: null,
+        });
+
+        await tx.orm.public.Loan.where({ id: payment.loanId, status: "COMPLETED" }).update({
+          status: "ACTIVE",
+        });
+      }
+    }
+
+    const amountCents = cents(payment.amount);
+    if (amountCents > 0) {
+      try {
+        const defaultAccount =
+          (await tx.orm.public.FinancialAccount.select("id")
+            .first({ isDefault: true, isActive: true })) ||
+          (await tx.orm.public.FinancialAccount.select("id")
+            .first({ isActive: true }));
+
+        if (defaultAccount) {
+          await recordTransaction(tx, {
+            accountId: defaultAccount.id,
+            type: "CREDIT",
+            amount: amountCents / 100,
+            sourceModule: "LOAN_COLLECTION",
+            referenceId: payCode,
+            description: `Reversal of ${payCode}: ${reason}`,
+            transactionDate: Temporal.Now.instant(),
+            createdById: cancelledById,
+          });
+        }
+      } catch (err) {
+        console.warn("Could not record loan payment reversal in financial accounts:", err);
+      }
+    }
+
+    await tx.orm.public.LoanPayment.where({ id: payment.id }).select("id").delete();
+
+    return {
+      kind: "SUCCESS" as const,
+      paymentId: payment.id,
+      paymentCode: payCode,
+    };
+  });
+};

@@ -68,3 +68,12 @@ export const dpsListQuerySchema = z.object({
 export const dpsIdParamsSchema = z.object({
   params: z.object({ id: z.coerce.number().int().positive() }).strict(),
 });
+
+export const reverseDpsTransactionSchema = z.object({
+  params: z.object({ transactionId: z.coerce.number().int().positive() }).strict(),
+  body: z
+    .object({
+      reason: z.string().trim().min(3, "Reason must be at least 3 characters").max(500),
+    })
+    .strict(),
+});

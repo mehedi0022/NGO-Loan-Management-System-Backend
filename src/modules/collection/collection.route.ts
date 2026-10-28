@@ -11,6 +11,8 @@ import {
   getDueInstallments,
   getCollections,
   getCollectionById,
+  reverseCollection,
+  reverseLoanPayment,
 } from "./controllers/collection.controller.js";
 
 import {
@@ -19,6 +21,8 @@ import {
   dueInstallmentsSchema,
   collectionsListSchema,
   collectionDetailsSchema,
+  reverseCollectionSchema,
+  reverseLoanPaymentSchema,
 } from "./validations/collections.validation.js";
 
 const router = Router();
@@ -103,6 +107,18 @@ router.get(
 );
 
 /**
+ * POST /api/v1/collections/payments/:paymentId/reverse
+ *
+ * Reverse an individual loan payment.
+ */
+router.post(
+  "/payments/:paymentId/reverse",
+  validate(reverseLoanPaymentSchema),
+  requirePermission(permissions.loansReverse),
+  reverseLoanPayment,
+);
+
+/**
  * GET /api/v1/collections/:collectionId
  *
  * Get a complete collection receipt/details.
@@ -116,6 +132,18 @@ router.get(
   validate(collectionDetailsSchema),
   requirePermission(permissions.collectionsReadAny),
   getCollectionById,
+);
+
+/**
+ * POST /api/v1/collections/:collectionId/reverse
+ *
+ * Reverse/Cancel an entire collection.
+ */
+router.post(
+  "/:collectionId/reverse",
+  validate(reverseCollectionSchema),
+  requirePermission(permissions.collectionsReverse),
+  reverseCollection,
 );
 
 export default router;

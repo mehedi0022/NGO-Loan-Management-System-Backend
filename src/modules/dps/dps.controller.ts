@@ -72,3 +72,18 @@ export const calculateDpsMaturity = asyncHandler(
     res.status(200).json(successResponse("DPS maturity calculated successfully", result));
   },
 );
+
+export const reverseDpsTransaction = asyncHandler(
+  async (req: Request, res: Response) => {
+    const transactionId = Number(req.params.transactionId);
+    const reason = String(req.body.reason || "Cancelled by admin").trim();
+    const result = await dpsService.reverseDpsTransaction(
+      transactionId,
+      reason,
+      req.auth!.userId,
+    );
+    res
+      .status(200)
+      .json(successResponse("DPS transaction reversed successfully", result));
+  },
+);

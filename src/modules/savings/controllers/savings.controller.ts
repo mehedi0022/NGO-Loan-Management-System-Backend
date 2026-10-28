@@ -21,3 +21,18 @@ export const withdrawSavings = asyncHandler(
     res.status(201).json(successResponse("Savings withdrawn successfully", result));
   },
 );
+
+export const reverseSavingsTransaction = asyncHandler(
+  async (req: Request, res: Response) => {
+    const transactionId = Number(req.params.transactionId);
+    const reason = String(req.body.reason || "Cancelled by admin").trim();
+    const result = await service.reverseSavingsTransaction(
+      transactionId,
+      reason,
+      req.auth!.userId,
+    );
+    res
+      .status(200)
+      .json(successResponse("Savings transaction reversed successfully", result));
+  },
+);

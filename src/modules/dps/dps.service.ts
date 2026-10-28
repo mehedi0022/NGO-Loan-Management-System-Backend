@@ -61,3 +61,18 @@ export const calculateDpsMaturity = (
 ) => {
   return dpsRepository.calculateDpsMaturity(installmentAmount, durationMonths, interestRate, frequency);
 };
+
+export const reverseDpsTransaction = async (
+  transactionId: number,
+  reason: string,
+  cancelledById: number,
+) => {
+  const result = await dpsRepository.reverseDpsTransaction(
+    transactionId,
+    reason,
+    cancelledById,
+  );
+  if (result.kind === "NOT_FOUND") throw new NotFoundError("DPS transaction not found");
+  if (result.kind === "NO_ACCOUNT") throw new NotFoundError("DPS account not found");
+  return result;
+};

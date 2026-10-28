@@ -13,7 +13,6 @@ import {
   getIncomeExpenseById,
   getIncomeExpenseList,
   updateCategory,
-  updateIncomeExpense,
 } from "./controllers/income-expense.controller.js";
 import {
   categoryQuerySchema,
@@ -21,7 +20,6 @@ import {
   createIncomeExpenseSchema,
   incomeExpenseQuerySchema,
   updateCategorySchema,
-  updateIncomeExpenseSchema,
 } from "./validations/income-expense.validation.js";
 
 const router = Router();
@@ -87,11 +85,10 @@ router.post(
   createIncomeExpense,
 );
 
-router.patch(
-  "/:id",
-  validate(updateIncomeExpenseSchema),
-  requirePermission(permissions.incomeExpenseUpdateAny),
-  updateIncomeExpense,
+router.post(
+  "/:id/reverse",
+  requirePermission(permissions.incomeExpenseDeleteAny),
+  deleteIncomeExpense,
 );
 
 router.delete(

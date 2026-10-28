@@ -299,3 +299,35 @@ export const collectionDetailsSchema = z.object({
     })
     .strict(),
 });
+
+/**
+ * POST /api/v1/collections/:collectionId/reverse
+ */
+export const reverseCollectionSchema = z.object({
+  params: z
+    .object({
+      collectionId: z.coerce.number().int().positive(),
+    })
+    .strict(),
+  body: z
+    .object({
+      reason: z.string().trim().min(3, "Reason must be at least 3 characters").max(500),
+    })
+    .strict(),
+});
+
+/**
+ * POST /api/v1/collections/payments/:paymentId/reverse
+ */
+export const reverseLoanPaymentSchema = z.object({
+  params: z
+    .object({
+      paymentId: z.coerce.number().int().positive(),
+    })
+    .strict(),
+  body: z
+    .object({
+      reason: z.string().trim().min(3, "Reason must be at least 3 characters").max(500),
+    })
+    .strict(),
+});

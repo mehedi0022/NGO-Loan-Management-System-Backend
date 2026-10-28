@@ -170,3 +170,134 @@ export const withdrawSavings = async (
       accountId: account.id,
     };
   });
+
+export const reverseSavingsTransaction = async (
+  transactionId: number,
+  reason: string,
+  cancelledById: number,
+) => {
+  return db.transaction(async (tx) => {
+    const transaction = await tx.orm.public.SavingsTransaction.select(
+      "id",
+      "transactionId",
+      "savingsAccountId",
+      "savingsType",
+      "type",
+      "amount",
+      "collectionId",
+    ).first({ id: transactionId });
+
+    if (!transaction) {
+      return { kind: "NOT_FOUND" as const };
+    }
+
+    const txCode =
+      transaction.transactionId ||
+      `STX-${String(transaction.id).padStart(6, "0")}`;
+
+    const account = await tx.orm.public.SavingsAccount.select(
+      "id",
+      "generalSavingsBalance",
+      "specialSavingsBalance",
+    ).first({ id: transaction.savingsAccountId });
+
+    if (!account) {
+      return { kind: "NO_ACCOUNT" as const };
+    }
+
+    const txAmountCents = cents(transaction.amount);
+
+    if (transaction.type === "DEPOSIT") {
+      // Reversing a deposit -> Deduct from savings balance & CREDIT cash ledger
+      if (transaction.savingsType === "GENERAL") {
+        const currentCents = cents(account.generalSavingsBalance);
+        const newCents = Math.max(0, currentCents - txAmountCents);
+        await tx.orm.public.SavingsAccount.where({ id: account.id }).update({
+          generalSavingsBalance: money(newCents),
+        });
+      } else {
+        const currentCents = cents(account.specialSavingsBalance);
+        const newCents = Math.max(0, currentCents - txAmountCents);
+        await tx.orm.public.SavingsAccount.where({ id: account.id }).update({
+          specialSavingsBalance: money(newCents),
+        });
+      }
+
+      try {
+        const defaultAccount =
+          (await tx.orm.public.FinancialAccount.select("id").first({
+            isDefault: true,
+            isActive: true,
+          })) ||
+          (await tx.orm.public.FinancialAccount.select("id").first({
+            isActive: true,
+          }));
+
+        if (defaultAccount && txAmountCents > 0) {
+          await recordTransaction(tx, {
+            accountId: defaultAccount.id,
+            type: "CREDIT",
+            amount: txAmountCents / 100,
+            sourceModule: "SAVINGS_DEPOSIT",
+            referenceId: txCode,
+            description: `Reversal of Deposit ${txCode}: ${reason}`,
+            transactionDate: Temporal.Now.instant(),
+            createdById: cancelledById,
+          });
+        }
+      } catch (err) {
+        console.warn("Could not record savings deposit reversal in accounts:", err);
+      }
+    } else if (transaction.type === "WITHDRAWAL") {
+      // Reversing a withdrawal -> Add back to savings balance & DEBIT cash ledger
+      if (transaction.savingsType === "GENERAL") {
+        const currentCents = cents(account.generalSavingsBalance);
+        const newCents = currentCents + txAmountCents;
+        await tx.orm.public.SavingsAccount.where({ id: account.id }).update({
+          generalSavingsBalance: money(newCents),
+        });
+      } else {
+        const currentCents = cents(account.specialSavingsBalance);
+        const newCents = currentCents + txAmountCents;
+        await tx.orm.public.SavingsAccount.where({ id: account.id }).update({
+          specialSavingsBalance: money(newCents),
+        });
+      }
+
+      try {
+        const defaultAccount =
+          (await tx.orm.public.FinancialAccount.select("id").first({
+            isDefault: true,
+            isActive: true,
+          })) ||
+          (await tx.orm.public.FinancialAccount.select("id").first({
+            isActive: true,
+          }));
+
+        if (defaultAccount && txAmountCents > 0) {
+          await recordTransaction(tx, {
+            accountId: defaultAccount.id,
+            type: "DEBIT",
+            amount: txAmountCents / 100,
+            sourceModule: "SAVINGS_WITHDRAWAL",
+            referenceId: txCode,
+            description: `Reversal of Withdrawal ${txCode}: ${reason}`,
+            transactionDate: Temporal.Now.instant(),
+            createdById: cancelledById,
+          });
+        }
+      } catch (err) {
+        console.warn("Could not record savings withdrawal reversal in accounts:", err);
+      }
+    }
+
+    // Delete SavingsTransaction
+    await tx.orm.public.SavingsTransaction.where({ id: transaction.id }).select("id").delete();
+
+    return {
+      kind: "SUCCESS" as const,
+      transactionId: transaction.id,
+      transactionCode: txCode,
+    };
+  });
+};

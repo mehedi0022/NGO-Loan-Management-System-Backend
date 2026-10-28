@@ -174,3 +174,45 @@ export const getCollectionById = async (collectionId: number) => {
 
   return collection;
 };
+
+/**
+ * Reverse/Cancel an entire collection.
+ */
+export const reverseCollection = async (
+  collectionId: number,
+  reason: string,
+  cancelledById: number,
+) => {
+  const result = await repository.reverseCollection(
+    collectionId,
+    reason,
+    cancelledById,
+  );
+
+  if (result.kind === "NOT_FOUND") {
+    throw new NotFoundError("Collection not found");
+  }
+
+  return result;
+};
+
+/**
+ * Reverse/Cancel an individual loan payment.
+ */
+export const reverseLoanPayment = async (
+  paymentId: number,
+  reason: string,
+  cancelledById: number,
+) => {
+  const result = await repository.reverseLoanPayment(
+    paymentId,
+    reason,
+    cancelledById,
+  );
+
+  if (result.kind === "NOT_FOUND") {
+    throw new NotFoundError("Loan payment not found");
+  }
+
+  return result;
+};

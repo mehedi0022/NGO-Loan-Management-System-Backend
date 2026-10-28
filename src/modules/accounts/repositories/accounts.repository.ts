@@ -27,6 +27,19 @@ const toInstant = (dateVal: string | Date | Temporal.Instant | null | undefined)
     if (dateVal.includes("T")) {
       return Temporal.Instant.from(dateVal);
     }
+    const now = Temporal.Now.zonedDateTimeISO("Asia/Dhaka");
+    const [y, m, d] = dateVal.split("-").map(Number);
+    if (y && m && d) {
+      return Temporal.ZonedDateTime.from({
+        timeZone: "Asia/Dhaka",
+        year: y,
+        month: m,
+        day: d,
+        hour: now.hour,
+        minute: now.minute,
+        second: now.second,
+      }).toInstant();
+    }
     return Temporal.Instant.from(`${dateVal}T00:00:00Z`);
   }
   return Temporal.Now.instant();
@@ -406,7 +419,11 @@ export const listTransactions = async (query: ListTransactionsQuery) => {
   const [{ total }, transactions] = await Promise.all([
     txQuery.aggregate((agg) => ({ total: agg.count() })),
     txQuery
-      .orderBy((t) => t.transactionDate.desc())
+      .orderBy([
+        (t: any) => t.transactionDate.desc(),
+        (t: any) => t.createdAt.desc(),
+        (t: any) => t.id.desc(),
+      ])
       .offset(offset)
       .limit(limit)
       .all(),

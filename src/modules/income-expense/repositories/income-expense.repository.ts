@@ -1,5 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 import { db } from "../../../prisma/db.js";
+import { ValidationError } from "../../../errors/AppError.js";
 import { pageOffset, paginationMeta } from "../../../utils/pagination.js";
 import { recordTransaction } from "../../accounts/repositories/accounts.repository.js";
 import type {
@@ -8,7 +9,6 @@ import type {
   CreateIncomeExpenseDTO,
   IncomeExpenseQuery,
   UpdateCategoryDTO,
-  UpdateIncomeExpenseDTO,
 } from "../income-expense.types.js";
 
 const toInstant = (date: Date) => Temporal.Instant.from(date.toISOString());
@@ -366,48 +366,87 @@ export const createIncomeExpense = async (
   data: CreateIncomeExpenseDTO,
   createdById: number,
 ) => {
-  const targetDate = data.date ? new Date(data.date) : new Date();
-  const voucherNo = await generateVoucherNo(data.type, targetDate);
+  return await db.transaction(async (tx) => {
+    const targetDate = data.date ? new Date(data.date) : new Date();
+    const requiredAmount = Number(data.amount) || 0;
 
-  const voucher = await db.orm.public.IncomeExpense.select(
-    "id",
-    "voucherNo",
-    "type",
-    "categoryId",
-    "amount",
-    "date",
-    "paymentMethod",
-    "reference",
-    "description",
-    "somitiId",
-    "createdById",
-    "createdAt",
-  ).create({
-    voucherNo,
-    type: data.type as any,
-    categoryId: data.categoryId,
-    amount: data.amount as any,
-    date: toInstant(targetDate) as any,
-    paymentMethod: (data.paymentMethod || "CASH") as any,
-    reference: data.reference ?? null,
-    description: data.description ?? null,
-    somitiId: data.somitiId ?? null,
-    createdById,
-  });
+    // Find the appropriate financial account based on payment method
+    let targetAccount = null;
+    if (data.paymentMethod === "BANK_TRANSFER") {
+      targetAccount =
+        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+          .first({ accountType: "BANK", isActive: true })) ||
+        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+          .first({ isDefault: true, isActive: true })) ||
+        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+          .first({ isActive: true }));
+    } else if (data.paymentMethod === "MOBILE_PAYMENT") {
+      targetAccount =
+        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+          .first({ accountType: "MOBILE_BANKING", isActive: true })) ||
+        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+          .first({ isDefault: true, isActive: true })) ||
+        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+          .first({ isActive: true }));
+    } else {
+      targetAccount =
+        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+          .first({ isDefault: true, isActive: true })) ||
+        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+          .first({ isActive: true }));
+    }
 
-  // Auto-record in financial accounting ledger
-  try {
-    const defaultAccount =
-      (await db.orm.public.FinancialAccount.select("id")
-        .first({ isDefault: true, isActive: true })) ||
-      (await db.orm.public.FinancialAccount.select("id")
-        .first({ isActive: true }));
+    if (!targetAccount) {
+      throw new ValidationError(
+        "No active financial account found for transaction. Please create a Cash or Bank account in Accounts & Cash.",
+      );
+    }
 
-    if (defaultAccount && Number(data.amount) > 0) {
-      await recordTransaction(db, {
-        accountId: defaultAccount.id,
+    // Check financial account balance for expense vouchers (just like loan disbursement)
+    if (data.type === "EXPENSE" && requiredAmount > 0) {
+      const availableBalance = Number(targetAccount.currentBalance) || 0;
+      if (availableBalance < requiredAmount) {
+        const shortage = requiredAmount - availableBalance;
+        throw new ValidationError(
+          `Insufficient balance in ${targetAccount.accountName}. Available: ৳${availableBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })}, Required: ৳${requiredAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} (Shortage: ৳${shortage.toLocaleString("en-US", { minimumFractionDigits: 2 })}). Expense voucher cannot be created without sufficient funds. Please inject capital or collect funds first.`,
+        );
+      }
+    }
+
+    const voucherNo = await generateVoucherNo(data.type, targetDate);
+
+    const voucher = await tx.orm.public.IncomeExpense.select(
+      "id",
+      "voucherNo",
+      "type",
+      "categoryId",
+      "amount",
+      "date",
+      "paymentMethod",
+      "reference",
+      "description",
+      "somitiId",
+      "createdById",
+      "createdAt",
+    ).create({
+      voucherNo,
+      type: data.type as any,
+      categoryId: data.categoryId,
+      amount: data.amount as any,
+      date: toInstant(targetDate) as any,
+      paymentMethod: (data.paymentMethod || "CASH") as any,
+      reference: data.reference ?? null,
+      description: data.description ?? null,
+      somitiId: data.somitiId ?? null,
+      createdById,
+    });
+
+    // Auto-record in financial accounting ledger
+    if (requiredAmount > 0) {
+      await recordTransaction(tx, {
+        accountId: targetAccount.id,
         type: data.type === "INCOME" ? "DEBIT" : "CREDIT",
-        amount: Number(data.amount),
+        amount: requiredAmount,
         sourceModule: data.type === "INCOME" ? "OTHER_INCOME" : "OFFICE_EXPENSE",
         referenceId: voucher.voucherNo,
         description: data.description || `${data.type} voucher ${voucher.voucherNo}`,
@@ -415,50 +454,16 @@ export const createIncomeExpense = async (
         createdById,
       });
     }
-  } catch (err) {
-    console.warn("Could not record income-expense accounting transaction:", err);
-  }
 
-  return voucher;
+    return voucher;
+  });
 };
 
-export const updateIncomeExpense = async (
+export const deleteIncomeExpense = async (
   id: number,
-  data: UpdateIncomeExpenseDTO,
+  reason = "Cancelled by admin",
+  cancelledById?: number,
 ) => {
-  const updatePayload: Record<string, any> = {};
-
-  if (data.categoryId !== undefined) updatePayload.categoryId = data.categoryId;
-  if (data.amount !== undefined) updatePayload.amount = data.amount as any;
-  if (data.date !== undefined) {
-    updatePayload.date = toInstant(new Date(data.date)) as any;
-  }
-  if (data.paymentMethod !== undefined) {
-    updatePayload.paymentMethod = data.paymentMethod as any;
-  }
-  if (data.reference !== undefined) updatePayload.reference = data.reference;
-  if (data.description !== undefined)
-    updatePayload.description = data.description;
-  if (data.somitiId !== undefined) updatePayload.somitiId = data.somitiId;
-
-  return await db.orm.public.IncomeExpense.select(
-    "id",
-    "voucherNo",
-    "type",
-    "categoryId",
-    "amount",
-    "date",
-    "paymentMethod",
-    "reference",
-    "description",
-    "somitiId",
-    "updatedAt",
-  )
-    .where({ id })
-    .update(updatePayload);
-};
-
-export const deleteIncomeExpense = async (id: number) => {
   const existing = await db.orm.public.IncomeExpense.select(
     "id",
     "voucherNo",
@@ -481,7 +486,8 @@ export const deleteIncomeExpense = async (id: number) => {
           amount: Number(existing.amount),
           sourceModule: existing.type === "INCOME" ? "OTHER_INCOME" : "OFFICE_EXPENSE",
           referenceId: existing.voucherNo,
-          description: `Voucher deleted/reversed: ${existing.voucherNo}`,
+          description: `Voucher reversed (${existing.voucherNo}): ${reason}`,
+          createdById: cancelledById,
         });
       }
     } catch (err) {

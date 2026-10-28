@@ -129,3 +129,49 @@ export const getCollectionById = asyncHandler(
       .json(successResponse("Collection fetched successfully", result));
   },
 );
+
+/**
+ * POST /api/v1/collections/:collectionId/reverse
+ *
+ * Reverse/Cancel an entire collection.
+ */
+export const reverseCollection = asyncHandler(
+  async (req: Request, res: Response) => {
+    const auth = (req as AuthenticatedRequest).auth;
+    const collectionId = Number(req.params.collectionId);
+    const reason = String(req.body.reason || "Cancelled by admin").trim();
+
+    const result = await service.reverseCollection(
+      collectionId,
+      reason,
+      auth.userId,
+    );
+
+    return res
+      .status(200)
+      .json(successResponse("Collection reversed successfully", result));
+  },
+);
+
+/**
+ * POST /api/v1/collections/payments/:paymentId/reverse
+ *
+ * Reverse/Cancel an individual loan payment.
+ */
+export const reverseLoanPayment = asyncHandler(
+  async (req: Request, res: Response) => {
+    const auth = (req as AuthenticatedRequest).auth;
+    const paymentId = Number(req.params.paymentId);
+    const reason = String(req.body.reason || "Cancelled by admin").trim();
+
+    const result = await service.reverseLoanPayment(
+      paymentId,
+      reason,
+      auth.userId,
+    );
+
+    return res
+      .status(200)
+      .json(successResponse("Loan payment reversed successfully", result));
+  },
+);

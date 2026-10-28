@@ -8,7 +8,6 @@ import type {
   CreateIncomeExpenseDTO,
   IncomeExpenseQuery,
   UpdateCategoryDTO,
-  UpdateIncomeExpenseDTO,
 } from "../income-expense.types.js";
 
 // ----------------------------------------------------------------------------------
@@ -128,28 +127,20 @@ export const createIncomeExpense = asyncHandler(
   },
 );
 
-export const updateIncomeExpense = asyncHandler(
-  async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-    const record = await service.updateIncomeExpense(
-      id,
-      req.body as UpdateIncomeExpenseDTO,
-    );
-    return res.status(200).json({
-      success: true,
-      message: "Voucher transaction updated successfully",
-      data: record,
-    });
-  },
-);
-
 export const deleteIncomeExpense = asyncHandler(
   async (req: Request, res: Response) => {
     const id = Number(req.params.id);
-    const result = await service.deleteIncomeExpense(id);
+    const reason = req.body?.reason
+      ? String(req.body.reason).trim()
+      : "Cancelled by admin";
+    const result = await service.deleteIncomeExpense(
+      id,
+      reason,
+      req.auth?.userId,
+    );
     return res.status(200).json({
       success: true,
-      message: "Voucher transaction deleted successfully",
+      message: "Voucher reversed successfully",
       data: result,
     });
   },

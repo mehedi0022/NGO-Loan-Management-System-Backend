@@ -37,3 +37,25 @@ export const withdrawSavings = async (
       return result;
   }
 };
+
+export const reverseSavingsTransaction = async (
+  transactionId: number,
+  reason: string,
+  cancelledById: number,
+) => {
+  const result = await repository.reverseSavingsTransaction(
+    transactionId,
+    reason,
+    cancelledById,
+  );
+
+  if (result.kind === "NOT_FOUND") {
+    throw new NotFoundError("Savings transaction not found");
+  }
+
+  if (result.kind === "NO_ACCOUNT") {
+    throw new NotFoundError("Savings account not found");
+  }
+
+  return result;
+};

@@ -10,7 +10,6 @@ import type {
   CreateIncomeExpenseDTO,
   IncomeExpenseQuery,
   UpdateCategoryDTO,
-  UpdateIncomeExpenseDTO,
 } from "../income-expense.types.js";
 import * as repository from "../repositories/income-expense.repository.js";
 
@@ -154,48 +153,16 @@ export const createIncomeExpense = async (
   return await repository.createIncomeExpense(data, actor.userId);
 };
 
-export const updateIncomeExpense = async (
+export const deleteIncomeExpense = async (
   id: number,
-  data: UpdateIncomeExpenseDTO,
+  reason = "Cancelled by admin",
+  cancelledById?: number,
 ) => {
   const record = await repository.getIncomeExpenseById(id);
   if (!record) {
     throw new NotFoundError("Voucher transaction not found");
   }
 
-  if (data.categoryId) {
-    const category = await repository.getCategoryById(data.categoryId);
-    if (!category) {
-      throw new NotFoundError("Selected transaction category not found");
-    }
-    if (!category.isActive) {
-      throw new ValidationError(
-        "Selected transaction category is currently inactive",
-      );
-    }
-    if (category.type !== record.type) {
-      throw new ValidationError(
-        `Category '${category.name}' does not match voucher transaction type ${record.type}`,
-      );
-    }
-  }
-
-  if (data.somitiId) {
-    const somiti = await findSomitiById(data.somitiId);
-    if (!somiti) {
-      throw new NotFoundError("Selected Somiti not found");
-    }
-  }
-
-  return await repository.updateIncomeExpense(id, data);
-};
-
-export const deleteIncomeExpense = async (id: number) => {
-  const record = await repository.getIncomeExpenseById(id);
-  if (!record) {
-    throw new NotFoundError("Voucher transaction not found");
-  }
-
-  await repository.deleteIncomeExpense(id);
+  await repository.deleteIncomeExpense(id, reason, cancelledById);
   return { id, voucherNo: record.voucherNo };
 };
