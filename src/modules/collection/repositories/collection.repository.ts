@@ -1232,7 +1232,7 @@ export const reverseCollection = async (
   cancelledById: number,
 ) => {
   return db.transaction(async (tx) => {
-    const collection = await tx.orm.public.Collection.select(
+    const collection: any = await tx.orm.public.Collection.select(
       "id",
       "collectionId",
       "memberId",
@@ -1261,7 +1261,10 @@ export const reverseCollection = async (
     const colCode = collection.collectionId || `COL-${String(collection.id).padStart(6, "0")}`;
 
     // Rollback Loan Payments
-    for (const payment of collection.loanPayments || []) {
+    const loanPayments: any[] = Array.isArray(collection.loanPayments)
+      ? collection.loanPayments
+      : [];
+    for (const payment of loanPayments) {
       if (payment.installmentId && payment.loanId) {
         const inst = await tx.orm.public.LoanInstallment.select(
           "id",
@@ -1291,7 +1294,10 @@ export const reverseCollection = async (
     }
 
     // Rollback Savings Transactions
-    for (const stx of collection.savingsTransactions || []) {
+    const savingsTransactions: any[] = Array.isArray(collection.savingsTransactions)
+      ? collection.savingsTransactions
+      : [];
+    for (const stx of savingsTransactions) {
       if (stx.savingsAccountId && stx.type === "DEPOSIT") {
         const savAcc = await tx.orm.public.SavingsAccount.select(
           "id",
@@ -1320,7 +1326,10 @@ export const reverseCollection = async (
     }
 
     // Rollback DPS Transactions
-    for (const dtx of collection.dpsTransactions || []) {
+    const dpsTransactions: any[] = Array.isArray(collection.dpsTransactions)
+      ? collection.dpsTransactions
+      : [];
+    for (const dtx of dpsTransactions) {
       if (dtx.dpsAccountId && dtx.type === "DEPOSIT") {
         const dpsAcc = await tx.orm.public.DpsAccount.select(
           "id",
