@@ -41,6 +41,7 @@ export type MigrateLoanInput = {
   chargeType: "FLAT" | "PERCENTAGE";
   chargeValue: number;
   installmentCount: number;
+  installmentAmount?: number; // Optional custom regular installment amount
   frequency: "WEEKLY" | "MONTHLY";
   disbursementDate: string | Date;
   firstDueDate: string | Date;

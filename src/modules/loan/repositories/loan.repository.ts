@@ -446,10 +446,15 @@ export const disburseApprovedLoan = async (
       }
     }
 
+    const effectiveInstallmentAmount =
+      data.installmentAmount !== undefined && data.installmentAmount > 0
+        ? data.installmentAmount.toFixed(2)
+        : loan.installmentAmount;
+
     const schedule = generateInstallmentSchedule({
       totalPayable: loan.totalPayable,
       installmentCount: loan.installmentCount,
-      installmentAmount: loan.installmentAmount,
+      installmentAmount: effectiveInstallmentAmount,
       frequency: loan.frequency,
       firstDueDate: dateToPlainDate(data.firstDueDate),
     });
@@ -476,6 +481,7 @@ export const disburseApprovedLoan = async (
       status: "APPROVED",
     }).update({
       status: "ACTIVE",
+      installmentAmount: effectiveInstallmentAmount,
       disbursementDate,
       firstDueDate,
       maturityDate,

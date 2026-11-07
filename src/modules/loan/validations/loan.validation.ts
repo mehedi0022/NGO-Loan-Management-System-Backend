@@ -9,6 +9,7 @@ export const createLoanSchema = z.object({
       chargeType: z.enum(["FLAT", "PERCENTAGE"]),
       chargeValue: z.coerce.number().min(0),
       installmentCount: z.coerce.number().int().positive(),
+      installmentAmount: z.coerce.number().positive().optional(),
       frequency: z.enum(["WEEKLY", "MONTHLY"]),
       purpose: z.string().trim().optional(),
       notes: z.string().trim().optional(),
@@ -45,6 +46,7 @@ export const updateLoanSchema = z.object({
       chargeType: z.enum(["FLAT", "PERCENTAGE"]).optional(),
       chargeValue: z.coerce.number().min(0).optional(),
       installmentCount: z.coerce.number().int().positive().optional(),
+      installmentAmount: z.coerce.number().positive().optional(),
       frequency: z.enum(["WEEKLY", "MONTHLY"]).optional(),
       purpose: z.string().trim().nullable().optional(),
       notes: z.string().trim().nullable().optional(),
@@ -81,6 +83,7 @@ export const disburseLoanSchema = z.object({
       disbursementDate: z.coerce.date(),
       firstDueDate: z.coerce.date(),
       accountId: z.coerce.number().int().positive().optional(),
+      installmentAmount: z.coerce.number().positive().optional(),
     })
     .strict()
     .refine((data) => data.firstDueDate > data.disbursementDate, {

@@ -138,6 +138,12 @@ export const getTemplateColumns = () => {
       example: "46",
     },
     {
+      key: "loanInstallmentAmount",
+      label: "Regular Installment Amount (optional, leave blank for auto lower-10s)",
+      required: false,
+      example: "1200",
+    },
+    {
       key: "loanFrequency",
       label: "Loan Frequency (WEEKLY / MONTHLY)",
       required: false,

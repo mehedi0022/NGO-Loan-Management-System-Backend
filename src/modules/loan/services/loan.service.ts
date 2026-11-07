@@ -33,13 +33,32 @@ export const createLoan = async (data: CreateLoanInput) => {
     installmentCount: data.installmentCount,
   });
 
-  if (
-    calculation.regularInstallmentCount > 0 &&
-    calculation.installmentAmount === 0
-  ) {
-    throw new ValidationError(
-      "Installment amount must be at least 10 for loans with multiple installments",
-    );
+  let effectiveInstallmentAmount = calculation.installmentAmount;
+
+  if (data.installmentAmount !== undefined && data.installmentAmount > 0) {
+    if (data.installmentCount > 1) {
+      const regularCount = data.installmentCount - 1;
+      const regularTotalInPaisa =
+        Math.round(data.installmentAmount * 100) * regularCount;
+      const totalPayableInPaisa = Math.round(calculation.totalPayable * 100);
+      const remainderInPaisa = totalPayableInPaisa - regularTotalInPaisa;
+
+      if (remainderInPaisa <= 0) {
+        throw new ValidationError(
+          `Regular installment amount (৳${data.installmentAmount}) is too high. Total payable is ৳${calculation.totalPayable}, leaving ৳${(remainderInPaisa / 100).toFixed(2)} for the final installment.`,
+        );
+      }
+    }
+    effectiveInstallmentAmount = data.installmentAmount;
+  } else {
+    if (
+      calculation.regularInstallmentCount > 0 &&
+      calculation.installmentAmount === 0
+    ) {
+      throw new ValidationError(
+        "Installment amount must be at least 10 for loans with multiple installments",
+      );
+    }
   }
 
   // 3. Create PENDING loan
@@ -48,7 +67,7 @@ export const createLoan = async (data: CreateLoanInput) => {
 
     chargeAmount: calculation.chargeAmount,
     totalPayable: calculation.totalPayable,
-    installmentAmount: calculation.installmentAmount,
+    installmentAmount: effectiveInstallmentAmount,
   });
 
   // 4. Generate business ID
@@ -133,22 +152,50 @@ export const updateLoan = async (id: number, data: UpdateLoanInput) => {
       })
     : undefined;
 
-  if (
+  let effectiveInstallmentAmount = calculation
+    ? calculation.installmentAmount
+    : Number(existingLoan.installmentAmount);
+
+  const effectiveTotalPayable = calculation
+    ? calculation.totalPayable
+    : Number(existingLoan.totalPayable);
+  const effectiveInstallmentCount =
+    data.installmentCount ?? existingLoan.installmentCount;
+
+  if (data.installmentAmount !== undefined && data.installmentAmount > 0) {
+    if (effectiveInstallmentCount > 1) {
+      const regularCount = effectiveInstallmentCount - 1;
+      const regularTotalInPaisa =
+        Math.round(data.installmentAmount * 100) * regularCount;
+      const totalPayableInPaisa = Math.round(effectiveTotalPayable * 100);
+      const remainderInPaisa = totalPayableInPaisa - regularTotalInPaisa;
+
+      if (remainderInPaisa <= 0) {
+        throw new ValidationError(
+          `Regular installment amount (৳${data.installmentAmount}) is too high. Total payable is ৳${effectiveTotalPayable}, leaving ৳${(remainderInPaisa / 100).toFixed(2)} for the final installment.`,
+        );
+      }
+    }
+    effectiveInstallmentAmount = data.installmentAmount;
+  } else if (
     calculation &&
     calculation.regularInstallmentCount > 0 &&
     calculation.installmentAmount === 0
-  )
+  ) {
     throw new ValidationError(
       "Installment amount must be at least 10 for loans with multiple installments",
     );
+  }
 
   const updated = await loanRepository.updatePendingLoanById(id, {
     ...data,
     ...(calculation && {
       chargeAmount: calculation.chargeAmount,
       totalPayable: calculation.totalPayable,
-      installmentAmount: calculation.installmentAmount,
     }),
+    ...(financialChange || data.installmentAmount !== undefined
+      ? { installmentAmount: effectiveInstallmentAmount }
+      : {}),
   });
   if (!updated) throw new ConflictError("Only pending loans can be edited");
 

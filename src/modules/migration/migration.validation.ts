@@ -48,6 +48,7 @@ const loanSchema = z.object({
   chargeType: z.enum(["FLAT", "PERCENTAGE"]).default("PERCENTAGE"),
   chargeValue: z.coerce.number().min(0, "Charge value cannot be negative"),
   installmentCount: z.coerce.number().int().min(1, "Installment count must be at least 1"),
+  installmentAmount: z.coerce.number().positive("Installment amount must be positive").optional(),
   frequency: z.enum(["WEEKLY", "MONTHLY"]).default("WEEKLY"),
   disbursementDate: z.coerce.date(),
   firstDueDate: z.coerce.date(),

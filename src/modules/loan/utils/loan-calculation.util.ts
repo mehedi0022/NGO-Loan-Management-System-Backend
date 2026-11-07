@@ -38,7 +38,9 @@ export const calculateLoan = ({
   const installmentAmount =
     installmentCount === 1
       ? totalPayable
-      : Math.floor(totalPayableInPaisa / installmentCount / 1000) * 10;
+      : totalPayable / installmentCount >= 10
+        ? Math.floor(totalPayableInPaisa / installmentCount / 1000) * 10
+        : Math.max(1, Math.floor(totalPayable / installmentCount));
 
   const lastInstallmentAmount =
     (totalPayableInPaisa -

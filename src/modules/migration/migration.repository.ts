@@ -197,13 +197,31 @@ export const migrateSingleMember = async (
         installmentCount: loanData.installmentCount,
       });
 
+      let effectiveInstallmentAmount = calculation.installmentAmount;
+      if (loanData.installmentAmount !== undefined && loanData.installmentAmount > 0) {
+        if (loanData.installmentCount > 1) {
+          const regularCount = loanData.installmentCount - 1;
+          const regularTotalInPaisa =
+            Math.round(loanData.installmentAmount * 100) * regularCount;
+          const totalPayableInPaisa = Math.round(calculation.totalPayable * 100);
+          const remainderInPaisa = totalPayableInPaisa - regularTotalInPaisa;
+
+          if (remainderInPaisa <= 0) {
+            throw new ValidationError(
+              `Regular installment amount (৳${loanData.installmentAmount}) is too high for migrated loan. Total payable is ৳${calculation.totalPayable}, leaving ৳${(remainderInPaisa / 100).toFixed(2)} for the final installment.`,
+            );
+          }
+        }
+        effectiveInstallmentAmount = loanData.installmentAmount;
+      }
+
       const firstDueDateStr = new Date(loanData.firstDueDate).toISOString().slice(0, 10);
       const firstDueDatePlain = Temporal.PlainDate.from(firstDueDateStr);
 
       const schedule = generateInstallmentSchedule({
         totalPayable: calculation.totalPayable.toFixed(2),
         installmentCount: loanData.installmentCount,
-        installmentAmount: calculation.installmentAmount.toFixed(2),
+        installmentAmount: effectiveInstallmentAmount.toFixed(2),
         frequency: loanData.frequency || "WEEKLY",
         firstDueDate: firstDueDatePlain,
       });
@@ -226,7 +244,7 @@ export const migrateSingleMember = async (
         chargeAmount: calculation.chargeAmount.toFixed(2),
         totalPayable: calculation.totalPayable.toFixed(2),
         installmentCount: loanData.installmentCount,
-        installmentAmount: calculation.installmentAmount.toFixed(2),
+        installmentAmount: effectiveInstallmentAmount.toFixed(2),
         frequency: loanData.frequency || "WEEKLY",
         applicationDate: disburseInstant,
         disbursementDate: disburseInstant,
