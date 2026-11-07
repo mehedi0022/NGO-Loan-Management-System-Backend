@@ -66,6 +66,9 @@ export const permissions = {
   accountsTransfer: "accounts:transfer",
   accountsInjectCapital: "accounts:inject-capital",
 
+  // Migration
+  migrationExecute: "migration:execute",
+
   // Settings
   settingsRead: "settings:read",
   settingsUpdate: "settings:update",
@@ -142,6 +145,9 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.accountsTransfer,
     permissions.accountsInjectCapital,
 
+    // Migration
+    permissions.migrationExecute,
+
     // Settings
     permissions.settingsRead,
     permissions.settingsUpdate,
@@ -198,6 +204,9 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.accountsUpdateAny,
     permissions.accountsTransfer,
     permissions.accountsInjectCapital,
+
+    // Migration
+    permissions.migrationExecute,
 
     // Settings
     permissions.settingsRead,

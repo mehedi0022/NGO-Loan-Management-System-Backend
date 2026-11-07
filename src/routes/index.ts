@@ -13,6 +13,7 @@ import reportRoutes from "../modules/reports/reports.route.js";
 import { incomeExpenseRoutes } from "../modules/income-expense/income-expense.route.js";
 import { settingsRoutes } from "../modules/settings/settings.route.js";
 import accountsRoutes from "../modules/accounts/accounts.route.js";
+import migrationRoutes from "../modules/migration/migration.route.js";
 
 const router = Router();
 
@@ -29,5 +30,6 @@ router.use("/reports", reportRoutes);
 router.use("/income-expense", incomeExpenseRoutes);
 router.use("/settings", settingsRoutes);
 router.use("/accounts", accountsRoutes);
+router.use("/migration", migrationRoutes);
 
 export default router;
