@@ -2,7 +2,7 @@ import { db } from "../../../prisma/db.js";
 import { Temporal } from "temporal-polyfill";
 import { pageOffset, paginationMeta } from "../../../utils/pagination.js";
 import { recordTransaction } from "../../accounts/repositories/accounts.repository.js";
-import { assertBusinessDateNotClosed } from "../../day-closing/services/day-closing.service.js";
+import { assertBusinessDateNotClosed, assertCanReverseTransaction } from "../../day-closing/services/day-closing.service.js";
 
 import type {
   BatchCollectionInput,
@@ -1284,6 +1284,7 @@ export const reverseCollection = async (
       "specialSavingsAmount",
       "dpsAmount",
       "totalAmount",
+      "collectionDate",
       "notes",
     )
       .include("loanPayments", (p: any) =>
@@ -1302,6 +1303,9 @@ export const reverseCollection = async (
     }
 
     const colCode = collection.collectionId || `COL-${String(collection.id).padStart(6, "0")}`;
+
+    // Ensure reversals are strictly forbidden on closed business days
+    await assertCanReverseTransaction(collection.collectionDate, colCode);
 
     // Rollback Loan Payments
     const loanPayments: any[] = Array.isArray(collection.loanPayments)
@@ -1489,6 +1493,7 @@ export const reverseLoanPayment = async (
       "installmentId",
       "amount",
       "collectionId",
+      "paymentDate",
     ).first({ id: paymentId });
 
     if (!payment) {
@@ -1496,6 +1501,9 @@ export const reverseLoanPayment = async (
     }
 
     const payCode = payment.paymentId || `PAY-${String(payment.id).padStart(6, "0")}`;
+
+    // Ensure reversals are strictly forbidden on closed business days
+    await assertCanReverseTransaction(payment.paymentDate, payCode);
 
     if (payment.installmentId && payment.loanId) {
       const inst = await tx.orm.public.LoanInstallment.select(

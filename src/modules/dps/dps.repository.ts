@@ -2,6 +2,7 @@ import { Temporal } from "temporal-polyfill";
 import { db } from "../../prisma/db.js";
 import { pageOffset, paginationMeta } from "../../utils/pagination.js";
 import { recordTransaction } from "../accounts/repositories/accounts.repository.js";
+import { assertCanReverseTransaction } from "../day-closing/services/day-closing.service.js";
 import type {
   CreateDpsAccountInput,
   DepositDpsInput,
@@ -587,6 +588,7 @@ export const reverseDpsTransaction = async (
       "type",
       "amount",
       "collectionId",
+      "transactionDate",
     ).first({ id: transactionId });
 
     if (!transaction) {
@@ -596,6 +598,9 @@ export const reverseDpsTransaction = async (
     const txCode =
       transaction.transactionId ||
       `DTX-${String(transaction.id).padStart(6, "0")}`;
+
+    // Ensure reversals are strictly forbidden on closed business days
+    await assertCanReverseTransaction(transaction.transactionDate, txCode);
 
     const account = await tx.orm.public.DpsAccount.select(
       "id",

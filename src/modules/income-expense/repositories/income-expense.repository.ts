@@ -3,6 +3,7 @@ import { db } from "../../../prisma/db.js";
 import { ValidationError } from "../../../errors/AppError.js";
 import { pageOffset, paginationMeta } from "../../../utils/pagination.js";
 import { recordTransaction } from "../../accounts/repositories/accounts.repository.js";
+import { assertCanReverseTransaction } from "../../day-closing/services/day-closing.service.js";
 import type {
   CategoryQuery,
   CreateCategoryDTO,
@@ -480,9 +481,12 @@ export const deleteIncomeExpense = async (
     "voucherNo",
     "type",
     "amount",
+    "date",
   ).first({ id });
 
   if (existing) {
+    // Ensure reversals are strictly forbidden on closed business days
+    await assertCanReverseTransaction(existing.date, existing.voucherNo);
     try {
       const defaultAccount =
         (await db.orm.public.FinancialAccount.select("id")
