@@ -3,6 +3,7 @@ import { Router } from "express";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 import { requirePermission } from "../../middlewares/authorization.middleware.js";
 import { validate } from "../../middlewares/validate.middleware.js";
+import { guardBusinessDayNotClosed } from "../../middlewares/business-day.guard.js";
 import { permissions } from "../../auth/authorization.js";
 import { imageUpload } from "../upload/upload.middleware.js";
 
@@ -72,6 +73,7 @@ router.get(
 router.post(
   "/",
   validate(createMemberSchema),
+  guardBusinessDayNotClosed((req) => req.body?.joinDate),
   requirePermission(permissions.membersCreate),
   createMember,
 );

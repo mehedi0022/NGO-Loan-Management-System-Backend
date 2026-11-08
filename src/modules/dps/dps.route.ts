@@ -40,6 +40,7 @@ router.post(
 router.post(
   "/",
   validate(createDpsAccountSchema),
+  guardBusinessDayNotClosed((req) => req.body?.startDate),
   requirePermission(permissions.dpsCreate),
   createDpsAccount,
 );

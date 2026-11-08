@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 import { requirePermission } from "../../middlewares/authorization.middleware.js";
 import { validate } from "../../middlewares/validate.middleware.js";
+import { guardBusinessDayNotClosed } from "../../middlewares/business-day.guard.js";
 import { permissions } from "../../auth/authorization.js";
 import {
   createAccount,
@@ -62,6 +63,7 @@ router.get(
 router.post(
   "/transfer",
   validate(transferFundsSchema),
+  guardBusinessDayNotClosed((req) => req.body?.transferDate),
   requirePermission(permissions.accountsTransfer),
   transferFunds,
 );
@@ -69,6 +71,7 @@ router.post(
 router.post(
   ["/capital", "/inject-capital"],
   validate(injectCapitalSchema),
+  guardBusinessDayNotClosed((req) => req.body?.depositDate),
   requirePermission(permissions.accountsTransfer),
   injectCapital,
 );

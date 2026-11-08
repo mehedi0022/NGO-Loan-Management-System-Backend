@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { Temporal } from "temporal-polyfill";
 import { ValidationError } from "../errors/AppError.js";
-import { isDateClosed } from "../modules/day-closing/repositories/day-closing.repository.js";
+import { getActiveBusinessDay, isDateClosed } from "../modules/day-closing/repositories/day-closing.repository.js";
 
 /**
  * Helper to normalize any date input (string, Date object, or undefined)
@@ -43,7 +43,9 @@ export const guardBusinessDayNotClosed = (dateExtractor?: (req: Request) => unkn
           req.body?.collectionDate ??
           req.body?.transactionDate ??
           req.body?.date ??
-          req.body?.disbursementDate;
+          req.body?.disbursementDate ??
+          req.body?.depositDate ??
+          req.body?.transferDate;
       }
 
       const cleanDateStr = toCleanDateStr(rawDate);
@@ -52,8 +54,19 @@ export const guardBusinessDayNotClosed = (dateExtractor?: (req: Request) => unkn
         const closed = await isDateClosed(cleanDateStr);
         if (closed) {
           throw new ValidationError(
-            `Business day ${cleanDateStr} has already been CLOSED by the administrator. No new collections, deposits, withdrawals, or disbursements are allowed on closed dates.`,
+            `Business day ${cleanDateStr} is in the past and has already been CLOSED. No new collections, deposits, withdrawals, or disbursements are allowed on closed dates.`,
           );
+        }
+
+        try {
+          const activeDay = await getActiveBusinessDay();
+          if (cleanDateStr > activeDay.businessDate) {
+            throw new ValidationError(
+              `Transactions cannot be posted for future date ${cleanDateStr}. Current active business day is ${activeDay.businessDate}.`,
+            );
+          }
+        } catch {
+          // ignore
         }
       }
 

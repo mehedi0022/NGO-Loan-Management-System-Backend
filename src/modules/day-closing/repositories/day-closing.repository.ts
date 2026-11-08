@@ -137,7 +137,13 @@ export const getDayClosingPreview = async (): Promise<DayClosingPreview> => {
   const calendarToday = getDhakaTodayDateStr();
   const isDeferred = dateStr < calendarToday;
 
-  const { start, end } = dateStrToInstantRange(dateStr);
+  let { start, end } = dateStrToInstantRange(dateStr);
+  if (isDeferred) {
+    const nowInstant = Temporal.Now.instant();
+    if (Temporal.Instant.compare(end, nowInstant) < 0) {
+      end = nowInstant.add({ hours: 1 });
+    }
+  }
 
   // Read transactions that occurred during this business date range
   const transactions = await db.orm.public.AccountTransaction.select(
@@ -361,11 +367,31 @@ export const isDateClosed = async (dateStr: string): Promise<boolean> => {
     .where({ businessDate: start })
     .first();
 
-  if (!record) {
-    return false; // not closed yet
+  if (record) {
+    return record.status === "CLOSED";
   }
 
-  return record.status === "CLOSED";
+  // If no explicit row exists for this date, check against the active open business day:
+  // Any date strictly before the active open business day is considered closed.
+  try {
+    const active = await db.orm.public.DayClosing.select("businessDate")
+      .where({ status: "OPEN" })
+      .orderBy((d) => d.businessDate.desc())
+      .first();
+
+    if (active) {
+      const activeStr = Temporal.Instant.from(
+        active.businessDate instanceof Date ? active.businessDate.toISOString() : String(active.businessDate)
+      ).toZonedDateTimeISO("Asia/Dhaka").toPlainDate().toString();
+      if (dateStr < activeStr) {
+        return true;
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  return false;
 };
 
 // Helper: Format database record to DTO

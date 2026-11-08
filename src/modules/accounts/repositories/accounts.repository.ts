@@ -22,15 +22,13 @@ const toInstant = (dateVal: string | Date | Temporal.Instant | null | undefined)
     return dateVal;
   }
   if (dateVal instanceof Date) {
-    return Temporal.Instant.from(dateVal.toISOString());
+    return toInstant(dateVal.toISOString());
   }
   if (typeof dateVal === "string") {
-    if (dateVal.includes("T")) {
-      return Temporal.Instant.from(dateVal);
-    }
-    const now = Temporal.Now.zonedDateTimeISO("Asia/Dhaka");
-    const [y, m, d] = dateVal.split("-").map(Number);
+    const datePart = dateVal.includes("T") ? dateVal.split("T")[0]! : dateVal;
+    const [y, m, d] = datePart.split("-").map(Number);
     if (y && m && d) {
+      const now = Temporal.Now.zonedDateTimeISO("Asia/Dhaka");
       return Temporal.ZonedDateTime.from({
         timeZone: "Asia/Dhaka",
         year: y,
@@ -41,9 +39,23 @@ const toInstant = (dateVal: string | Date | Temporal.Instant | null | undefined)
         second: now.second,
       }).toInstant();
     }
-    return Temporal.Instant.from(`${dateVal}T00:00:00Z`);
+    return Temporal.Instant.from(dateVal);
   }
   return Temporal.Now.instant();
+};
+
+const resolveBusinessInstant = async (
+  dateVal?: string | Date | Temporal.Instant | null,
+): Promise<Temporal.Instant> => {
+  if (dateVal) {
+    return toInstant(dateVal);
+  }
+  try {
+    const activeDay = await getActiveBusinessDay();
+    return toInstant(activeDay.businessDate);
+  } catch {
+    return Temporal.Now.instant();
+  }
 };
 
 const toAmount = (val: unknown): number => {
@@ -256,7 +268,7 @@ export const recordTransaction = async (
     currentBalance: String(balanceAfter),
   });
 
-  const txDate = toInstant(input.transactionDate);
+  const txDate = await resolveBusinessInstant(input.transactionDate);
 
   // 2. Insert transaction log
   const txRecord = await tx.orm.public.AccountTransaction.create({
@@ -299,7 +311,7 @@ export const transferFunds = async (input: TransferFundsInput, userId?: number) 
       throw new Error("One or both accounts not found");
     }
 
-    const transferDate = toInstant(input.transferDate);
+    const transferDate = await resolveBusinessInstant(input.transferDate);
     const amount = toAmount(input.amount);
 
     // 1. Credit from source account (Cash out)
@@ -347,7 +359,7 @@ export const injectCapital = async (input: InjectCapitalInput, userId?: number) 
     }
 
     const amount = toAmount(input.amount);
-    const depositDate = toInstant(input.depositDate);
+    const depositDate = await resolveBusinessInstant(input.depositDate);
 
     const trx = await recordTransaction(tx, {
       accountId: account.id,
@@ -438,15 +450,19 @@ export const listTransactions = async (query: ListTransactionsQuery) => {
 
 export const getDailyCashSheet = async (query: DailyCashSheetQuery) => {
   let dateStr = query.date;
-  if (!dateStr) {
-    try {
-      const activeDay = await getActiveBusinessDay();
-      dateStr = activeDay.businessDate;
-    } catch {
-      dateStr = Temporal.Now.zonedDateTimeISO("Asia/Dhaka").toPlainDate().toString();
-    }
+  let activeDayRecord: any = null;
+  try {
+    activeDayRecord = await getActiveBusinessDay();
+  } catch {
+    // ignore
   }
-  const plainDate = Temporal.PlainDate.from(dateStr);
+
+  const effectiveDateStr =
+    dateStr ||
+    activeDayRecord?.businessDate ||
+    Temporal.Now.zonedDateTimeISO("Asia/Dhaka").toPlainDate().toString();
+
+  const plainDate = Temporal.PlainDate.from(effectiveDateStr);
   const startOfDay = Temporal.ZonedDateTime.from({
     timeZone: "Asia/Dhaka",
     year: plainDate.year,
@@ -457,10 +473,24 @@ export const getDailyCashSheet = async (query: DailyCashSheetQuery) => {
     second: 0,
   }).toInstant();
 
-  const endOfDay = startOfDay
+  let endOfDay = startOfDay
     .toZonedDateTimeISO("Asia/Dhaka")
     .add({ days: 1 })
     .toInstant();
+
+  // If this queried date is the currently OPEN business day and the session is deferred
+  // (e.g. real clock is after the end of the business day), extend endOfDay to include
+  // transactions posted during this open session before Day Closing!
+  if (
+    activeDayRecord &&
+    activeDayRecord.status === "OPEN" &&
+    activeDayRecord.businessDate === effectiveDateStr
+  ) {
+    const nowInstant = Temporal.Now.instant();
+    if (Temporal.Instant.compare(endOfDay, nowInstant) < 0) {
+      endOfDay = nowInstant.add({ hours: 1 });
+    }
+  }
 
   // Target account or default cash account
   let targetAccount = null;
@@ -585,7 +615,7 @@ export const getDailyCashSheet = async (query: DailyCashSheetQuery) => {
   const closingBalance = openingBalance + cashIn.total - cashOut.total;
 
   return {
-    date: dateStr,
+    date: effectiveDateStr,
     account: {
       id: targetAccount.id,
       accountName: targetAccount.accountName,
