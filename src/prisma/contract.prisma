@@ -111,6 +111,7 @@ enum SavingsTransactionType {
 
   DEPOSIT = "DEPOSIT"
   WITHDRAWAL = "WITHDRAWAL"
+  INTEREST = "INTEREST"
 }
 
 enum TransactionType {
@@ -182,6 +183,7 @@ model User {
   openedDpsAccounts            DpsAccount[]         @relation("DpsAccountOpenedBy")
   processedDpsTransactions     DpsTransaction[]     @relation("DpsTransactionProcessedBy")
   accountTransactions          AccountTransaction[] @relation("AccountTransactionCreatedBy")
+  postedSavingsInterest        SavingsInterestPosting[] @relation("SavingsInterestPostedBy")
 }
 
 model Session {
@@ -525,6 +527,33 @@ model SavingsTransaction {
   @@index([transactionDate])
 }
 
+model SavingsInterestPosting {
+  id                    Int      @id @default(autoincrement())
+  postingCode           String?  @unique
+
+  periodStartDate       DateTime
+  periodEndDate         DateTime
+  compoundingInterval   String   @default("QUARTERLY")
+
+  generalSavingsRate    Decimal  @default("6")
+  specialSavingsRate    Decimal  @default("7")
+
+  totalGeneralInterest  Decimal  @default("0")
+  totalSpecialInterest  Decimal  @default("0")
+  totalAccountsCredited Int      @default(0)
+
+  postedById            Int?
+  postedBy              User?    @relation("SavingsInterestPostedBy", fields:[postedById], references:[id])
+
+  notes                 String?
+  createdAt             DateTime @default(now())
+
+  @@index([postingCode])
+  @@index([periodStartDate])
+  @@index([periodEndDate])
+  @@index([postedById])
+}
+
 model Collection {
   id                   Int                  @id @default(autoincrement())
   collectionId         String?              @unique
@@ -636,8 +665,11 @@ model OrganizationSetting {
   latePenaltyPercentage    Decimal              @default("0")
 
   // Savings Defaults
-  minGeneralSavingsDeposit Decimal              @default("50")
-  minSpecialSavingsDeposit Decimal              @default("100")
+  minGeneralSavingsDeposit   Decimal              @default("50")
+  minSpecialSavingsDeposit   Decimal              @default("100")
+  generalSavingsInterestRate Decimal              @default("6")
+  specialSavingsInterestRate Decimal              @default("7")
+  savingsCompoundingInterval String               @default("QUARTERLY")
 
   updatedAt                temporal.updatedAt()
 }

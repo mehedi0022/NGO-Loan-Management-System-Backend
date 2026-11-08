@@ -1,0 +1,491 @@
+[
+  {
+    "id": "dropCheckConstraint.savingsTransaction.savingsTransaction_type_check_e2220677",
+    "label": "Drop check constraint \"savingsTransaction_type_check_e2220677\" on \"savingsTransaction\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "savingsTransaction_type_check_e2220677",
+        "table": "savingsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"savingsTransaction_type_check_e2220677\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsTransaction_type_check_e2220677",
+          "public",
+          "\"public\".\"savingsTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"savingsTransaction_type_check_e2220677\"",
+        "sql": "ALTER TABLE \"public\".\"savingsTransaction\" DROP CONSTRAINT \"savingsTransaction_type_check_e2220677\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"savingsTransaction_type_check_e2220677\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsTransaction_type_check_e2220677",
+          "public",
+          "\"public\".\"savingsTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.savingsInterestPosting",
+    "label": "Create table \"savingsInterestPosting\"",
+    "summary": "Creates table \"savingsInterestPosting\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "savingsInterestPosting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"savingsInterestPosting\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsInterestPosting\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"savingsInterestPosting\"",
+        "sql": "CREATE TABLE \"public\".\"savingsInterestPosting\" (\n  \"compoundingInterval\" text DEFAULT 'QUARTERLY' NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"generalSavingsRate\" numeric DEFAULT '6'::numeric NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"notes\" text,\n  \"periodEndDate\" timestamptz NOT NULL,\n  \"periodStartDate\" timestamptz NOT NULL,\n  \"postedById\" int4,\n  \"postingCode\" text,\n  \"specialSavingsRate\" numeric DEFAULT '7'::numeric NOT NULL,\n  \"totalAccountsCredited\" int4 DEFAULT 0 NOT NULL,\n  \"totalGeneralInterest\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"totalSpecialInterest\" numeric DEFAULT '0'::numeric NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"savingsInterestPosting\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsInterestPosting\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.organizationSetting.generalSavingsInterestRate",
+    "label": "Add column \"generalSavingsInterestRate\" to \"organizationSetting\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "generalSavingsInterestRate",
+        "table": "organizationSetting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"generalSavingsInterestRate\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "organizationSetting",
+          "generalSavingsInterestRate"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"generalSavingsInterestRate\"",
+        "sql": "ALTER TABLE \"public\".\"organizationSetting\" ADD COLUMN \"generalSavingsInterestRate\" numeric DEFAULT '6'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"generalSavingsInterestRate\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "organizationSetting",
+          "generalSavingsInterestRate"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.organizationSetting.savingsCompoundingInterval",
+    "label": "Add column \"savingsCompoundingInterval\" to \"organizationSetting\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "savingsCompoundingInterval",
+        "table": "organizationSetting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"savingsCompoundingInterval\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "organizationSetting",
+          "savingsCompoundingInterval"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"savingsCompoundingInterval\"",
+        "sql": "ALTER TABLE \"public\".\"organizationSetting\" ADD COLUMN \"savingsCompoundingInterval\" text DEFAULT 'QUARTERLY' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"savingsCompoundingInterval\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "organizationSetting",
+          "savingsCompoundingInterval"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.organizationSetting.specialSavingsInterestRate",
+    "label": "Add column \"specialSavingsInterestRate\" to \"organizationSetting\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "specialSavingsInterestRate",
+        "table": "organizationSetting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"specialSavingsInterestRate\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "organizationSetting",
+          "specialSavingsInterestRate"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"specialSavingsInterestRate\"",
+        "sql": "ALTER TABLE \"public\".\"organizationSetting\" ADD COLUMN \"specialSavingsInterestRate\" numeric DEFAULT '7'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"specialSavingsInterestRate\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "organizationSetting",
+          "specialSavingsInterestRate"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.savingsInterestPosting.savingsInterestPosting_postingCode_key",
+    "label": "Add unique constraint on \"savingsInterestPosting\" (postingCode)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "savingsInterestPosting_postingCode_key",
+        "table": "savingsInterestPosting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"savingsInterestPosting_postingCode_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsInterestPosting_postingCode_key",
+          "public",
+          "\"public\".\"savingsInterestPosting\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"savingsInterestPosting_postingCode_key\"",
+        "sql": "ALTER TABLE \"public\".\"savingsInterestPosting\" ADD CONSTRAINT \"savingsInterestPosting_postingCode_key\" UNIQUE (\"postingCode\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"savingsInterestPosting_postingCode_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsInterestPosting_postingCode_key",
+          "public",
+          "\"public\".\"savingsInterestPosting\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.savingsTransaction.savingsTransaction_type_check_849d4e3d",
+    "label": "Add check constraint \"savingsTransaction_type_check_849d4e3d\" on \"savingsTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "savingsTransaction_type_check_849d4e3d",
+        "table": "savingsTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"savingsTransaction_type_check_849d4e3d\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsTransaction_type_check_849d4e3d",
+          "public",
+          "\"public\".\"savingsTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"savingsTransaction_type_check_849d4e3d\"",
+        "sql": "ALTER TABLE \"public\".\"savingsTransaction\" ADD CONSTRAINT \"savingsTransaction_type_check_849d4e3d\" CHECK (\"type\" IN ('DEPOSIT', 'WITHDRAWAL', 'INTEREST'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"savingsTransaction_type_check_849d4e3d\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsTransaction_type_check_849d4e3d",
+          "public",
+          "\"public\".\"savingsTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.savingsInterestPosting.savingsInterestPosting_periodEndDate_idx_a01056c2",
+    "label": "Create index \"savingsInterestPosting_periodEndDate_idx_a01056c2\" on \"savingsInterestPosting\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "savingsInterestPosting_periodEndDate_idx_a01056c2",
+        "table": "savingsInterestPosting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"savingsInterestPosting_periodEndDate_idx_a01056c2\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsInterestPosting_periodEndDate_idx_a01056c2\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"savingsInterestPosting_periodEndDate_idx_a01056c2\"",
+        "sql": "CREATE INDEX \"savingsInterestPosting_periodEndDate_idx_a01056c2\" ON \"public\".\"savingsInterestPosting\" (\"periodEndDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"savingsInterestPosting_periodEndDate_idx_a01056c2\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsInterestPosting_periodEndDate_idx_a01056c2\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.savingsInterestPosting.savingsInterestPosting_periodStartDate_idx_e9f0fc7b",
+    "label": "Create index \"savingsInterestPosting_periodStartDate_idx_e9f0fc7b\" on \"savingsInterestPosting\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "savingsInterestPosting_periodStartDate_idx_e9f0fc7b",
+        "table": "savingsInterestPosting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"savingsInterestPosting_periodStartDate_idx_e9f0fc7b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsInterestPosting_periodStartDate_idx_e9f0fc7b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"savingsInterestPosting_periodStartDate_idx_e9f0fc7b\"",
+        "sql": "CREATE INDEX \"savingsInterestPosting_periodStartDate_idx_e9f0fc7b\" ON \"public\".\"savingsInterestPosting\" (\"periodStartDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"savingsInterestPosting_periodStartDate_idx_e9f0fc7b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsInterestPosting_periodStartDate_idx_e9f0fc7b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.savingsInterestPosting.savingsInterestPosting_postedById_idx_fa804b55",
+    "label": "Create index \"savingsInterestPosting_postedById_idx_fa804b55\" on \"savingsInterestPosting\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "savingsInterestPosting_postedById_idx_fa804b55",
+        "table": "savingsInterestPosting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"savingsInterestPosting_postedById_idx_fa804b55\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsInterestPosting_postedById_idx_fa804b55\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"savingsInterestPosting_postedById_idx_fa804b55\"",
+        "sql": "CREATE INDEX \"savingsInterestPosting_postedById_idx_fa804b55\" ON \"public\".\"savingsInterestPosting\" (\"postedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"savingsInterestPosting_postedById_idx_fa804b55\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsInterestPosting_postedById_idx_fa804b55\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.savingsInterestPosting.savingsInterestPosting_postingCode_idx_75e1fa94",
+    "label": "Create index \"savingsInterestPosting_postingCode_idx_75e1fa94\" on \"savingsInterestPosting\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "savingsInterestPosting_postingCode_idx_75e1fa94",
+        "table": "savingsInterestPosting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"savingsInterestPosting_postingCode_idx_75e1fa94\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsInterestPosting_postingCode_idx_75e1fa94\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"savingsInterestPosting_postingCode_idx_75e1fa94\"",
+        "sql": "CREATE INDEX \"savingsInterestPosting_postingCode_idx_75e1fa94\" ON \"public\".\"savingsInterestPosting\" (\"postingCode\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"savingsInterestPosting_postingCode_idx_75e1fa94\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"savingsInterestPosting_postingCode_idx_75e1fa94\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.savingsInterestPosting.savingsInterestPosting_postedById_fkey",
+    "label": "Add foreign key \"savingsInterestPosting_postedById_fkey\" on \"savingsInterestPosting\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "savingsInterestPosting_postedById_fkey",
+        "table": "savingsInterestPosting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"savingsInterestPosting_postedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsInterestPosting_postedById_fkey",
+          "public",
+          "\"public\".\"savingsInterestPosting\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"savingsInterestPosting_postedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"savingsInterestPosting\"\nADD CONSTRAINT \"savingsInterestPosting_postedById_fkey\"\nFOREIGN KEY (\"postedById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"savingsInterestPosting_postedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "savingsInterestPosting_postedById_fkey",
+          "public",
+          "\"public\".\"savingsInterestPosting\""
+        ]
+      }
+    ]
+  }
+]

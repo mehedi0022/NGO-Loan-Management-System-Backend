@@ -59,3 +59,44 @@ export const reverseSavingsTransaction = async (
 
   return result;
 };
+
+export const getSavingsInterestSettings = async () => {
+  return repository.getSavingsInterestSettings();
+};
+
+export const updateSavingsInterestSettings = async (input: {
+  generalSavingsInterestRate: number;
+  specialSavingsInterestRate: number;
+  savingsCompoundingInterval: string;
+}) => {
+  return repository.updateSavingsInterestSettings(input);
+};
+
+export const previewSavingsInterest = async (options: repository.CalculateInterestOptions) => {
+  return repository.calculateDailyProductInterest(options);
+};
+
+export const postSavingsInterest = async (
+  options: repository.CalculateInterestOptions & { notes?: string },
+  postedById: number,
+) => {
+  const result: any = await repository.postSavingsInterest(options, postedById);
+  if (result.kind === "NO_INTEREST") {
+    throw new ValidationError(result.message);
+  }
+  if (result.kind === "OVERLAP") {
+    throw new ConflictError(result.message);
+  }
+  if (
+    result.kind === "FUTURE_DATE" ||
+    result.kind === "INVALID_DATES" ||
+    result.kind === "VALIDATION_ERROR"
+  ) {
+    throw new ValidationError(result.message);
+  }
+  return result;
+};
+
+export const getInterestPostingHistory = async (page = 1, limit = 20) => {
+  return repository.getInterestPostingHistory(page, limit);
+};

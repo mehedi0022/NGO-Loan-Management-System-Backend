@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'a355720713e26aa0cd849ef1fbcf026e50eb88d6d2fb0ba8405a6a667bfe0a40'>;
+  StorageHashBase<'1b0a91a4bd5b872f828da1db2bbb1816f3ed89ee99ba16c3f2e749111868caaa'>;
 export type ExecutionHash =
   ExecutionHashBase<'52c0a5815845a4ced1e64c2374193a892cb49b8823741e7ebd0fa96dc5ef9ada'>;
 export type ProfileHash =
@@ -500,6 +500,9 @@ export type FieldOutputTypes = {
       readonly latePenaltyPercentage: CodecTypes['pg/numeric@1']['output'];
       readonly minGeneralSavingsDeposit: CodecTypes['pg/numeric@1']['output'];
       readonly minSpecialSavingsDeposit: CodecTypes['pg/numeric@1']['output'];
+      readonly generalSavingsInterestRate: CodecTypes['pg/numeric@1']['output'];
+      readonly specialSavingsInterestRate: CodecTypes['pg/numeric@1']['output'];
+      readonly savingsCompoundingInterval: CodecTypes['pg/text@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
     readonly SavingsAccount: {
@@ -515,6 +518,21 @@ export type FieldOutputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
+    readonly SavingsInterestPosting: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly postingCode: CodecTypes['pg/text@1']['output'] | null;
+      readonly periodStartDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly periodEndDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly compoundingInterval: CodecTypes['pg/text@1']['output'];
+      readonly generalSavingsRate: CodecTypes['pg/numeric@1']['output'];
+      readonly specialSavingsRate: CodecTypes['pg/numeric@1']['output'];
+      readonly totalGeneralInterest: CodecTypes['pg/numeric@1']['output'];
+      readonly totalSpecialInterest: CodecTypes['pg/numeric@1']['output'];
+      readonly totalAccountsCredited: CodecTypes['pg/int4@1']['output'];
+      readonly postedById: CodecTypes['pg/int4@1']['output'] | null;
+      readonly notes: CodecTypes['pg/text@1']['output'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    };
     readonly SavingsTransaction: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly transactionId: CodecTypes['pg/text@1']['output'] | null;
@@ -522,7 +540,7 @@ export type FieldOutputTypes = {
       readonly collectionId: CodecTypes['pg/int4@1']['output'] | null;
       readonly processedById: CodecTypes['pg/int4@1']['output'] | null;
       readonly savingsType: 'GENERAL' | 'SPECIAL';
-      readonly type: 'DEPOSIT' | 'WITHDRAWAL';
+      readonly type: 'DEPOSIT' | 'WITHDRAWAL' | 'INTEREST';
       readonly amount: CodecTypes['pg/numeric@1']['output'];
       readonly balanceBefore: CodecTypes['pg/numeric@1']['output'];
       readonly balanceAfter: CodecTypes['pg/numeric@1']['output'];
@@ -847,6 +865,9 @@ export type FieldInputTypes = {
       readonly latePenaltyPercentage: CodecTypes['pg/numeric@1']['input'];
       readonly minGeneralSavingsDeposit: CodecTypes['pg/numeric@1']['input'];
       readonly minSpecialSavingsDeposit: CodecTypes['pg/numeric@1']['input'];
+      readonly generalSavingsInterestRate: CodecTypes['pg/numeric@1']['input'];
+      readonly specialSavingsInterestRate: CodecTypes['pg/numeric@1']['input'];
+      readonly savingsCompoundingInterval: CodecTypes['pg/text@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
     readonly SavingsAccount: {
@@ -862,6 +883,21 @@ export type FieldInputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
+    readonly SavingsInterestPosting: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly postingCode: CodecTypes['pg/text@1']['input'] | null;
+      readonly periodStartDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly periodEndDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly compoundingInterval: CodecTypes['pg/text@1']['input'];
+      readonly generalSavingsRate: CodecTypes['pg/numeric@1']['input'];
+      readonly specialSavingsRate: CodecTypes['pg/numeric@1']['input'];
+      readonly totalGeneralInterest: CodecTypes['pg/numeric@1']['input'];
+      readonly totalSpecialInterest: CodecTypes['pg/numeric@1']['input'];
+      readonly totalAccountsCredited: CodecTypes['pg/int4@1']['input'];
+      readonly postedById: CodecTypes['pg/int4@1']['input'] | null;
+      readonly notes: CodecTypes['pg/text@1']['input'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+    };
     readonly SavingsTransaction: {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly transactionId: CodecTypes['pg/text@1']['input'] | null;
@@ -869,7 +905,7 @@ export type FieldInputTypes = {
       readonly collectionId: CodecTypes['pg/int4@1']['input'] | null;
       readonly processedById: CodecTypes['pg/int4@1']['input'] | null;
       readonly savingsType: 'GENERAL' | 'SPECIAL';
-      readonly type: 'DEPOSIT' | 'WITHDRAWAL';
+      readonly type: 'DEPOSIT' | 'WITHDRAWAL' | 'INTEREST';
       readonly amount: CodecTypes['pg/numeric@1']['input'];
       readonly balanceBefore: CodecTypes['pg/numeric@1']['input'];
       readonly balanceAfter: CodecTypes['pg/numeric@1']['input'];
@@ -1184,6 +1220,7 @@ export type StorageColumnTypes = {
       readonly defaultLoanFrequency: 'WEEKLY' | 'MONTHLY';
       readonly email: CodecTypes['pg/text@1']['output'] | null;
       readonly establishedYear: CodecTypes['pg/text@1']['output'] | null;
+      readonly generalSavingsInterestRate: CodecTypes['pg/numeric@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly latePenaltyPercentage: CodecTypes['pg/numeric@1']['output'];
       readonly logoUrl: CodecTypes['pg/text@1']['output'] | null;
@@ -1193,6 +1230,8 @@ export type StorageColumnTypes = {
       readonly orgShortName: CodecTypes['pg/text@1']['output'] | null;
       readonly phone: CodecTypes['pg/text@1']['output'] | null;
       readonly registrationNo: CodecTypes['pg/text@1']['output'] | null;
+      readonly savingsCompoundingInterval: CodecTypes['pg/text@1']['output'];
+      readonly specialSavingsInterestRate: CodecTypes['pg/numeric@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly website: CodecTypes['pg/text@1']['output'] | null;
     };
@@ -1209,6 +1248,21 @@ export type StorageColumnTypes = {
       readonly status: 'ACTIVE' | 'CLOSED';
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
+    readonly savingsInterestPosting: {
+      readonly compoundingInterval: CodecTypes['pg/text@1']['output'];
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly generalSavingsRate: CodecTypes['pg/numeric@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly notes: CodecTypes['pg/text@1']['output'] | null;
+      readonly periodEndDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly periodStartDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly postedById: CodecTypes['pg/int4@1']['output'] | null;
+      readonly postingCode: CodecTypes['pg/text@1']['output'] | null;
+      readonly specialSavingsRate: CodecTypes['pg/numeric@1']['output'];
+      readonly totalAccountsCredited: CodecTypes['pg/int4@1']['output'];
+      readonly totalGeneralInterest: CodecTypes['pg/numeric@1']['output'];
+      readonly totalSpecialInterest: CodecTypes['pg/numeric@1']['output'];
+    };
     readonly savingsTransaction: {
       readonly amount: CodecTypes['pg/numeric@1']['output'];
       readonly balanceAfter: CodecTypes['pg/numeric@1']['output'];
@@ -1224,7 +1278,7 @@ export type StorageColumnTypes = {
       readonly savingsType: 'GENERAL' | 'SPECIAL';
       readonly transactionDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly transactionId: CodecTypes['pg/text@1']['output'] | null;
-      readonly type: 'DEPOSIT' | 'WITHDRAWAL';
+      readonly type: 'DEPOSIT' | 'WITHDRAWAL' | 'INTEREST';
     };
     readonly session: {
       readonly absoluteExpiresAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -1531,6 +1585,7 @@ export type StorageColumnInputTypes = {
       readonly defaultLoanFrequency: 'WEEKLY' | 'MONTHLY';
       readonly email: CodecTypes['pg/text@1']['input'] | null;
       readonly establishedYear: CodecTypes['pg/text@1']['input'] | null;
+      readonly generalSavingsInterestRate: CodecTypes['pg/numeric@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly latePenaltyPercentage: CodecTypes['pg/numeric@1']['input'];
       readonly logoUrl: CodecTypes['pg/text@1']['input'] | null;
@@ -1540,6 +1595,8 @@ export type StorageColumnInputTypes = {
       readonly orgShortName: CodecTypes['pg/text@1']['input'] | null;
       readonly phone: CodecTypes['pg/text@1']['input'] | null;
       readonly registrationNo: CodecTypes['pg/text@1']['input'] | null;
+      readonly savingsCompoundingInterval: CodecTypes['pg/text@1']['input'];
+      readonly specialSavingsInterestRate: CodecTypes['pg/numeric@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly website: CodecTypes['pg/text@1']['input'] | null;
     };
@@ -1556,6 +1613,21 @@ export type StorageColumnInputTypes = {
       readonly status: 'ACTIVE' | 'CLOSED';
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
+    readonly savingsInterestPosting: {
+      readonly compoundingInterval: CodecTypes['pg/text@1']['input'];
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly generalSavingsRate: CodecTypes['pg/numeric@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly notes: CodecTypes['pg/text@1']['input'] | null;
+      readonly periodEndDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly periodStartDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly postedById: CodecTypes['pg/int4@1']['input'] | null;
+      readonly postingCode: CodecTypes['pg/text@1']['input'] | null;
+      readonly specialSavingsRate: CodecTypes['pg/numeric@1']['input'];
+      readonly totalAccountsCredited: CodecTypes['pg/int4@1']['input'];
+      readonly totalGeneralInterest: CodecTypes['pg/numeric@1']['input'];
+      readonly totalSpecialInterest: CodecTypes['pg/numeric@1']['input'];
+    };
     readonly savingsTransaction: {
       readonly amount: CodecTypes['pg/numeric@1']['input'];
       readonly balanceAfter: CodecTypes['pg/numeric@1']['input'];
@@ -1571,7 +1643,7 @@ export type StorageColumnInputTypes = {
       readonly savingsType: 'GENERAL' | 'SPECIAL';
       readonly transactionDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly transactionId: CodecTypes['pg/text@1']['input'] | null;
-      readonly type: 'DEPOSIT' | 'WITHDRAWAL';
+      readonly type: 'DEPOSIT' | 'WITHDRAWAL' | 'INTEREST';
     };
     readonly session: {
       readonly absoluteExpiresAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -1648,6 +1720,7 @@ export namespace Models {
     collections: public_Collection[];
     incomeExpenses: public_IncomeExpense[];
     openedDpsAccounts: public_DpsAccount[];
+    postedSavingsInterest: public_SavingsInterestPosting[];
     processedDpsTransactions: public_DpsTransaction[];
     processedSavingsTransactions: public_SavingsTransaction[];
     rejectedLoans: public_Loan[];
@@ -1660,6 +1733,7 @@ export namespace Models {
       | 'collections'
       | 'incomeExpenses'
       | 'openedDpsAccounts'
+      | 'postedSavingsInterest'
       | 'processedDpsTransactions'
       | 'processedSavingsTransactions'
       | 'rejectedLoans'
@@ -1876,7 +1950,7 @@ export namespace Models {
     collectionId: CodecTypes['pg/int4@1']['output'] | null;
     processedById: CodecTypes['pg/int4@1']['output'] | null;
     savingsType: 'GENERAL' | 'SPECIAL';
-    type: 'DEPOSIT' | 'WITHDRAWAL';
+    type: 'DEPOSIT' | 'WITHDRAWAL' | 'INTEREST';
     amount: CodecTypes['pg/numeric@1']['output'];
     balanceBefore: CodecTypes['pg/numeric@1']['output'];
     balanceAfter: CodecTypes['pg/numeric@1']['output'];
@@ -1889,6 +1963,23 @@ export namespace Models {
     processedBy: public_User | null;
     savingsAccount: public_SavingsAccount;
     readonly [RelationKeys]?: 'collection' | 'processedBy' | 'savingsAccount';
+  };
+  export type public_SavingsInterestPosting = {
+    id: CodecTypes['pg/int4@1']['output'];
+    postingCode: CodecTypes['pg/text@1']['output'] | null;
+    periodStartDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    periodEndDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    compoundingInterval: CodecTypes['pg/text@1']['output'];
+    generalSavingsRate: CodecTypes['pg/numeric@1']['output'];
+    specialSavingsRate: CodecTypes['pg/numeric@1']['output'];
+    totalGeneralInterest: CodecTypes['pg/numeric@1']['output'];
+    totalSpecialInterest: CodecTypes['pg/numeric@1']['output'];
+    totalAccountsCredited: CodecTypes['pg/int4@1']['output'];
+    postedById: CodecTypes['pg/int4@1']['output'] | null;
+    notes: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    postedBy: public_User | null;
+    readonly [RelationKeys]?: 'postedBy';
   };
   export type public_Collection = {
     id: CodecTypes['pg/int4@1']['output'];
@@ -1965,6 +2056,9 @@ export namespace Models {
     latePenaltyPercentage: CodecTypes['pg/numeric@1']['output'];
     minGeneralSavingsDeposit: CodecTypes['pg/numeric@1']['output'];
     minSpecialSavingsDeposit: CodecTypes['pg/numeric@1']['output'];
+    generalSavingsInterestRate: CodecTypes['pg/numeric@1']['output'];
+    specialSavingsInterestRate: CodecTypes['pg/numeric@1']['output'];
+    savingsCompoundingInterval: CodecTypes['pg/text@1']['output'];
     updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     readonly [RelationKeys]?: never;
   };
@@ -2088,6 +2182,7 @@ export declare const models: {
     LoanPayment: Models.public_LoanPayment;
     SavingsAccount: Models.public_SavingsAccount;
     SavingsTransaction: Models.public_SavingsTransaction;
+    SavingsInterestPosting: Models.public_SavingsInterestPosting;
     Collection: Models.public_Collection;
     TransactionCategory: Models.public_TransactionCategory;
     IncomeExpense: Models.public_IncomeExpense;
@@ -4238,6 +4333,33 @@ type ContractBase = Omit<
                     readonly value: DefaultLiteralValue<'pg/numeric@1', '100'>;
                   };
                 };
+                readonly generalSavingsInterestRate: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '6'>;
+                  };
+                };
+                readonly specialSavingsInterestRate: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '7'>;
+                  };
+                };
+                readonly savingsCompoundingInterval: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'QUARTERLY'>;
+                  };
+                };
                 readonly updatedAt: {
                   readonly nativeType: 'timestamptz';
                   readonly codecId: 'pg/timestamptz-temporal@1';
@@ -4354,6 +4476,146 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'member';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly savingsInterestPosting: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly postingCode: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly periodStartDate: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly periodEndDate: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly compoundingInterval: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'QUARTERLY'>;
+                  };
+                };
+                readonly generalSavingsRate: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '6'>;
+                  };
+                };
+                readonly specialSavingsRate: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '7'>;
+                  };
+                };
+                readonly totalGeneralInterest: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly totalSpecialInterest: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly totalAccountsCredited: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                };
+                readonly postedById: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
+                readonly notes: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['postingCode'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'savingsInterestPosting_postingCode_idx_75e1fa94';
+                  readonly prefix: 'savingsInterestPosting_postingCode_idx';
+                  readonly columns: readonly ['postingCode'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'savingsInterestPosting_periodStartDate_idx_e9f0fc7b';
+                  readonly prefix: 'savingsInterestPosting_periodStartDate_idx';
+                  readonly columns: readonly ['periodStartDate'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'savingsInterestPosting_periodEndDate_idx_a01056c2';
+                  readonly prefix: 'savingsInterestPosting_periodEndDate_idx';
+                  readonly columns: readonly ['periodEndDate'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'savingsInterestPosting_postedById_idx_fa804b55';
+                  readonly prefix: 'savingsInterestPosting_postedById_idx';
+                  readonly columns: readonly ['postedById'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'savingsInterestPosting';
+                    readonly columns: readonly ['postedById'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'user';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -4996,7 +5258,7 @@ type ContractBase = Omit<
             };
             readonly SavingsTransactionType: {
               readonly kind: 'valueSet';
-              readonly values: readonly ['DEPOSIT', 'WITHDRAWAL'];
+              readonly values: readonly ['DEPOSIT', 'WITHDRAWAL', 'INTEREST'];
             };
             readonly SavingsType: {
               readonly kind: 'valueSet';
@@ -5066,6 +5328,10 @@ type ContractBase = Omit<
     readonly savingsTransaction: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'SavingsTransaction';
+    };
+    readonly savingsInterestPosting: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'SavingsInterestPosting';
     };
     readonly collection: {
       readonly namespace: 'public' & NamespaceId;
@@ -6902,6 +7168,18 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
               };
+              readonly generalSavingsInterestRate: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly specialSavingsInterestRate: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly savingsCompoundingInterval: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly updatedAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -6934,6 +7212,15 @@ type ContractBase = Omit<
                 readonly latePenaltyPercentage: { readonly column: 'latePenaltyPercentage' };
                 readonly minGeneralSavingsDeposit: { readonly column: 'minGeneralSavingsDeposit' };
                 readonly minSpecialSavingsDeposit: { readonly column: 'minSpecialSavingsDeposit' };
+                readonly generalSavingsInterestRate: {
+                  readonly column: 'generalSavingsInterestRate';
+                };
+                readonly specialSavingsInterestRate: {
+                  readonly column: 'specialSavingsInterestRate';
+                };
+                readonly savingsCompoundingInterval: {
+                  readonly column: 'savingsCompoundingInterval';
+                };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };
@@ -7037,6 +7324,101 @@ type ContractBase = Omit<
                 readonly notes: { readonly column: 'notes' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly SavingsInterestPosting: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly postingCode: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly periodStartDate: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly periodEndDate: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly compoundingInterval: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly generalSavingsRate: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly specialSavingsRate: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly totalGeneralInterest: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly totalSpecialInterest: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly totalAccountsCredited: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly postedById: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly notes: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly postedBy: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['postedById'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'savingsInterestPosting';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly postingCode: { readonly column: 'postingCode' };
+                readonly periodStartDate: { readonly column: 'periodStartDate' };
+                readonly periodEndDate: { readonly column: 'periodEndDate' };
+                readonly compoundingInterval: { readonly column: 'compoundingInterval' };
+                readonly generalSavingsRate: { readonly column: 'generalSavingsRate' };
+                readonly specialSavingsRate: { readonly column: 'specialSavingsRate' };
+                readonly totalGeneralInterest: { readonly column: 'totalGeneralInterest' };
+                readonly totalSpecialInterest: { readonly column: 'totalSpecialInterest' };
+                readonly totalAccountsCredited: { readonly column: 'totalAccountsCredited' };
+                readonly postedById: { readonly column: 'postedById' };
+                readonly notes: { readonly column: 'notes' };
+                readonly createdAt: { readonly column: 'createdAt' };
               };
             };
           };
@@ -7577,6 +7959,17 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['openedById'];
                 };
               };
+              readonly postedSavingsInterest: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'SavingsInterestPosting';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['postedById'];
+                };
+              };
               readonly processedDpsTransactions: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -7750,6 +8143,7 @@ type ContractBase = Omit<
             readonly members: readonly [
               { readonly name: 'DEPOSIT'; readonly value: 'DEPOSIT' },
               { readonly name: 'WITHDRAWAL'; readonly value: 'WITHDRAWAL' },
+              { readonly name: 'INTEREST'; readonly value: 'INTEREST' },
             ];
           };
           readonly TransactionType: {

@@ -867,7 +867,9 @@ export const findDueInstallments = async (
   let startInstant: Temporal.Instant;
   let endInstant: Temporal.Instant;
 
+  let isRange = false;
   if (dateOrRange && typeof dateOrRange === "object" && "startDate" in dateOrRange && "endDate" in dateOrRange) {
+    isRange = true;
     const sDate = dateOrRange.startDate instanceof Date && !isNaN(dateOrRange.startDate.getTime()) ? dateOrRange.startDate : new Date();
     const eDate = dateOrRange.endDate instanceof Date && !isNaN(dateOrRange.endDate.getTime()) ? dateOrRange.endDate : new Date();
     const startStr = sDate.toISOString().slice(0, 10);
@@ -961,7 +963,7 @@ export const findDueInstallments = async (
 
   const validLoanInstallments = installments.filter((installment) => {
     if (installment.loan?.status !== "ACTIVE") return false;
-    if (installment.status !== "PENDING" && installment.status !== "PARTIAL") {
+    if (!isRange && installment.status !== "PENDING" && installment.status !== "PARTIAL") {
       return false;
     }
 
@@ -1058,7 +1060,7 @@ export const findDueInstallments = async (
   const processedDpsMemberIds = new Set<number>();
 
   for (const dpsInst of (dpsDueInstallments as any[])) {
-    if (dpsInst.status !== "PENDING" && dpsInst.status !== "PARTIAL") continue;
+    if (!isRange && dpsInst.status !== "PENDING" && dpsInst.status !== "PARTIAL") continue;
     if (dpsInst.dpsAccount?.status !== "ACTIVE") continue;
 
     const m = dpsInst.dpsAccount?.member;

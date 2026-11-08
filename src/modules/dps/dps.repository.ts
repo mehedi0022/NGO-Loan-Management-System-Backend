@@ -202,8 +202,15 @@ export const findDpsAccounts = async (query: DpsListQuery) => {
   }
 
   if (query.somitiId) {
+    const somitiMembers = await db.orm.public.Member.select("id")
+      .where({ somitiId: Number(query.somitiId) })
+      .all();
+    const memberIds = somitiMembers.map((m: any) => m.id);
+    if (memberIds.length === 0) {
+      return { accounts: [], meta: paginationMeta(page, limit, 0) };
+    }
     filteredAccounts = filteredAccounts.where((account: any) =>
-      account.member.somitiId.equals(query.somitiId),
+      account.memberId.in(memberIds),
     );
   }
 

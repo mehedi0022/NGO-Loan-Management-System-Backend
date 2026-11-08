@@ -68,6 +68,10 @@
       "model": "SavingsAccount",
       "namespace": "public"
     },
+    "savingsInterestPosting": {
+      "model": "SavingsInterestPosting",
+      "namespace": "public"
+    },
     "savingsTransaction": {
       "model": "SavingsTransaction",
       "namespace": "public"
@@ -352,6 +356,10 @@
               {
                 "name": "WITHDRAWAL",
                 "value": "WITHDRAWAL"
+              },
+              {
+                "name": "INTEREST",
+                "value": "INTEREST"
               }
             ]
           },
@@ -3403,6 +3411,13 @@
                   "kind": "scalar"
                 }
               },
+              "generalSavingsInterestRate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -3466,6 +3481,20 @@
                   "kind": "scalar"
                 }
               },
+              "savingsCompoundingInterval": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "specialSavingsInterestRate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
               "updatedAt": {
                 "nullable": false,
                 "type": {
@@ -3511,6 +3540,9 @@
                 "establishedYear": {
                   "column": "establishedYear"
                 },
+                "generalSavingsInterestRate": {
+                  "column": "generalSavingsInterestRate"
+                },
                 "id": {
                   "column": "id"
                 },
@@ -3537,6 +3569,12 @@
                 },
                 "registrationNo": {
                   "column": "registrationNo"
+                },
+                "savingsCompoundingInterval": {
+                  "column": "savingsCompoundingInterval"
+                },
+                "specialSavingsInterestRate": {
+                  "column": "specialSavingsInterestRate"
                 },
                 "updatedAt": {
                   "column": "updatedAt"
@@ -3706,6 +3744,164 @@
               },
               "namespaceId": "public",
               "table": "savingsAccount"
+            }
+          },
+          "SavingsInterestPosting": {
+            "fields": {
+              "compoundingInterval": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "generalSavingsRate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "notes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "periodEndDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "periodStartDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "postedById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "postingCode": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "specialSavingsRate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "totalAccountsCredited": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "totalGeneralInterest": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "totalSpecialInterest": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "postedBy": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "postedById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "compoundingInterval": {
+                  "column": "compoundingInterval"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "generalSavingsRate": {
+                  "column": "generalSavingsRate"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "notes": {
+                  "column": "notes"
+                },
+                "periodEndDate": {
+                  "column": "periodEndDate"
+                },
+                "periodStartDate": {
+                  "column": "periodStartDate"
+                },
+                "postedById": {
+                  "column": "postedById"
+                },
+                "postingCode": {
+                  "column": "postingCode"
+                },
+                "specialSavingsRate": {
+                  "column": "specialSavingsRate"
+                },
+                "totalAccountsCredited": {
+                  "column": "totalAccountsCredited"
+                },
+                "totalGeneralInterest": {
+                  "column": "totalGeneralInterest"
+                },
+                "totalSpecialInterest": {
+                  "column": "totalSpecialInterest"
+                }
+              },
+              "namespaceId": "public",
+              "table": "savingsInterestPosting"
             }
           },
           "SavingsTransaction": {
@@ -4589,6 +4785,21 @@
                 },
                 "to": {
                   "model": "DpsAccount",
+                  "namespace": "public"
+                }
+              },
+              "postedSavingsInterest": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "postedById"
+                  ]
+                },
+                "to": {
+                  "model": "SavingsInterestPosting",
                   "namespace": "public"
                 }
               },
@@ -7393,6 +7604,15 @@
                   "nativeType": "text",
                   "nullable": true
                 },
+                "generalSavingsInterestRate": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "6"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
                 "id": {
                   "codecId": "pg/int4@1",
                   "default": {
@@ -7469,6 +7689,24 @@
                   },
                   "nativeType": "text",
                   "nullable": true
+                },
+                "savingsCompoundingInterval": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "QUARTERLY"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "specialSavingsInterestRate": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "7"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
                 },
                 "updatedAt": {
                   "codecId": "pg/timestamptz-temporal@1",
@@ -7639,6 +7877,171 @@
                 }
               ]
             },
+            "savingsInterestPosting": {
+              "columns": {
+                "compoundingInterval": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "QUARTERLY"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "generalSavingsRate": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "6"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "notes": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "periodEndDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "periodStartDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "postedById": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "postingCode": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "specialSavingsRate": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "7"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "totalAccountsCredited": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "totalGeneralInterest": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "totalSpecialInterest": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "postedById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "savingsInterestPosting"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "periodEndDate"
+                  ],
+                  "name": "savingsInterestPosting_periodEndDate_idx_a01056c2",
+                  "prefix": "savingsInterestPosting_periodEndDate_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "periodStartDate"
+                  ],
+                  "name": "savingsInterestPosting_periodStartDate_idx_e9f0fc7b",
+                  "prefix": "savingsInterestPosting_periodStartDate_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "postedById"
+                  ],
+                  "name": "savingsInterestPosting_postedById_idx_fa804b55",
+                  "prefix": "savingsInterestPosting_postedById_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "postingCode"
+                  ],
+                  "name": "savingsInterestPosting_postingCode_idx_75e1fa94",
+                  "prefix": "savingsInterestPosting_postingCode_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "postingCode"
+                  ]
+                }
+              ]
+            },
             "savingsTransaction": {
               "checks": [
                 {
@@ -7652,8 +8055,8 @@
                   "prefix": "savingsTransaction_savingsType_check"
                 },
                 {
-                  "expression": "\"type\" IN ('DEPOSIT', 'WITHDRAWAL')",
-                  "name": "savingsTransaction_type_check_e2220677",
+                  "expression": "\"type\" IN ('DEPOSIT', 'WITHDRAWAL', 'INTEREST')",
+                  "name": "savingsTransaction_type_check_849d4e3d",
                   "prefix": "savingsTransaction_type_check"
                 }
               ],
@@ -8520,7 +8923,8 @@
               "kind": "valueSet",
               "values": [
                 "DEPOSIT",
-                "WITHDRAWAL"
+                "WITHDRAWAL",
+                "INTEREST"
               ]
             },
             "SavingsType": {
@@ -8571,7 +8975,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a355720713e26aa0cd849ef1fbcf026e50eb88d6d2fb0ba8405a6a667bfe0a40"
+    "storageHash": "1b0a91a4bd5b872f828da1db2bbb1816f3ed89ee99ba16c3f2e749111868caaa"
   },
   "execution": {
     "executionHash": "52c0a5815845a4ced1e64c2374193a892cb49b8823741e7ebd0fa96dc5ef9ada",

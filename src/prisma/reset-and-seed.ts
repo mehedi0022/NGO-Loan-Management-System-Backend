@@ -616,6 +616,19 @@ async function runResetAndSeed() {
       const somiti = somities[def.somitiIdx];
       const memberCode = `MEM-${String(idx + 1).padStart(6, "0")}`;
 
+      // Calculate realistic membership join date matching their loans/DPS history
+      let memberJoinPlain = todayPlain.subtract({ months: 6 });
+      if (def.loan?.weeksAgo) {
+        memberJoinPlain = todayPlain.subtract({ weeks: def.loan.weeksAgo });
+      } else if (def.loan?.monthsAgo) {
+        memberJoinPlain = todayPlain.subtract({ months: def.loan.monthsAgo });
+      } else if (def.dps?.monthsAgo) {
+        memberJoinPlain = todayPlain.subtract({ months: def.dps.monthsAgo });
+      } else if (def.dps?.weeksAgo) {
+        memberJoinPlain = todayPlain.subtract({ weeks: def.dps.weeksAgo });
+      }
+      const memberJoinInstant = Temporal.Instant.from(`${memberJoinPlain.toString()}T00:00:00Z`);
+
       // A. Create Member
       const createdMember = await db.orm.public.Member.select(
         "id",
@@ -632,6 +645,8 @@ async function runResetAndSeed() {
         nidNumber: def.nidNumber,
         status: "ACTIVE",
         admissionFee: "100.00",
+        joinDate: memberJoinInstant,
+        createdAt: memberJoinInstant,
       });
 
       // B. Create Member Address
@@ -652,6 +667,8 @@ async function runResetAndSeed() {
         generalSavingsBalance: def.genSavings.toFixed(2),
         specialSavingsBalance: def.spcSavings.toFixed(2),
         status: "ACTIVE",
+        openedAt: memberJoinInstant,
+        createdAt: memberJoinInstant,
       });
 
       // D. Create Loan (if any)
