@@ -25,6 +25,22 @@ export const createLoan = async (data: CreateLoanInput) => {
     throw new NotFoundError("Member not found");
   }
 
+  // 1.1 Strictly enforce single active loan rule:
+  // Member cannot apply/create a new loan if they already have an ACTIVE, APPROVED, or PENDING loan
+  const existingLoan = await loanRepository.findActiveOrPendingLoanByMemberId(
+    data.memberId,
+  );
+  if (existingLoan) {
+    if (existingLoan.status === "ACTIVE") {
+      throw new ConflictError(
+        `Member ${member.fullName} (${member.memberId || `#${member.id}`}) already has an active loan (${existingLoan.loanId || `#${existingLoan.id}`}). A new loan cannot be created until the active loan is closed/completed.`,
+      );
+    }
+    throw new ConflictError(
+      `Member ${member.fullName} (${member.memberId || `#${member.id}`}) already has a ${existingLoan.status.toLowerCase()} loan (${existingLoan.loanId || `#${existingLoan.id}`}). Please process or cancel it before creating another loan.`,
+    );
+  }
+
   // 2. Calculate loan
   const calculation = calculateLoan({
     principalAmount: data.principalAmount,
@@ -243,6 +259,17 @@ export const disburseLoan = async (id: number, data: DisburseLoanInput) => {
   if (!loan) throw new NotFoundError("Loan not found");
   if (loan.status !== "APPROVED")
     throw new ConflictError("Only approved loans can be disbursed");
+
+  // Strictly enforce single active loan rule at disbursement time:
+  const existingActiveLoan = await loanRepository.findActiveLoanByMemberId(
+    loan.memberId,
+    loan.id,
+  );
+  if (existingActiveLoan) {
+    throw new ConflictError(
+      `Member already has an active loan (${existingActiveLoan.loanId || `#${existingActiveLoan.id}`}). Cannot disburse another loan until the active loan is closed/completed.`,
+    );
+  }
 
   const disbursedLoan = await loanRepository.disburseApprovedLoan(id, data);
   if (!disbursedLoan) {

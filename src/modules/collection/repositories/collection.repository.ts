@@ -860,13 +860,26 @@ export const createBatchCollections = async (
  * GET /collections/installments
  */
 export const findDueInstallments = async (
-  dueDate: Date,
+  dateOrRange: Date | { startDate: Date; endDate: Date },
   somitiId?: number,
   fieldOfficerId?: number,
 ) => {
-  const dateStr = dueDate.toISOString().slice(0, 10);
-  const startOfDay = Temporal.Instant.from(`${dateStr}T00:00:00Z`);
-  const endOfDay = Temporal.Instant.from(`${dateStr}T23:59:59.999Z`);
+  let startInstant: Temporal.Instant;
+  let endInstant: Temporal.Instant;
+
+  if (dateOrRange && typeof dateOrRange === "object" && "startDate" in dateOrRange && "endDate" in dateOrRange) {
+    const sDate = dateOrRange.startDate instanceof Date && !isNaN(dateOrRange.startDate.getTime()) ? dateOrRange.startDate : new Date();
+    const eDate = dateOrRange.endDate instanceof Date && !isNaN(dateOrRange.endDate.getTime()) ? dateOrRange.endDate : new Date();
+    const startStr = sDate.toISOString().slice(0, 10);
+    const endStr = eDate.toISOString().slice(0, 10);
+    startInstant = Temporal.Instant.from(`${startStr}T00:00:00Z`);
+    endInstant = Temporal.Instant.from(`${endStr}T23:59:59.999Z`);
+  } else {
+    const d = dateOrRange instanceof Date && !isNaN((dateOrRange as Date).getTime()) ? (dateOrRange as Date) : new Date();
+    const dateStr = d.toISOString().slice(0, 10);
+    startInstant = Temporal.Instant.from(`${dateStr}T00:00:00Z`);
+    endInstant = Temporal.Instant.from(`${dateStr}T23:59:59.999Z`);
+  }
 
   const installments = await db.orm.public.LoanInstallment.select(
     "id",
@@ -879,7 +892,16 @@ export const findDueInstallments = async (
   )
     .include("loan", (loan) =>
       loan
-        .select("id", "loanId", "status")
+        .select(
+          "id",
+          "loanId",
+          "status",
+          "frequency",
+          "disbursementDate",
+          "principalAmount",
+          "totalPayable",
+          "installmentAmount",
+        )
         .include("member", (member) =>
           member
             .select(
@@ -891,6 +913,7 @@ export const findDueInstallments = async (
               "mobileNumber",
               "photoUrl",
               "somitiId",
+              "joinDate",
             )
             .include("savingsAccount", (savings) =>
               savings.select(
@@ -911,6 +934,7 @@ export const findDueInstallments = async (
                   "totalPaidAmount",
                   "paidInstallments",
                   "durationMonths",
+                  "startDate",
                 )
                 .where({ status: "ACTIVE" }),
             )
@@ -930,8 +954,8 @@ export const findDueInstallments = async (
             ),
         ),
     )
-    .where((inst: any) => inst.dueDate.gte(startOfDay))
-    .where((inst: any) => inst.dueDate.lte(endOfDay))
+    .where((inst: any) => inst.dueDate.gte(startInstant))
+    .where((inst: any) => inst.dueDate.lte(endInstant))
     .orderBy((installment) => installment.installmentNo.asc())
     .all();
 
@@ -985,6 +1009,7 @@ export const findDueInstallments = async (
               "mobileNumber",
               "photoUrl",
               "somitiId",
+              "joinDate",
             )
             .include("savingsAccount", (savings: any) =>
               savings.select(
@@ -1005,6 +1030,7 @@ export const findDueInstallments = async (
                   "totalPaidAmount",
                   "paidInstallments",
                   "durationMonths",
+                  "startDate",
                 )
                 .where({ status: "ACTIVE" }),
             )
@@ -1024,8 +1050,8 @@ export const findDueInstallments = async (
             ),
         ),
     )
-    .where((inst: any) => inst.dueDate.gte(startOfDay))
-    .where((inst: any) => inst.dueDate.lte(endOfDay))
+    .where((inst: any) => inst.dueDate.gte(startInstant))
+    .where((inst: any) => inst.dueDate.lte(endInstant))
     .all();
 
   const dpsOnlyRows: any[] = [];
@@ -1050,7 +1076,7 @@ export const findDueInstallments = async (
       id: `dps-mem-${m.id}`,
       loanId: null,
       installmentNo: dpsInst.installmentNo,
-      dueDate: startOfDay,
+      dueDate: dpsInst.dueDate || startInstant,
       amount: dpsInst.amount,
       paidAmount: dpsInst.paidAmount,
       status: dpsInst.status,

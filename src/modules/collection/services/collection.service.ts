@@ -126,13 +126,13 @@ type Actor = {
  * Get installments due on a selected date.
  */
 export const getDueInstallments = (
-  dueDate: Date,
+  dateOrRange: Date | { startDate: Date; endDate: Date },
   somitiId?: number,
   actor?: Actor,
 ) => {
   const fieldOfficerId =
     actor?.role === "FIELD_OFFICER" ? actor.userId : undefined;
-  return repository.findDueInstallments(dueDate, somitiId, fieldOfficerId);
+  return repository.findDueInstallments(dateOrRange, somitiId, fieldOfficerId);
 };
 
 /**

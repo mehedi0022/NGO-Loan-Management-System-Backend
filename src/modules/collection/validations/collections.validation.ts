@@ -251,10 +251,14 @@ export const batchCollectionSchema = z.object({
 export const dueInstallmentsSchema = z.object({
   query: z
     .object({
-      dueDate: z.coerce.date(),
+      dueDate: z.coerce.date().optional(),
+      startDate: z.coerce.date().optional(),
+      endDate: z.coerce.date().optional(),
       somitiId: z.coerce.number().int().positive().optional(),
     })
-    .strict(),
+    .refine((data) => data.dueDate || (data.startDate && data.endDate), {
+      message: "Either dueDate or startDate and endDate must be provided",
+    }),
 });
 
 /**

@@ -180,7 +180,20 @@ export const findDpsAccounts = async (query: DpsListQuery) => {
           somiti.select("id", "somitiId", "name", "code", "meetingDay"),
         ),
     )
-    .include("openedBy", (user: any) => user.select("id", "userName", "fullName"));
+    .include("openedBy", (user: any) => user.select("id", "userName", "fullName"))
+    .include("installments", (installments: any) =>
+      installments
+        .select(
+          "id",
+          "installmentNo",
+          "dueDate",
+          "amount",
+          "paidAmount",
+          "status",
+          "paidAt",
+        )
+        .orderBy((inst: any) => inst.installmentNo.asc()),
+    );
 
   let filteredAccounts: any = selectedAccounts;
 

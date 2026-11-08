@@ -63,11 +63,27 @@ export const createBatchCollections = asyncHandler(
  */
 export const getDueInstallments = asyncHandler(
   async (req: Request, res: Response) => {
-    const dueDate = new Date(String(req.query.dueDate));
-    const somitiId = req.query.somitiId ? Number(req.query.somitiId) : undefined;
+    const dueDate = req.query.dueDate
+      ? new Date(String(req.query.dueDate))
+      : undefined;
+    const startDate = req.query.startDate
+      ? new Date(String(req.query.startDate))
+      : undefined;
+    const endDate = req.query.endDate
+      ? new Date(String(req.query.endDate))
+      : undefined;
+    const somitiId = req.query.somitiId
+      ? Number(req.query.somitiId)
+      : undefined;
     const auth = (req as AuthenticatedRequest).auth;
 
-    const result = await service.getDueInstallments(dueDate, somitiId, auth);
+    const dateOrRange =
+      startDate && endDate ? { startDate, endDate } : (dueDate || new Date());
+    const result = await service.getDueInstallments(
+      dateOrRange,
+      somitiId,
+      auth,
+    );
 
     return res
       .status(200)

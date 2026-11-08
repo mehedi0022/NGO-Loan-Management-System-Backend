@@ -25,7 +25,8 @@
     "db:migrate": "npx prisma db migrate",
     "seed:admin": "tsx src/prisma/seed-admin.ts",
     "seed:categories": "tsx src/prisma/seed-income-expense-categories.ts",
-    "seed:accounts": "tsx src/prisma/seed-financial-accounts.ts"
+    "seed:accounts": "tsx src/prisma/seed-financial-accounts.ts",
+    "db:reset-and-seed": "tsx src/prisma/reset-and-seed.ts"
   },
   "keywords": [],
   "author": "",

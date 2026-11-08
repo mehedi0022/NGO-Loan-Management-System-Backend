@@ -67,6 +67,60 @@ export const updateLoanId = async (id: number, loanId: string) => {
 };
 
 /**
+ * Find active loan for a member (excluding an optional loan id)
+ */
+export const findActiveLoanByMemberId = async (
+  memberId: number,
+  excludeLoanId?: number,
+) => {
+  const loans = await db.orm.public.Loan.select(
+    "id",
+    "loanId",
+    "memberId",
+    "status",
+    "principalAmount",
+    "totalPayable",
+  )
+    .where({ memberId, status: "ACTIVE" })
+    .all();
+
+  if (excludeLoanId) {
+    return loans.find((l: any) => l.id !== excludeLoanId) || null;
+  }
+  return loans[0] || null;
+};
+
+/**
+ * Find active or pending/approved loan for a member
+ */
+export const findActiveOrPendingLoanByMemberId = async (
+  memberId: number,
+  excludeLoanId?: number,
+) => {
+  const loans = await db.orm.public.Loan.select(
+    "id",
+    "loanId",
+    "memberId",
+    "status",
+    "principalAmount",
+    "totalPayable",
+  )
+    .where({ memberId })
+    .all();
+
+  const activeOrPending = loans.filter((l: any) => {
+    if (excludeLoanId && l.id === excludeLoanId) return false;
+    return (
+      l.status === "ACTIVE" ||
+      l.status === "PENDING" ||
+      l.status === "APPROVED"
+    );
+  });
+
+  return activeOrPending[0] || null;
+};
+
+/**
  * Find all loans with their table-level member details.
  */
 export const findAllLoans = async ({
