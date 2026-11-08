@@ -3,7 +3,8 @@ import { db } from "../../../prisma/db.js";
 import { ValidationError } from "../../../errors/AppError.js";
 import { pageOffset, paginationMeta } from "../../../utils/pagination.js";
 import { recordTransaction } from "../../accounts/repositories/accounts.repository.js";
-import { assertCanReverseTransaction } from "../../day-closing/services/day-closing.service.js";
+import { assertBusinessDateNotClosed, assertCanReverseTransaction } from "../../day-closing/services/day-closing.service.js";
+import { getActiveBusinessDay } from "../../day-closing/repositories/day-closing.repository.js";
 import type {
   CategoryQuery,
   CreateCategoryDTO,
@@ -367,8 +368,16 @@ export const createIncomeExpense = async (
   data: CreateIncomeExpenseDTO,
   createdById: number,
 ) => {
+  const activeDay = await getActiveBusinessDay();
+  const dateStr = data.date
+    ? (typeof data.date === "string"
+        ? data.date.slice(0, 10)
+        : new Date(data.date).toISOString().slice(0, 10))
+    : activeDay.businessDate;
+  await assertBusinessDateNotClosed(dateStr);
+
   return await db.transaction(async (tx) => {
-    const targetDate = data.date ? new Date(data.date) : new Date();
+    const targetDate = data.date ? new Date(data.date) : new Date(activeDay.businessDate);
     const requiredAmount = Number(data.amount) || 0;
 
     // Find the appropriate financial account (prefer explicit accountId, fallback to paymentMethod)

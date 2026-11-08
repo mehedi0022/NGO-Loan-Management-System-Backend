@@ -2,6 +2,8 @@ import { db } from "../../../prisma/db.js";
 import { Temporal } from "temporal-polyfill";
 import { recordTransaction } from "../../accounts/repositories/accounts.repository.js";
 import { ValidationError } from "../../../errors/AppError.js";
+import { getActiveBusinessDay } from "../../day-closing/repositories/day-closing.repository.js";
+import { assertBusinessDateNotClosed } from "../../day-closing/services/day-closing.service.js";
 
 import type {
   CreateLoanInput,
@@ -434,8 +436,16 @@ const plainDateToInstant = (date: Temporal.PlainDate) =>
 export const disburseApprovedLoan = async (
   id: number,
   data: DisburseLoanInput,
-) =>
-  db.transaction(async (tx) => {
+) => {
+  const activeDay = await getActiveBusinessDay();
+  const effectiveDateStr = data.disbursementDate
+    ? (data.disbursementDate instanceof Date
+        ? data.disbursementDate.toISOString().slice(0, 10)
+        : String(data.disbursementDate).slice(0, 10))
+    : activeDay.businessDate;
+  await assertBusinessDateNotClosed(effectiveDateStr);
+
+  return db.transaction(async (tx) => {
     const loan = await tx.orm.public.Loan.select(
       "id",
       "loanId",
@@ -556,3 +566,4 @@ export const disburseApprovedLoan = async (
 
     return updated;
   });
+};

@@ -9,7 +9,7 @@ import { getActiveBusinessDay, isDateClosed } from "../modules/day-closing/repos
  */
 const toCleanDateStr = (rawVal: unknown): string => {
   if (!rawVal) {
-    return Temporal.Now.zonedDateTimeISO("Asia/Dhaka").toPlainDate().toString();
+    return "";
   }
   if (rawVal instanceof Date) {
     return Temporal.Instant.from(rawVal.toISOString())
@@ -20,16 +20,24 @@ const toCleanDateStr = (rawVal: unknown): string => {
   if (typeof rawVal === "string") {
     const trimmed = rawVal.trim();
     if (trimmed.includes("T")) {
-      return trimmed.split("T")[0]!;
+      try {
+        return Temporal.Instant.from(trimmed)
+          .toZonedDateTimeISO("Asia/Dhaka")
+          .toPlainDate()
+          .toString();
+      } catch {
+        return trimmed.split("T")[0]!;
+      }
     }
     return trimmed;
   }
-  return Temporal.Now.zonedDateTimeISO("Asia/Dhaka").toPlainDate().toString();
+  return "";
 };
 
 /**
  * Middleware to guard routes from creating or altering transactions
- * on dates that have already been CLOSED by the administrator.
+ * on dates that have already been CLOSED or are in the future relative
+ * to the active business day.
  */
 export const guardBusinessDayNotClosed = (dateExtractor?: (req: Request) => unknown) => {
   return async (req: Request, _res: Response, next: NextFunction) => {
@@ -48,26 +56,21 @@ export const guardBusinessDayNotClosed = (dateExtractor?: (req: Request) => unkn
           req.body?.transferDate;
       }
 
-      const cleanDateStr = toCleanDateStr(rawDate);
+      const activeDay = await getActiveBusinessDay();
+      const activeBusinessDate = activeDay.businessDate;
 
-      if (cleanDateStr && cleanDateStr.length === 10) {
-        const closed = await isDateClosed(cleanDateStr);
-        if (closed) {
-          throw new ValidationError(
-            `Business day ${cleanDateStr} is in the past and has already been CLOSED. No new collections, deposits, withdrawals, or disbursements are allowed on closed dates.`,
-          );
-        }
+      const cleanDateStr = toCleanDateStr(rawDate) || activeBusinessDate;
 
-        try {
-          const activeDay = await getActiveBusinessDay();
-          if (cleanDateStr > activeDay.businessDate) {
-            throw new ValidationError(
-              `Transactions cannot be posted for future date ${cleanDateStr}. Current active business day is ${activeDay.businessDate}.`,
-            );
-          }
-        } catch {
-          // ignore
-        }
+      if (cleanDateStr < activeBusinessDate) {
+        throw new ValidationError(
+          `Business day ${cleanDateStr} is in the past and has already been CLOSED. No new collections, deposits, withdrawals, or disbursements are allowed on closed dates.`,
+        );
+      }
+
+      if (cleanDateStr > activeBusinessDate) {
+        throw new ValidationError(
+          `Transactions cannot be posted for future date ${cleanDateStr}. Current active business day is ${activeBusinessDate}.`,
+        );
       }
 
       next();

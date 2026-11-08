@@ -2,7 +2,8 @@ import { Temporal } from "temporal-polyfill";
 import { db } from "../../prisma/db.js";
 import { pageOffset, paginationMeta } from "../../utils/pagination.js";
 import { recordTransaction } from "../accounts/repositories/accounts.repository.js";
-import { assertCanReverseTransaction } from "../day-closing/services/day-closing.service.js";
+import { assertBusinessDateNotClosed, assertCanReverseTransaction } from "../day-closing/services/day-closing.service.js";
+import { getActiveBusinessDay } from "../day-closing/repositories/day-closing.repository.js";
 import type {
   CreateDpsAccountInput,
   DepositDpsInput,
@@ -341,8 +342,16 @@ export const depositDpsInstallment = async (
   dpsAccountId: number,
   input: DepositDpsInput,
   processedById: number,
-) =>
-  db.transaction(async (tx: any) => {
+) => {
+  const activeDay = await getActiveBusinessDay();
+  const effectiveDateStr = input.transactionDate
+    ? (input.transactionDate instanceof Date
+        ? input.transactionDate.toISOString().slice(0, 10)
+        : String(input.transactionDate).slice(0, 10))
+    : activeDay.businessDate;
+  await assertBusinessDateNotClosed(effectiveDateStr);
+
+  return db.transaction(async (tx: any) => {
     const account = await tx.orm.public.DpsAccount.select(
       "id",
       "status",
@@ -476,13 +485,22 @@ export const depositDpsInstallment = async (
       isMatured,
     };
   });
+};
 
 export const closeDpsAccount = async (
   dpsAccountId: number,
   input: CloseDpsInput,
   processedById: number,
-) =>
-  db.transaction(async (tx: any) => {
+) => {
+  const activeDay = await getActiveBusinessDay();
+  const effectiveDateStr = input.transactionDate
+    ? (input.transactionDate instanceof Date
+        ? input.transactionDate.toISOString().slice(0, 10)
+        : String(input.transactionDate).slice(0, 10))
+    : activeDay.businessDate;
+  await assertBusinessDateNotClosed(effectiveDateStr);
+
+  return db.transaction(async (tx: any) => {
     const account = await tx.orm.public.DpsAccount.select(
       "id",
       "status",
@@ -574,6 +592,7 @@ export const closeDpsAccount = async (
       closeType,
     };
   });
+};
 
 export const reverseDpsTransaction = async (
   transactionId: number,

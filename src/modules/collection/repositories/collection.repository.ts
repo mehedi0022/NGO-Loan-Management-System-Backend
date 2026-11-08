@@ -3,6 +3,7 @@ import { Temporal } from "temporal-polyfill";
 import { pageOffset, paginationMeta } from "../../../utils/pagination.js";
 import { recordTransaction } from "../../accounts/repositories/accounts.repository.js";
 import { assertBusinessDateNotClosed, assertCanReverseTransaction } from "../../day-closing/services/day-closing.service.js";
+import { getActiveBusinessDay } from "../../day-closing/repositories/day-closing.repository.js";
 
 import type {
   BatchCollectionInput,
@@ -73,7 +74,6 @@ const applyLoanPayment = async (
   const {
     memberId,
     loanId,
-    installmentId,
     loanCollectionAmount,
     collectionDate,
     paymentMethod,
@@ -81,7 +81,7 @@ const applyLoanPayment = async (
     notes,
   } = input;
 
-  if (loanCollectionAmount <= 0 || !loanId || !installmentId) {
+  if (loanCollectionAmount <= 0 || !loanId) {
     return { kind: "SUCCESS" };
   }
 
@@ -105,107 +105,132 @@ const applyLoanPayment = async (
     return { kind: "INACTIVE_LOAN" };
   }
 
-  const installment = await tx.orm.public.LoanInstallment.select(
+  // Fetch all installments for this loan ordered by installmentNo ASC
+  const allInstallments = await tx.orm.public.LoanInstallment.select(
     "id",
     "loanId",
+    "installmentNo",
     "dueDate",
     "amount",
     "paidAmount",
     "status",
-  ).first({
-    id: installmentId,
-    loanId,
-  });
+  )
+    .where({
+      loanId,
+    })
+    .orderBy((inst: any) => inst.installmentNo.asc())
+    .all();
 
-  if (!installment) {
-    return { kind: "NO_INSTALLMENT" };
-  }
+  const pendingInstallments = allInstallments.filter(
+    (inst: any) => inst.status !== "PAID",
+  );
 
-  const installmentAmount = cents(installment.amount);
-  const alreadyPaid = cents(installment.paidAmount);
-  const paymentAmount = cents(loanCollectionAmount);
-
-  const remaining = installmentAmount - alreadyPaid;
-
-  if (installment.status === "PAID" || remaining <= 0) {
+  if (pendingInstallments.length === 0) {
     return { kind: "INSTALLMENT_PAID" };
   }
 
-  if (paymentAmount > remaining) {
+  const paymentAmount = cents(loanCollectionAmount);
+  const paymentDate = toInstant(collectionDate);
+
+  // Calculate total unpaid balance across all remaining installments of the loan
+  const totalRemainingCents = pendingInstallments.reduce((sum, inst: any) => {
+    const instAmt = cents(inst.amount);
+    const instPaid = cents(inst.paidAmount);
+    return sum + Math.max(0, instAmt - instPaid);
+  }, 0);
+
+  if (paymentAmount > totalRemainingCents) {
     return { kind: "OVERPAY" };
   }
 
-  const paymentDate = toInstant(collectionDate);
+  // Advance payment check: if allowAdvance is false, ensure payment doesn't pay beyond due installments
+  if (!input.allowAdvance) {
+    const dueToDateRemainingCents = pendingInstallments
+      .filter((inst: any) => Temporal.Instant.compare(inst.dueDate, paymentDate) <= 0)
+      .reduce((sum, inst: any) => {
+        const instAmt = cents(inst.amount);
+        const instPaid = cents(inst.paidAmount);
+        return sum + Math.max(0, instAmt - instPaid);
+      }, 0);
 
-  if (
-    Temporal.Instant.compare(installment.dueDate, paymentDate) > 0 &&
-    !input.allowAdvance
-  ) {
-    return { kind: "UPCOMING" };
+    if (paymentAmount > dueToDateRemainingCents) {
+      return { kind: "UPCOMING" };
+    }
   }
 
-  const newPaidAmount = alreadyPaid + paymentAmount;
+  // FIFO Waterfall Distribution across pending installments
+  let remainingToDistribute = paymentAmount;
 
-  const fullyPaid = newPaidAmount === installmentAmount;
+  for (const inst of pendingInstallments) {
+    if (remainingToDistribute <= 0) break;
 
-  /**
-   * Optimistic concurrency protection.
-   *
-   * Update only if paidAmount is still the same value
-   * that we originally read.
-   */
-  const updated = await tx.orm.public.LoanInstallment.where({
-    id: installmentId,
-    loanId,
-    paidAmount: installment.paidAmount,
-  }).update({
-    paidAmount: money(newPaidAmount),
+    const instAmountCents = cents(inst.amount);
+    const currentPaidCents = cents(inst.paidAmount);
+    const neededCents = Math.max(0, instAmountCents - currentPaidCents);
 
-    status: fullyPaid ? "PAID" : "PARTIAL",
+    if (neededCents <= 0) continue;
 
-    paidAt: fullyPaid ? paymentDate : null,
-  });
+    const allocateCents = Math.min(remainingToDistribute, neededCents);
+    const newPaidCents = currentPaidCents + allocateCents;
+    const fullyPaid = newPaidCents === instAmountCents;
 
-  if (!updated) {
-    return { kind: "CONCURRENT" };
+    /**
+     * Optimistic concurrency protection.
+     * Update only if paidAmount is still the same value that we originally read.
+     */
+    const updated = await tx.orm.public.LoanInstallment.where({
+      id: inst.id,
+      loanId,
+      paidAmount: inst.paidAmount,
+    }).update({
+      paidAmount: money(newPaidCents),
+      status: fullyPaid ? "PAID" : "PARTIAL",
+      paidAt: fullyPaid ? paymentDate : null,
+    });
+
+    if (!updated) {
+      return { kind: "CONCURRENT" };
+    }
+
+    const payment = await tx.orm.public.LoanPayment.create({
+      loanId,
+      installmentId: inst.id,
+      collectionId: collectionDbId,
+      amount: money(allocateCents),
+      paymentDate,
+      paymentMethod,
+      reference: reference || null,
+      notes: notes || null,
+    });
+
+    await tx.orm.public.LoanPayment.where({
+      id: payment.id,
+    }).update({
+      paymentId: `PAY-${String(payment.id).padStart(6, "0")}`,
+    });
+
+    remainingToDistribute -= allocateCents;
   }
-
-  const payment = await tx.orm.public.LoanPayment.create({
-    loanId,
-    installmentId,
-
-    collectionId: collectionDbId,
-
-    amount: money(paymentAmount),
-
-    paymentDate,
-
-    paymentMethod,
-
-    reference: reference || null,
-    notes: notes || null,
-  });
-
-  await tx.orm.public.LoanPayment.where({
-    id: payment.id,
-  }).update({
-    paymentId: `PAY-${String(payment.id).padStart(6, "0")}`,
-  });
 
   /**
    * Automatically complete the loan once every
    * installment is paid.
    */
-  const installments = await tx.orm.public.LoanInstallment.select("status")
+  const remainingUnpaid = await tx.orm.public.LoanInstallment.select("id")
     .where({
       loanId,
+      status: "PENDING",
     })
     .all();
 
-  if (
-    installments.length > 0 &&
-    installments.every((item) => item.status === "PAID")
-  ) {
+  const remainingPartial = await tx.orm.public.LoanInstallment.select("id")
+    .where({
+      loanId,
+      status: "PARTIAL",
+    })
+    .all();
+
+  if (remainingUnpaid.length === 0 && remainingPartial.length === 0) {
     await tx.orm.public.Loan.where({
       id: loanId,
       status: "ACTIVE",
@@ -738,11 +763,12 @@ export const createCollection = async (
   data: CreateCollectionInput,
   authenticatedUserId: number,
 ): Promise<CollectionResult> => {
+  const activeDay = await getActiveBusinessDay();
   const targetDateStr = data.collectionDate
     ? (data.collectionDate instanceof Date
         ? data.collectionDate.toISOString().split("T")[0]!
         : String(data.collectionDate).split("T")[0]!)
-    : Temporal.Now.zonedDateTimeISO("Asia/Dhaka").toPlainDate().toString();
+    : activeDay.businessDate;
   await assertBusinessDateNotClosed(targetDateStr);
 
   try {
@@ -805,11 +831,12 @@ export const createBatchCollections = async (
   data: BatchCollectionInput,
   authenticatedUserId: number,
 ) => {
+  const activeDay = await getActiveBusinessDay();
   const targetDateStr = data.collectionDate
     ? (data.collectionDate instanceof Date
         ? data.collectionDate.toISOString().split("T")[0]!
         : String(data.collectionDate).split("T")[0]!)
-    : Temporal.Now.zonedDateTimeISO("Asia/Dhaka").toPlainDate().toString();
+    : activeDay.businessDate;
   await assertBusinessDateNotClosed(targetDateStr);
 
   try {
@@ -878,6 +905,7 @@ export const findDueInstallments = async (
   dateOrRange: Date | { startDate: Date; endDate: Date },
   somitiId?: number,
   fieldOfficerId?: number,
+  options?: { includeOverdue?: boolean; overdueOnly?: boolean },
 ) => {
   let startInstant: Temporal.Instant;
   let endInstant: Temporal.Instant;
@@ -898,7 +926,7 @@ export const findDueInstallments = async (
     endInstant = Temporal.Instant.from(`${dateStr}T23:59:59.999Z`);
   }
 
-  const installments = await db.orm.public.LoanInstallment.select(
+  let loanQuery = db.orm.public.LoanInstallment.select(
     "id",
     "loanId",
     "installmentNo",
@@ -970,10 +998,20 @@ export const findDueInstallments = async (
                 ),
             ),
         ),
-    )
-    .where((inst: any) => inst.dueDate.gte(startInstant))
-    .where((inst: any) => inst.dueDate.lte(endInstant))
-    .orderBy((installment) => installment.installmentNo.asc())
+    );
+
+  if (options?.overdueOnly) {
+    loanQuery = loanQuery.where((inst: any) => inst.dueDate.lt(startInstant));
+  } else if (options?.includeOverdue) {
+    loanQuery = loanQuery.where((inst: any) => inst.dueDate.lte(endInstant));
+  } else {
+    loanQuery = loanQuery
+      .where((inst: any) => inst.dueDate.gte(startInstant))
+      .where((inst: any) => inst.dueDate.lte(endInstant));
+  }
+
+  const installments = await loanQuery
+    .orderBy((installment: any) => installment.dueDate.asc())
     .all();
 
   const validLoanInstallments = installments.filter((installment) => {
@@ -1003,7 +1041,7 @@ export const findDueInstallments = async (
   );
 
   // Fetch DPS installments strictly due on this date (PENDING or PARTIAL only)
-  const dpsDueInstallments = await db.orm.public.DpsInstallment.select(
+  let dpsQuery = db.orm.public.DpsInstallment.select(
     "id",
     "dpsAccountId",
     "installmentNo",
@@ -1066,9 +1104,20 @@ export const findDueInstallments = async (
                 ),
             ),
         ),
-    )
-    .where((inst: any) => inst.dueDate.gte(startInstant))
-    .where((inst: any) => inst.dueDate.lte(endInstant))
+    );
+
+  if (options?.overdueOnly) {
+    dpsQuery = dpsQuery.where((inst: any) => inst.dueDate.lt(startInstant));
+  } else if (options?.includeOverdue) {
+    dpsQuery = dpsQuery.where((inst: any) => inst.dueDate.lte(endInstant));
+  } else {
+    dpsQuery = dpsQuery
+      .where((inst: any) => inst.dueDate.gte(startInstant))
+      .where((inst: any) => inst.dueDate.lte(endInstant));
+  }
+
+  const dpsDueInstallments = await dpsQuery
+    .orderBy((inst: any) => inst.dueDate.asc())
     .all();
 
   const dpsOnlyRows: any[] = [];

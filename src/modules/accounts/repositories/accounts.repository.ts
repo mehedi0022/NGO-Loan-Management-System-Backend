@@ -2,6 +2,7 @@ import { Temporal } from "temporal-polyfill";
 import { db } from "../../../prisma/db.js";
 import { pageOffset, paginationMeta } from "../../../utils/pagination.js";
 import { getActiveBusinessDay } from "../../day-closing/repositories/day-closing.repository.js";
+import { assertBusinessDateNotClosed } from "../../day-closing/services/day-closing.service.js";
 import type {
   AccountSourceModule,
   AccountTransactionType,
@@ -301,6 +302,12 @@ export const recordTransaction = async (
 // ----------------------------------------------------------------------------------
 
 export const transferFunds = async (input: TransferFundsInput, userId?: number) => {
+  const activeDay = await getActiveBusinessDay();
+  const effectiveDateStr = input.transferDate
+    ? input.transferDate.slice(0, 10)
+    : activeDay.businessDate;
+  await assertBusinessDateNotClosed(effectiveDateStr);
+
   return await db.transaction(async (tx) => {
     const fromAcc = await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance")
       .first({ id: input.fromAccountId });
@@ -350,6 +357,12 @@ export const transferFunds = async (input: TransferFundsInput, userId?: number) 
 };
 
 export const injectCapital = async (input: InjectCapitalInput, userId?: number) => {
+  const activeDay = await getActiveBusinessDay();
+  const effectiveDateStr = input.depositDate
+    ? input.depositDate.slice(0, 10)
+    : activeDay.businessDate;
+  await assertBusinessDateNotClosed(effectiveDateStr);
+
   return await db.transaction(async (tx) => {
     const account = await tx.orm.public.FinancialAccount.select("id", "accountName")
       .first({ id: input.accountId });

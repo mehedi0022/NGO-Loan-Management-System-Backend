@@ -255,6 +255,8 @@ export const dueInstallmentsSchema = z.object({
       startDate: z.coerce.date().optional(),
       endDate: z.coerce.date().optional(),
       somitiId: z.coerce.number().int().positive().optional(),
+      includeOverdue: z.coerce.boolean().optional(),
+      overdueOnly: z.coerce.boolean().optional(),
     })
     .refine((data) => data.dueDate || (data.startDate && data.endDate), {
       message: "Either dueDate or startDate and endDate must be provided",

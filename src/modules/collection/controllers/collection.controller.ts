@@ -75,6 +75,12 @@ export const getDueInstallments = asyncHandler(
     const somitiId = req.query.somitiId
       ? Number(req.query.somitiId)
       : undefined;
+    const includeOverdue =
+      String(req.query.includeOverdue).toLowerCase() === "true" ||
+      req.query.includeOverdue === "1";
+    const overdueOnly =
+      String(req.query.overdueOnly).toLowerCase() === "true" ||
+      req.query.overdueOnly === "1";
     const auth = (req as AuthenticatedRequest).auth;
 
     const dateOrRange =
@@ -83,6 +89,7 @@ export const getDueInstallments = asyncHandler(
       dateOrRange,
       somitiId,
       auth,
+      { includeOverdue, overdueOnly },
     );
 
     return res

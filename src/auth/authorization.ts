@@ -69,6 +69,7 @@ export const permissions = {
   // Day Closing & Business Day
   dayClosingRead: "day-closing:read",
   dayClosingExecute: "day-closing:execute",
+  dayClosingReopen: "day-closing:reopen",
 
   // Migration
   migrationExecute: "migration:execute",

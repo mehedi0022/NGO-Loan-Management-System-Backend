@@ -37,6 +37,18 @@ export const executeDayClosing = asyncHandler(
   },
 );
 
+export const reopenLastBusinessDay = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = (req as any).auth?.userId;
+    const result = await service.reopenLastBusinessDay(userId, req.body.reason);
+    return res.status(200).json({
+      success: true,
+      message: "Business day reopened successfully",
+      data: result,
+    });
+  },
+);
+
 export const listDayClosings = asyncHandler(
   async (req: Request, res: Response) => {
     const result = await service.listDayClosings(

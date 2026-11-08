@@ -1,5 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 import { db } from "../../../prisma/db.js";
+import { ValidationError } from "../../../errors/AppError.js";
 import { pageOffset, paginationMeta } from "../../../utils/pagination.js";
 import type {
   DayClosingPreview,
@@ -392,6 +393,113 @@ export const isDateClosed = async (dateStr: string): Promise<boolean> => {
   }
 
   return false;
+};
+
+/**
+ * 6. Emergency Day Reopen (Super Admin Only):
+ * Reopens the most recently closed business day if no transactions have occurred on the current active day.
+ */
+export const reopenLastBusinessDay = async (
+  userId: number,
+  reason: string,
+): Promise<DayClosingRecord> => {
+  const activeDay = await getActiveBusinessDay();
+
+  // 1. Verify that no transactions have taken place on the active day
+  const dateStr = activeDay.businessDate;
+  const { start, end } = dateStrToInstantRange(dateStr);
+  const nowInstant = Temporal.Now.instant();
+  const effectiveEnd =
+    Temporal.Instant.compare(end, nowInstant) < 0
+      ? nowInstant.add({ hours: 1 })
+      : end;
+
+  // Check AccountTransaction
+  const trxCount = await db.orm.public.AccountTransaction.where((t: any) =>
+    t.transactionDate.gte(start),
+  )
+    .where((t: any) => t.transactionDate.lt(effectiveEnd))
+    .count();
+
+  if (toAmount(trxCount) > 0) {
+    throw new ValidationError(
+      `Cannot reopen previous business day: Active business day (${activeDay.businessDate}) already has ${trxCount} recorded transaction(s). Please reverse or cancel them before reopening.`,
+    );
+  }
+
+  // Check Collection
+  const colCount = await db.orm.public.Collection.where((c: any) =>
+    c.collectionDate.gte(start),
+  )
+    .where((c: any) => c.collectionDate.lt(effectiveEnd))
+    .count();
+
+  if (toAmount(colCount) > 0) {
+    throw new ValidationError(
+      `Cannot reopen previous business day: Active business day (${activeDay.businessDate}) already has collections recorded.`,
+    );
+  }
+
+  // 2. Find the last closed business day
+  const lastClosed = await db.orm.public.DayClosing.select(
+    "id",
+    "businessDate",
+    "status",
+    "openingBalance",
+    "totalCashIn",
+    "totalCashOut",
+    "closingBalance",
+    "loanCollection",
+    "savingsDeposit",
+    "dpsDeposit",
+    "admissionFee",
+    "capitalReceived",
+    "otherIncome",
+    "loanDisbursed",
+    "savingsWithdrawn",
+    "dpsWithdrawn",
+    "officeExpense",
+    "isHoliday",
+    "notes",
+    "openedAt",
+    "closedAt",
+    "closedById",
+  )
+    .where({ status: "CLOSED" })
+    .orderBy((d: any) => d.businessDate.desc())
+    .first();
+
+  if (!lastClosed) {
+    throw new ValidationError("No previously closed business day found to reopen.");
+  }
+
+  // 3. Perform atomic reopen
+  return await db.transaction(async (tx) => {
+    // Look up operator name
+    const user = await tx.orm.public.User.select("fullName", "userName").first({
+      id: userId,
+    });
+    const operatorName = user?.fullName || user?.userName || `User #${userId}`;
+    const nowDhaka = Temporal.Now.zonedDateTimeISO("Asia/Dhaka")
+      .toString()
+      .replace(/\[.*\]/, "");
+    const auditNote = `[REOPENED on ${nowDhaka} by ${operatorName}: ${reason}]`;
+
+    // Delete the empty active day
+    await tx.orm.public.DayClosing.where({ id: activeDay.id })
+      .select("id")
+      .delete();
+
+    // Reopen last closed day
+    const reopened = await tx.orm.public.DayClosing.where({ id: lastClosed.id }).update({
+      status: "OPEN",
+      closedAt: null,
+      closedById: null,
+      notes: lastClosed.notes ? `${lastClosed.notes}\n${auditNote}` : auditNote,
+    });
+
+    return formatDayRecord(reopened);
+  });
 };
 
 // Helper: Format database record to DTO

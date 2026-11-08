@@ -122,6 +122,11 @@ type Actor = {
   role: string;
 };
 
+export interface DueInstallmentOptions {
+  includeOverdue?: boolean;
+  overdueOnly?: boolean;
+}
+
 /**
  * Get installments due on a selected date.
  */
@@ -129,10 +134,16 @@ export const getDueInstallments = (
   dateOrRange: Date | { startDate: Date; endDate: Date },
   somitiId?: number,
   actor?: Actor,
+  options?: DueInstallmentOptions,
 ) => {
   const fieldOfficerId =
     actor?.role === "FIELD_OFFICER" ? actor.userId : undefined;
-  return repository.findDueInstallments(dateOrRange, somitiId, fieldOfficerId);
+  return repository.findDueInstallments(
+    dateOrRange,
+    somitiId,
+    fieldOfficerId,
+    options,
+  );
 };
 
 /**

@@ -8,10 +8,12 @@ import {
   getActiveBusinessDay,
   getDayClosingPreview,
   listDayClosings,
+  reopenLastBusinessDay,
 } from "./controllers/day-closing.controller.js";
 import {
   executeDayClosingSchema,
   listDayClosingsQuerySchema,
+  reopenDayClosingSchema,
 } from "./validations/day-closing.validation.js";
 
 const router = Router();
@@ -35,6 +37,13 @@ router.post(
   validate(executeDayClosingSchema),
   requirePermission(permissions.dayClosingExecute),
   executeDayClosing,
+);
+
+router.post(
+  "/reopen",
+  validate(reopenDayClosingSchema),
+  requirePermission(permissions.dayClosingReopen),
+  reopenLastBusinessDay,
 );
 
 router.get(

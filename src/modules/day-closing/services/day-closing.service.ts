@@ -37,15 +37,33 @@ export const executeDayClosing = async (
   return await repository.executeDayClosing(userId, input);
 };
 
+export const reopenLastBusinessDay = async (
+  userId: number,
+  reason: string,
+) => {
+  if (!userId) {
+    throw new ValidationError("User ID is required to reopen day");
+  }
+  if (!reason || reason.trim().length < 5) {
+    throw new ValidationError("A detailed reason of at least 5 characters is required to reopen a closed day");
+  }
+  return await repository.reopenLastBusinessDay(userId, reason.trim());
+};
+
 export const listDayClosings = async (query: ListDayClosingsQuery) => {
   return await repository.listDayClosings(query);
 };
 
 export const assertBusinessDateNotClosed = async (dateStr: string) => {
-  const closed = await repository.isDateClosed(dateStr);
-  if (closed) {
+  const activeDay = await repository.getActiveBusinessDay();
+  if (dateStr < activeDay.businessDate) {
     throw new ValidationError(
       `Business day ${dateStr} is already CLOSED. No new transactions or modifications are allowed on closed dates.`,
+    );
+  }
+  if (dateStr > activeDay.businessDate) {
+    throw new ValidationError(
+      `Transactions cannot be posted for future date ${dateStr}. Current active business day is ${activeDay.businessDate}.`,
     );
   }
 };

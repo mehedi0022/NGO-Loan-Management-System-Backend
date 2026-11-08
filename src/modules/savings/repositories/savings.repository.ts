@@ -2,7 +2,8 @@ import { Temporal } from "temporal-polyfill";
 
 import { db } from "../../../prisma/db.js";
 import { recordTransaction } from "../../accounts/repositories/accounts.repository.js";
-import { assertCanReverseTransaction } from "../../day-closing/services/day-closing.service.js";
+import { assertBusinessDateNotClosed, assertCanReverseTransaction } from "../../day-closing/services/day-closing.service.js";
+import { getActiveBusinessDay } from "../../day-closing/repositories/day-closing.repository.js";
 import type { WithdrawSavingsInput } from "../savings.types.js";
 
 const cents = (value: string | number) => Math.round(Number(value) * 100);
@@ -85,8 +86,16 @@ export type WithdrawalResult =
 export const withdrawSavings = async (
   data: WithdrawSavingsInput,
   processedById: number,
-): Promise<WithdrawalResult> =>
-  db.transaction(async (tx) => {
+): Promise<WithdrawalResult> => {
+  const activeDay = await getActiveBusinessDay();
+  const effectiveDateStr = data.transactionDate
+    ? (data.transactionDate instanceof Date
+        ? data.transactionDate.toISOString().slice(0, 10)
+        : String(data.transactionDate).slice(0, 10))
+    : activeDay.businessDate;
+  await assertBusinessDateNotClosed(effectiveDateStr);
+
+  return db.transaction(async (tx) => {
     const member = await tx.orm.public.Member.select("id").first({
       id: data.memberId,
     });
@@ -206,6 +215,7 @@ export const withdrawSavings = async (
       accountId: account.id,
     };
   });
+};
 
 export const reverseSavingsTransaction = async (
   transactionId: number,
