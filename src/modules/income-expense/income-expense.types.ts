@@ -44,6 +44,7 @@ export interface CreateIncomeExpenseDTO {
   amount: number;
   date?: string;
   paymentMethod?: PaymentMethod;
+  accountId?: number | null;
   reference?: string;
   description?: string;
   somitiId?: number;
@@ -54,6 +55,7 @@ export interface UpdateIncomeExpenseDTO {
   amount?: number;
   date?: string;
   paymentMethod?: PaymentMethod;
+  accountId?: number | null;
   reference?: string;
   description?: string;
   somitiId?: number;

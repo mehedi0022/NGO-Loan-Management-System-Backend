@@ -20,6 +20,7 @@ export const withdrawSavingsSchema = z.object({
       amount: z.coerce.number().positive(),
       transactionDate: z.coerce.date(),
       paymentMethod,
+      accountId: z.coerce.number().int().positive().optional(),
       reference: z.string().trim().max(255).optional(),
       notes: z.string().trim().max(2000).optional(),
     })

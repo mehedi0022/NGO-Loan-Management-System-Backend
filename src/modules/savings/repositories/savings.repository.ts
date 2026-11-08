@@ -70,7 +70,15 @@ export type WithdrawalResult =
         | "NO_ACCOUNT"
         | "ACCOUNT_CLOSED"
         | "INSUFFICIENT_BALANCE"
-        | "CONCURRENT";
+        | "CONCURRENT"
+        | "NO_ORG_ACCOUNT";
+    }
+  | {
+      kind: "INSUFFICIENT_ORG_BALANCE";
+      accountName: string;
+      availableBalance: number;
+      requiredAmount: number;
+      shortage: number;
     };
 
 export const withdrawSavings = async (
@@ -103,6 +111,43 @@ export const withdrawSavings = async (
 
     if (withdrawalAmount > currentBalance) {
       return { kind: "INSUFFICIENT_BALANCE" };
+    }
+
+    // Check organization financial account balance before proceeding with payout
+    const payoutAccount = data.accountId
+      ? await tx.orm.public.FinancialAccount.select(
+          "id",
+          "accountName",
+          "currentBalance",
+          "isActive",
+        ).first({ id: data.accountId, isActive: true })
+      : (await tx.orm.public.FinancialAccount.select(
+          "id",
+          "accountName",
+          "currentBalance",
+          "isActive",
+        ).first({ isDefault: true, isActive: true })) ||
+        (await tx.orm.public.FinancialAccount.select(
+          "id",
+          "accountName",
+          "currentBalance",
+          "isActive",
+        ).first({ isActive: true }));
+
+    if (!payoutAccount) {
+      return { kind: "NO_ORG_ACCOUNT" };
+    }
+
+    const availableOrgBalance = Number(payoutAccount.currentBalance) || 0;
+    const requiredPayoutAmount = Number(data.amount) || 0;
+    if (availableOrgBalance < requiredPayoutAmount) {
+      return {
+        kind: "INSUFFICIENT_ORG_BALANCE",
+        accountName: payoutAccount.accountName,
+        availableBalance: availableOrgBalance,
+        requiredAmount: requiredPayoutAmount,
+        shortage: requiredPayoutAmount - availableOrgBalance,
+      };
     }
 
     const nextBalance = currentBalance - withdrawalAmount;
@@ -140,28 +185,18 @@ export const withdrawSavings = async (
       transactionId,
     });
 
-    // Auto-record in cash accounting ledger
-    try {
-      const defaultAccount =
-        (await tx.orm.public.FinancialAccount.select("id")
-          .first({ isDefault: true, isActive: true })) ||
-        (await tx.orm.public.FinancialAccount.select("id")
-          .first({ isActive: true }));
-
-      if (defaultAccount && withdrawalAmount > 0) {
-        await recordTransaction(tx, {
-          accountId: defaultAccount.id,
-          type: "CREDIT",
-          amount: withdrawalAmount / 100,
-          sourceModule: "SAVINGS_WITHDRAWAL",
-          referenceId: transactionId,
-          description: `Savings withdrawal (${data.savingsType}) for member #${data.memberId}`,
-          transactionDate: toInstant(data.transactionDate),
-          createdById: processedById,
-        });
-      }
-    } catch (e) {
-      console.warn("Could not record savings withdrawal ledger entry:", e);
+    // Record in cash accounting ledger
+    if (requiredPayoutAmount > 0) {
+      await recordTransaction(tx, {
+        accountId: payoutAccount.id,
+        type: "CREDIT",
+        amount: requiredPayoutAmount,
+        sourceModule: "SAVINGS_WITHDRAWAL",
+        referenceId: transactionId,
+        description: `Savings withdrawal (${data.savingsType}) for member #${data.memberId}`,
+        transactionDate: toInstant(data.transactionDate),
+        createdById: processedById,
+      });
     }
 
     return {

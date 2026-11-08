@@ -76,6 +76,7 @@ export const createIncomeExpenseSchema = z.object({
         .regex(dateRegex, "Date must be in YYYY-MM-DD format")
         .optional(),
       paymentMethod: z.enum(paymentMethods).default("CASH"),
+      accountId: z.coerce.number().int().positive().optional().nullable(),
       reference: z.string().trim().max(100).optional().nullable(),
       description: z.string().trim().max(500).optional().nullable(),
       somitiId: z.coerce.number().int().positive().optional().nullable(),
@@ -96,6 +97,7 @@ export const updateIncomeExpenseSchema = z.object({
         .regex(dateRegex, "Date must be in YYYY-MM-DD format")
         .optional(),
       paymentMethod: z.enum(paymentMethods).optional(),
+      accountId: z.coerce.number().int().positive().optional().nullable(),
       reference: z.string().trim().max(100).optional().nullable(),
       description: z.string().trim().max(500).optional().nullable(),
       somitiId: z.coerce.number().int().positive().optional().nullable(),

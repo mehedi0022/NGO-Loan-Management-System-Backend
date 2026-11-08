@@ -370,30 +370,41 @@ export const createIncomeExpense = async (
     const targetDate = data.date ? new Date(data.date) : new Date();
     const requiredAmount = Number(data.amount) || 0;
 
-    // Find the appropriate financial account based on payment method
+    // Find the appropriate financial account (prefer explicit accountId, fallback to paymentMethod)
     let targetAccount = null;
-    if (data.paymentMethod === "BANK_TRANSFER") {
-      targetAccount =
-        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
-          .first({ accountType: "BANK", isActive: true })) ||
-        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
-          .first({ isDefault: true, isActive: true })) ||
-        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
-          .first({ isActive: true }));
-    } else if (data.paymentMethod === "MOBILE_PAYMENT") {
-      targetAccount =
-        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
-          .first({ accountType: "MOBILE_BANKING", isActive: true })) ||
-        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
-          .first({ isDefault: true, isActive: true })) ||
-        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
-          .first({ isActive: true }));
-    } else {
-      targetAccount =
-        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
-          .first({ isDefault: true, isActive: true })) ||
-        (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
-          .first({ isActive: true }));
+    if (data.accountId) {
+      targetAccount = await tx.orm.public.FinancialAccount.select(
+        "id",
+        "accountName",
+        "currentBalance",
+        "isActive",
+      ).first({ id: data.accountId, isActive: true });
+    }
+
+    if (!targetAccount) {
+      if (data.paymentMethod === "BANK_TRANSFER") {
+        targetAccount =
+          (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+            .first({ accountType: "BANK", isActive: true })) ||
+          (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+            .first({ isDefault: true, isActive: true })) ||
+          (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+            .first({ isActive: true }));
+      } else if (data.paymentMethod === "MOBILE_PAYMENT") {
+        targetAccount =
+          (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+            .first({ accountType: "MOBILE_BANKING", isActive: true })) ||
+          (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+            .first({ isDefault: true, isActive: true })) ||
+          (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+            .first({ isActive: true }));
+      } else {
+        targetAccount =
+          (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+            .first({ isDefault: true, isActive: true })) ||
+          (await tx.orm.public.FinancialAccount.select("id", "accountName", "currentBalance", "isActive")
+            .first({ isActive: true }));
+      }
     }
 
     if (!targetAccount) {

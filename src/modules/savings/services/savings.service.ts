@@ -29,6 +29,14 @@ export const withdrawSavings = async (
       throw new ValidationError(
         `Insufficient ${data.savingsType.toLowerCase()} savings balance`,
       );
+    case "NO_ORG_ACCOUNT":
+      throw new ValidationError(
+        "No active financial account found for savings withdrawal payout. Please create a Cash or Bank account in Accounts & Cash.",
+      );
+    case "INSUFFICIENT_ORG_BALANCE":
+      throw new ValidationError(
+        `Insufficient balance in ${result.accountName}. Available: ৳${result.availableBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })}, Required: ৳${result.requiredAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} (Shortage: ৳${result.shortage.toLocaleString("en-US", { minimumFractionDigits: 2 })}). Please transfer funds from Bank to Cash or inject capital before paying out savings withdrawal.`,
+      );
     case "CONCURRENT":
       throw new ConflictError(
         "Savings balance changed while processing; please review and retry",
