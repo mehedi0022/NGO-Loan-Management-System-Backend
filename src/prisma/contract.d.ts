@@ -34,9 +34,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'1b0a91a4bd5b872f828da1db2bbb1816f3ed89ee99ba16c3f2e749111868caaa'>;
+  StorageHashBase<'5c93ead816eb32c0ec43246d2c89e60b7c83bb4bd59902422a7e8cfa0e0ba7d1'>;
 export type ExecutionHash =
-  ExecutionHashBase<'52c0a5815845a4ced1e64c2374193a892cb49b8823741e7ebd0fa96dc5ef9ada'>;
+  ExecutionHashBase<'1c844a4d0430334d37c93a0b60bbf9bb3a711fe46f47a610a1abed00aa488541'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -291,6 +291,32 @@ export type FieldOutputTypes = {
       readonly paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'MOBILE_PAYMENT' | 'CHEQUE' | 'OTHER';
       readonly reference: CodecTypes['pg/text@1']['output'] | null;
       readonly notes: CodecTypes['pg/text@1']['output'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    };
+    readonly DayClosing: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly businessDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly status: 'OPEN' | 'CLOSED';
+      readonly openingBalance: CodecTypes['pg/numeric@1']['output'];
+      readonly totalCashIn: CodecTypes['pg/numeric@1']['output'];
+      readonly totalCashOut: CodecTypes['pg/numeric@1']['output'];
+      readonly closingBalance: CodecTypes['pg/numeric@1']['output'];
+      readonly loanCollection: CodecTypes['pg/numeric@1']['output'];
+      readonly savingsDeposit: CodecTypes['pg/numeric@1']['output'];
+      readonly dpsDeposit: CodecTypes['pg/numeric@1']['output'];
+      readonly admissionFee: CodecTypes['pg/numeric@1']['output'];
+      readonly capitalReceived: CodecTypes['pg/numeric@1']['output'];
+      readonly otherIncome: CodecTypes['pg/numeric@1']['output'];
+      readonly loanDisbursed: CodecTypes['pg/numeric@1']['output'];
+      readonly savingsWithdrawn: CodecTypes['pg/numeric@1']['output'];
+      readonly dpsWithdrawn: CodecTypes['pg/numeric@1']['output'];
+      readonly officeExpense: CodecTypes['pg/numeric@1']['output'];
+      readonly isHoliday: CodecTypes['pg/bool@1']['output'];
+      readonly notes: CodecTypes['pg/text@1']['output'] | null;
+      readonly openedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly closedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+      readonly closedById: CodecTypes['pg/int4@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
@@ -659,6 +685,32 @@ export type FieldInputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
+    readonly DayClosing: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly businessDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly status: 'OPEN' | 'CLOSED';
+      readonly openingBalance: CodecTypes['pg/numeric@1']['input'];
+      readonly totalCashIn: CodecTypes['pg/numeric@1']['input'];
+      readonly totalCashOut: CodecTypes['pg/numeric@1']['input'];
+      readonly closingBalance: CodecTypes['pg/numeric@1']['input'];
+      readonly loanCollection: CodecTypes['pg/numeric@1']['input'];
+      readonly savingsDeposit: CodecTypes['pg/numeric@1']['input'];
+      readonly dpsDeposit: CodecTypes['pg/numeric@1']['input'];
+      readonly admissionFee: CodecTypes['pg/numeric@1']['input'];
+      readonly capitalReceived: CodecTypes['pg/numeric@1']['input'];
+      readonly otherIncome: CodecTypes['pg/numeric@1']['input'];
+      readonly loanDisbursed: CodecTypes['pg/numeric@1']['input'];
+      readonly savingsWithdrawn: CodecTypes['pg/numeric@1']['input'];
+      readonly dpsWithdrawn: CodecTypes['pg/numeric@1']['input'];
+      readonly officeExpense: CodecTypes['pg/numeric@1']['input'];
+      readonly isHoliday: CodecTypes['pg/bool@1']['input'];
+      readonly notes: CodecTypes['pg/text@1']['input'] | null;
+      readonly openedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly closedAt: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
+      readonly closedById: CodecTypes['pg/int4@1']['input'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+    };
     readonly DpsAccount: {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly dpsNumber: CodecTypes['pg/text@1']['input'] | null;
@@ -1022,6 +1074,32 @@ export type StorageColumnTypes = {
       readonly reference: CodecTypes['pg/text@1']['output'] | null;
       readonly specialSavingsAmount: CodecTypes['pg/numeric@1']['output'];
       readonly totalAmount: CodecTypes['pg/numeric@1']['output'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    };
+    readonly dayClosing: {
+      readonly admissionFee: CodecTypes['pg/numeric@1']['output'];
+      readonly businessDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly capitalReceived: CodecTypes['pg/numeric@1']['output'];
+      readonly closedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+      readonly closedById: CodecTypes['pg/int4@1']['output'] | null;
+      readonly closingBalance: CodecTypes['pg/numeric@1']['output'];
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly dpsDeposit: CodecTypes['pg/numeric@1']['output'];
+      readonly dpsWithdrawn: CodecTypes['pg/numeric@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly isHoliday: CodecTypes['pg/bool@1']['output'];
+      readonly loanCollection: CodecTypes['pg/numeric@1']['output'];
+      readonly loanDisbursed: CodecTypes['pg/numeric@1']['output'];
+      readonly notes: CodecTypes['pg/text@1']['output'] | null;
+      readonly officeExpense: CodecTypes['pg/numeric@1']['output'];
+      readonly openedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly openingBalance: CodecTypes['pg/numeric@1']['output'];
+      readonly otherIncome: CodecTypes['pg/numeric@1']['output'];
+      readonly savingsDeposit: CodecTypes['pg/numeric@1']['output'];
+      readonly savingsWithdrawn: CodecTypes['pg/numeric@1']['output'];
+      readonly status: 'OPEN' | 'CLOSED';
+      readonly totalCashIn: CodecTypes['pg/numeric@1']['output'];
+      readonly totalCashOut: CodecTypes['pg/numeric@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
     readonly dpsAccount: {
@@ -1389,6 +1467,32 @@ export type StorageColumnInputTypes = {
       readonly totalAmount: CodecTypes['pg/numeric@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
+    readonly dayClosing: {
+      readonly admissionFee: CodecTypes['pg/numeric@1']['input'];
+      readonly businessDate: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly capitalReceived: CodecTypes['pg/numeric@1']['input'];
+      readonly closedAt: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
+      readonly closedById: CodecTypes['pg/int4@1']['input'] | null;
+      readonly closingBalance: CodecTypes['pg/numeric@1']['input'];
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly dpsDeposit: CodecTypes['pg/numeric@1']['input'];
+      readonly dpsWithdrawn: CodecTypes['pg/numeric@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly isHoliday: CodecTypes['pg/bool@1']['input'];
+      readonly loanCollection: CodecTypes['pg/numeric@1']['input'];
+      readonly loanDisbursed: CodecTypes['pg/numeric@1']['input'];
+      readonly notes: CodecTypes['pg/text@1']['input'] | null;
+      readonly officeExpense: CodecTypes['pg/numeric@1']['input'];
+      readonly openedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly openingBalance: CodecTypes['pg/numeric@1']['input'];
+      readonly otherIncome: CodecTypes['pg/numeric@1']['input'];
+      readonly savingsDeposit: CodecTypes['pg/numeric@1']['input'];
+      readonly savingsWithdrawn: CodecTypes['pg/numeric@1']['input'];
+      readonly status: 'OPEN' | 'CLOSED';
+      readonly totalCashIn: CodecTypes['pg/numeric@1']['input'];
+      readonly totalCashOut: CodecTypes['pg/numeric@1']['input'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+    };
     readonly dpsAccount: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly dpsNumber: CodecTypes['pg/text@1']['input'] | null;
@@ -1717,6 +1821,7 @@ export namespace Models {
     accountTransactions: public_AccountTransaction[];
     approvedLoans: public_Loan[];
     assignedSomities: public_Somiti[];
+    closedDays: public_DayClosing[];
     collections: public_Collection[];
     incomeExpenses: public_IncomeExpense[];
     openedDpsAccounts: public_DpsAccount[];
@@ -1730,6 +1835,7 @@ export namespace Models {
       | 'accountTransactions'
       | 'approvedLoans'
       | 'assignedSomities'
+      | 'closedDays'
       | 'collections'
       | 'incomeExpenses'
       | 'openedDpsAccounts'
@@ -2166,6 +2272,34 @@ export namespace Models {
     createdBy: public_User | null;
     readonly [RelationKeys]?: 'account' | 'createdBy';
   };
+  export type public_DayClosing = {
+    id: CodecTypes['pg/int4@1']['output'];
+    businessDate: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    status: 'OPEN' | 'CLOSED';
+    openingBalance: CodecTypes['pg/numeric@1']['output'];
+    totalCashIn: CodecTypes['pg/numeric@1']['output'];
+    totalCashOut: CodecTypes['pg/numeric@1']['output'];
+    closingBalance: CodecTypes['pg/numeric@1']['output'];
+    loanCollection: CodecTypes['pg/numeric@1']['output'];
+    savingsDeposit: CodecTypes['pg/numeric@1']['output'];
+    dpsDeposit: CodecTypes['pg/numeric@1']['output'];
+    admissionFee: CodecTypes['pg/numeric@1']['output'];
+    capitalReceived: CodecTypes['pg/numeric@1']['output'];
+    otherIncome: CodecTypes['pg/numeric@1']['output'];
+    loanDisbursed: CodecTypes['pg/numeric@1']['output'];
+    savingsWithdrawn: CodecTypes['pg/numeric@1']['output'];
+    dpsWithdrawn: CodecTypes['pg/numeric@1']['output'];
+    officeExpense: CodecTypes['pg/numeric@1']['output'];
+    isHoliday: CodecTypes['pg/bool@1']['output'];
+    notes: CodecTypes['pg/text@1']['output'] | null;
+    openedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    closedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    closedById: CodecTypes['pg/int4@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    closedBy: public_User | null;
+    readonly [RelationKeys]?: 'closedBy';
+  };
 }
 
 export declare const models: {
@@ -2192,6 +2326,7 @@ export declare const models: {
     DpsTransaction: Models.public_DpsTransaction;
     FinancialAccount: Models.public_FinancialAccount;
     AccountTransaction: Models.public_AccountTransaction;
+    DayClosing: Models.public_DayClosing;
   };
 };
 
@@ -2596,6 +2731,236 @@ type ContractBase = Omit<
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'collection';
                     readonly columns: readonly ['collectedById'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'user';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly dayClosing: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly businessDate: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly status: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'OPEN'>;
+                  };
+                };
+                readonly openingBalance: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly totalCashIn: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly totalCashOut: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly closingBalance: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly loanCollection: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly savingsDeposit: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly dpsDeposit: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly admissionFee: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly capitalReceived: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly otherIncome: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly loanDisbursed: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly savingsWithdrawn: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly dpsWithdrawn: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly officeExpense: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly isHoliday: {
+                  readonly nativeType: 'bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
+                  };
+                };
+                readonly notes: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly openedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly closedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                };
+                readonly closedById: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly updatedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['businessDate'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'dayClosing_businessDate_idx_d7852a03';
+                  readonly prefix: 'dayClosing_businessDate_idx';
+                  readonly columns: readonly ['businessDate'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'dayClosing_status_idx_e98638ab';
+                  readonly prefix: 'dayClosing_status_idx';
+                  readonly columns: readonly ['status'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'dayClosing_closedById_idx_3fbe6e44';
+                  readonly prefix: 'dayClosing_closedById_idx';
+                  readonly columns: readonly ['closedById'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'dayClosing';
+                    readonly columns: readonly ['closedById'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
@@ -5207,6 +5572,10 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['PRESENT', 'FATHER_HOME'];
             };
+            readonly BusinessDayStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['OPEN', 'CLOSED'];
+            };
             readonly DpsStatus: {
               readonly kind: 'valueSet';
               readonly values: readonly ['ACTIVE', 'MATURED', 'CLOSED'];
@@ -5368,6 +5737,10 @@ type ContractBase = Omit<
     readonly accountTransaction: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'AccountTransaction';
+    };
+    readonly dayClosing: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'DayClosing';
     };
   };
   readonly domain: {
@@ -5688,6 +6061,162 @@ type ContractBase = Omit<
                 readonly paymentMethod: { readonly column: 'paymentMethod' };
                 readonly reference: { readonly column: 'reference' };
                 readonly notes: { readonly column: 'notes' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly DayClosing: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly businessDate: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly openingBalance: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly totalCashIn: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly totalCashOut: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly closingBalance: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly loanCollection: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly savingsDeposit: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly dpsDeposit: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly admissionFee: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly capitalReceived: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly otherIncome: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly loanDisbursed: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly savingsWithdrawn: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly dpsWithdrawn: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly officeExpense: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly isHoliday: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+              readonly notes: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly openedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly closedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly closedById: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly closedBy: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['closedById'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'dayClosing';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly businessDate: { readonly column: 'businessDate' };
+                readonly status: { readonly column: 'status' };
+                readonly openingBalance: { readonly column: 'openingBalance' };
+                readonly totalCashIn: { readonly column: 'totalCashIn' };
+                readonly totalCashOut: { readonly column: 'totalCashOut' };
+                readonly closingBalance: { readonly column: 'closingBalance' };
+                readonly loanCollection: { readonly column: 'loanCollection' };
+                readonly savingsDeposit: { readonly column: 'savingsDeposit' };
+                readonly dpsDeposit: { readonly column: 'dpsDeposit' };
+                readonly admissionFee: { readonly column: 'admissionFee' };
+                readonly capitalReceived: { readonly column: 'capitalReceived' };
+                readonly otherIncome: { readonly column: 'otherIncome' };
+                readonly loanDisbursed: { readonly column: 'loanDisbursed' };
+                readonly savingsWithdrawn: { readonly column: 'savingsWithdrawn' };
+                readonly dpsWithdrawn: { readonly column: 'dpsWithdrawn' };
+                readonly officeExpense: { readonly column: 'officeExpense' };
+                readonly isHoliday: { readonly column: 'isHoliday' };
+                readonly notes: { readonly column: 'notes' };
+                readonly openedAt: { readonly column: 'openedAt' };
+                readonly closedAt: { readonly column: 'closedAt' };
+                readonly closedById: { readonly column: 'closedById' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
@@ -7926,6 +8455,17 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['fieldOfficerId'];
                 };
               };
+              readonly closedDays: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'DayClosing';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['closedById'];
+                };
+              };
               readonly collections: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -8192,6 +8732,13 @@ type ContractBase = Omit<
               { readonly name: 'FUND_TRANSFER'; readonly value: 'FUND_TRANSFER' },
             ];
           };
+          readonly BusinessDayStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'OPEN'; readonly value: 'OPEN' },
+              { readonly name: 'CLOSED'; readonly value: 'CLOSED' },
+            ];
+          };
         };
       };
     };
@@ -8223,6 +8770,15 @@ type ContractBase = Omit<
           readonly ref: {
             readonly namespace: 'public';
             readonly table: 'collection';
+            readonly column: 'updatedAt';
+          };
+          readonly onCreate: { readonly kind: 'generator'; readonly id: 'instantNow' };
+          readonly onUpdate: { readonly kind: 'generator'; readonly id: 'instantNow' };
+        },
+        {
+          readonly ref: {
+            readonly namespace: 'public';
+            readonly table: 'dayClosing';
             readonly column: 'updatedAt';
           };
           readonly onCreate: { readonly kind: 'generator'; readonly id: 'instantNow' };

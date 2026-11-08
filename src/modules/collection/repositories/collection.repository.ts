@@ -2,6 +2,7 @@ import { db } from "../../../prisma/db.js";
 import { Temporal } from "temporal-polyfill";
 import { pageOffset, paginationMeta } from "../../../utils/pagination.js";
 import { recordTransaction } from "../../accounts/repositories/accounts.repository.js";
+import { assertBusinessDateNotClosed } from "../../day-closing/services/day-closing.service.js";
 
 import type {
   BatchCollectionInput,
@@ -737,6 +738,13 @@ export const createCollection = async (
   data: CreateCollectionInput,
   authenticatedUserId: number,
 ): Promise<CollectionResult> => {
+  const targetDateStr = data.collectionDate
+    ? (data.collectionDate instanceof Date
+        ? data.collectionDate.toISOString().split("T")[0]!
+        : String(data.collectionDate).split("T")[0]!)
+    : Temporal.Now.zonedDateTimeISO("Asia/Dhaka").toPlainDate().toString();
+  await assertBusinessDateNotClosed(targetDateStr);
+
   try {
     return await db.transaction(async (tx) => {
       const result = await applyCollection(tx, {
@@ -797,6 +805,13 @@ export const createBatchCollections = async (
   data: BatchCollectionInput,
   authenticatedUserId: number,
 ) => {
+  const targetDateStr = data.collectionDate
+    ? (data.collectionDate instanceof Date
+        ? data.collectionDate.toISOString().split("T")[0]!
+        : String(data.collectionDate).split("T")[0]!)
+    : Temporal.Now.zonedDateTimeISO("Asia/Dhaka").toPlainDate().toString();
+  await assertBusinessDateNotClosed(targetDateStr);
+
   try {
     return await db.transaction(async (tx) => {
       const collectionIds: number[] = [];

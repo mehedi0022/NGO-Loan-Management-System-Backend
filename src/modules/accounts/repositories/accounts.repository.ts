@@ -1,6 +1,7 @@
 import { Temporal } from "temporal-polyfill";
 import { db } from "../../../prisma/db.js";
 import { pageOffset, paginationMeta } from "../../../utils/pagination.js";
+import { getActiveBusinessDay } from "../../day-closing/repositories/day-closing.repository.js";
 import type {
   AccountSourceModule,
   AccountTransactionType,
@@ -436,9 +437,15 @@ export const listTransactions = async (query: ListTransactionsQuery) => {
 };
 
 export const getDailyCashSheet = async (query: DailyCashSheetQuery) => {
-  const dateStr =
-    query.date ||
-    Temporal.Now.zonedDateTimeISO("Asia/Dhaka").toPlainDate().toString();
+  let dateStr = query.date;
+  if (!dateStr) {
+    try {
+      const activeDay = await getActiveBusinessDay();
+      dateStr = activeDay.businessDate;
+    } catch {
+      dateStr = Temporal.Now.zonedDateTimeISO("Asia/Dhaka").toPlainDate().toString();
+    }
+  }
   const plainDate = Temporal.PlainDate.from(dateStr);
   const startOfDay = Temporal.ZonedDateTime.from({
     timeZone: "Asia/Dhaka",

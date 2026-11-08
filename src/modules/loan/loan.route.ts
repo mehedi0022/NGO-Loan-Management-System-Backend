@@ -3,6 +3,7 @@ import { Router } from "express";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 import { requirePermission } from "../../middlewares/authorization.middleware.js";
 import { validate } from "../../middlewares/validate.middleware.js";
+import { guardBusinessDayNotClosed } from "../../middlewares/business-day.guard.js";
 import { permissions } from "../../auth/authorization.js";
 
 import {
@@ -56,6 +57,12 @@ router.patch(
 );
 router.patch("/:id/approve", validate(loanIdSchema), requirePermission(permissions.loansApprove), approveLoan);
 router.patch("/:id/reject", validate(rejectLoanSchema), requirePermission(permissions.loansApprove), rejectLoan);
-router.post("/:id/disburse", validate(disburseLoanSchema), requirePermission(permissions.loansDisburse), disburseLoan);
+router.post(
+  "/:id/disburse",
+  validate(disburseLoanSchema),
+  guardBusinessDayNotClosed((req) => req.body?.disbursementDate),
+  requirePermission(permissions.loansDisburse),
+  disburseLoan,
+);
 
 export default router;

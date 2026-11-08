@@ -16,6 +16,10 @@
       "model": "Collection",
       "namespace": "public"
     },
+    "dayClosing": {
+      "model": "DayClosing",
+      "namespace": "public"
+    },
     "dpsAccount": {
       "model": "DpsAccount",
       "namespace": "public"
@@ -182,6 +186,19 @@
               {
                 "name": "FATHER_HOME",
                 "value": "FATHER_HOME"
+              }
+            ]
+          },
+          "BusinessDayStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "OPEN",
+                "value": "OPEN"
+              },
+              {
+                "name": "CLOSED",
+                "value": "CLOSED"
               }
             ]
           },
@@ -991,6 +1008,280 @@
               },
               "namespaceId": "public",
               "table": "collection"
+            }
+          },
+          "DayClosing": {
+            "fields": {
+              "admissionFee": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "businessDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "capitalReceived": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "closedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "closedById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "closingBalance": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "dpsDeposit": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "dpsWithdrawn": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "isHoliday": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "loanCollection": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "loanDisbursed": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "notes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "officeExpense": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "openedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "openingBalance": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "otherIncome": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "savingsDeposit": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "savingsWithdrawn": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "BusinessDayStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "totalCashIn": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "totalCashOut": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "closedBy": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "closedById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "admissionFee": {
+                  "column": "admissionFee"
+                },
+                "businessDate": {
+                  "column": "businessDate"
+                },
+                "capitalReceived": {
+                  "column": "capitalReceived"
+                },
+                "closedAt": {
+                  "column": "closedAt"
+                },
+                "closedById": {
+                  "column": "closedById"
+                },
+                "closingBalance": {
+                  "column": "closingBalance"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "dpsDeposit": {
+                  "column": "dpsDeposit"
+                },
+                "dpsWithdrawn": {
+                  "column": "dpsWithdrawn"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "isHoliday": {
+                  "column": "isHoliday"
+                },
+                "loanCollection": {
+                  "column": "loanCollection"
+                },
+                "loanDisbursed": {
+                  "column": "loanDisbursed"
+                },
+                "notes": {
+                  "column": "notes"
+                },
+                "officeExpense": {
+                  "column": "officeExpense"
+                },
+                "openedAt": {
+                  "column": "openedAt"
+                },
+                "openingBalance": {
+                  "column": "openingBalance"
+                },
+                "otherIncome": {
+                  "column": "otherIncome"
+                },
+                "savingsDeposit": {
+                  "column": "savingsDeposit"
+                },
+                "savingsWithdrawn": {
+                  "column": "savingsWithdrawn"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "totalCashIn": {
+                  "column": "totalCashIn"
+                },
+                "totalCashOut": {
+                  "column": "totalCashOut"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "dayClosing"
             }
           },
           "DpsAccount": {
@@ -4743,6 +5034,21 @@
                   "namespace": "public"
                 }
               },
+              "closedDays": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "closedById"
+                  ]
+                },
+                "to": {
+                  "model": "DayClosing",
+                  "namespace": "public"
+                }
+              },
               "collections": {
                 "cardinality": "1:N",
                 "on": {
@@ -5440,6 +5746,275 @@
                 {
                   "columns": [
                     "collectionId"
+                  ]
+                }
+              ]
+            },
+            "dayClosing": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('OPEN', 'CLOSED')",
+                  "name": "dayClosing_status_check_32214e16",
+                  "prefix": "dayClosing_status_check"
+                }
+              ],
+              "columns": {
+                "admissionFee": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "businessDate": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "capitalReceived": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "closedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "closedById": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "closingBalance": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "dpsDeposit": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "dpsWithdrawn": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "isHoliday": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "loanCollection": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "loanDisbursed": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "notes": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "officeExpense": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "openedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "openingBalance": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "otherIncome": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "savingsDeposit": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "savingsWithdrawn": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "OPEN"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "BusinessDayStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "totalCashIn": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "totalCashOut": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "closedById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "dayClosing"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "businessDate"
+                  ],
+                  "name": "dayClosing_businessDate_idx_d7852a03",
+                  "prefix": "dayClosing_businessDate_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "closedById"
+                  ],
+                  "name": "dayClosing_closedById_idx_3fbe6e44",
+                  "prefix": "dayClosing_closedById_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "dayClosing_status_idx_e98638ab",
+                  "prefix": "dayClosing_status_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "businessDate"
                   ]
                 }
               ]
@@ -8845,6 +9420,13 @@
                 "FATHER_HOME"
               ]
             },
+            "BusinessDayStatus": {
+              "kind": "valueSet",
+              "values": [
+                "OPEN",
+                "CLOSED"
+              ]
+            },
             "DpsStatus": {
               "kind": "valueSet",
               "values": [
@@ -8975,10 +9557,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "1b0a91a4bd5b872f828da1db2bbb1816f3ed89ee99ba16c3f2e749111868caaa"
+    "storageHash": "5c93ead816eb32c0ec43246d2c89e60b7c83bb4bd59902422a7e8cfa0e0ba7d1"
   },
   "execution": {
-    "executionHash": "52c0a5815845a4ced1e64c2374193a892cb49b8823741e7ebd0fa96dc5ef9ada",
+    "executionHash": "1c844a4d0430334d37c93a0b60bbf9bb3a711fe46f47a610a1abed00aa488541",
     "mutations": {
       "defaults": [
         {
@@ -8994,6 +9576,21 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "collection"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "dayClosing"
           }
         },
         {

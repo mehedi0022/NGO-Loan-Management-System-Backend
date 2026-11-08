@@ -1,14 +1,25 @@
 import type { DashboardSummaryQuery } from "../dashboard.types.js";
 import * as repository from "../repositories/dashboard.repository.js";
+import { getActiveBusinessDay } from "../../day-closing/repositories/day-closing.repository.js";
 import {
   addMoney,
   normalizeMoney,
   remainingMoney,
 } from "../utils/dashboard-money.util.js";
-import { resolveOperationalDate } from "../utils/operational-date.util.js";
+import { parseOperationalDate, resolveOperationalDate } from "../utils/operational-date.util.js";
 
 export const getDashboardSummary = async (query: DashboardSummaryQuery) => {
-  const operationalDate = resolveOperationalDate(query.date);
+  let operationalDate;
+  if (query.date) {
+    operationalDate = parseOperationalDate(query.date);
+  } else {
+    try {
+      const activeDay = await getActiveBusinessDay();
+      operationalDate = parseOperationalDate(activeDay.businessDate);
+    } catch {
+      operationalDate = resolveOperationalDate();
+    }
+  }
   const [aggregates, collectionTrend] = await Promise.all([
     repository.findDashboardAggregates(operationalDate),
     repository.findCollectionTrend(operationalDate, query.trendDays),

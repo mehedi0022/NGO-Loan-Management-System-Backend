@@ -66,6 +66,10 @@ export const permissions = {
   accountsTransfer: "accounts:transfer",
   accountsInjectCapital: "accounts:inject-capital",
 
+  // Day Closing & Business Day
+  dayClosingRead: "day-closing:read",
+  dayClosingExecute: "day-closing:execute",
+
   // Migration
   migrationExecute: "migration:execute",
 
@@ -140,10 +144,15 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
 
     // Accounts
     permissions.accountsReadAny,
+    permissions.dayClosingRead,
     permissions.accountsCreate,
     permissions.accountsUpdateAny,
     permissions.accountsTransfer,
     permissions.accountsInjectCapital,
+
+    // Day Closing
+    permissions.dayClosingRead,
+    permissions.dayClosingExecute,
 
     // Migration
     permissions.migrationExecute,
@@ -200,10 +209,15 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
 
     // Accounts
     permissions.accountsReadAny,
+    permissions.dayClosingRead,
     permissions.accountsCreate,
     permissions.accountsUpdateAny,
     permissions.accountsTransfer,
     permissions.accountsInjectCapital,
+
+    // Day Closing
+    permissions.dayClosingRead,
+    permissions.dayClosingExecute,
 
     // Migration
     permissions.migrationExecute,
@@ -253,6 +267,7 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
 
     // Accounts
     permissions.accountsReadAny,
+    permissions.dayClosingRead,
 
     // Settings
     permissions.settingsRead,

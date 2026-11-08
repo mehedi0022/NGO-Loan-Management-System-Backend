@@ -14,6 +14,7 @@ import { incomeExpenseRoutes } from "../modules/income-expense/income-expense.ro
 import { settingsRoutes } from "../modules/settings/settings.route.js";
 import accountsRoutes from "../modules/accounts/accounts.route.js";
 import migrationRoutes from "../modules/migration/migration.route.js";
+import dayClosingRoutes from "../modules/day-closing/day-closing.route.js";
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use("/income-expense", incomeExpenseRoutes);
 router.use("/settings", settingsRoutes);
 router.use("/accounts", accountsRoutes);
 router.use("/migration", migrationRoutes);
+router.use("/day-closing", dayClosingRoutes);
 
 export default router;

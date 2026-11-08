@@ -184,6 +184,7 @@ model User {
   processedDpsTransactions     DpsTransaction[]     @relation("DpsTransactionProcessedBy")
   accountTransactions          AccountTransaction[] @relation("AccountTransactionCreatedBy")
   postedSavingsInterest        SavingsInterestPosting[] @relation("SavingsInterestPostedBy")
+  closedDays                   DayClosing[]         @relation("DayClosingClosedBy")
 }
 
 model Session {
@@ -811,3 +812,50 @@ model AccountTransaction {
   @@index([sourceModule])
   @@index([transactionDate])
 }
+
+enum BusinessDayStatus {
+  @@type("pg/text@1")
+
+  OPEN = "OPEN"
+  CLOSED = "CLOSED"
+}
+
+model DayClosing {
+  id              Int               @id @default(autoincrement())
+  businessDate    DateTime          @unique
+  status          BusinessDayStatus @default(OPEN)
+
+  openingBalance  Decimal           @default("0")
+  totalCashIn     Decimal           @default("0")
+  totalCashOut    Decimal           @default("0")
+  closingBalance  Decimal           @default("0")
+
+  // Breakdown figures for quick auditing
+  loanCollection  Decimal           @default("0")
+  savingsDeposit  Decimal           @default("0")
+  dpsDeposit      Decimal           @default("0")
+  admissionFee    Decimal           @default("0")
+  capitalReceived Decimal           @default("0")
+  otherIncome     Decimal           @default("0")
+
+  loanDisbursed   Decimal           @default("0")
+  savingsWithdrawn Decimal          @default("0")
+  dpsWithdrawn    Decimal           @default("0")
+  officeExpense   Decimal           @default("0")
+
+  isHoliday       Boolean           @default(false)
+  notes           String?
+
+  openedAt        DateTime          @default(now())
+  closedAt        DateTime?
+  closedById      Int?
+  closedBy        User?             @relation("DayClosingClosedBy", fields:[closedById], references:[id])
+
+  createdAt       DateTime          @default(now())
+  updatedAt       temporal.updatedAt()
+
+  @@index([businessDate])
+  @@index([status])
+  @@index([closedById])
+}
+

@@ -3,6 +3,7 @@ import { permissions } from "../../auth/authorization.js";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 import { requirePermission } from "../../middlewares/authorization.middleware.js";
 import { validate } from "../../middlewares/validate.middleware.js";
+import { guardBusinessDayNotClosed } from "../../middlewares/business-day.guard.js";
 import {
   createDpsAccount,
   getDpsAccounts,
@@ -60,6 +61,7 @@ router.get(
 router.post(
   "/:id/deposit",
   validate(depositDpsSchema),
+  guardBusinessDayNotClosed((req) => req.body?.transactionDate),
   requirePermission(permissions.dpsDeposit),
   depositDpsInstallment,
 );
@@ -67,6 +69,7 @@ router.post(
 router.post(
   "/:id/close",
   validate(closeDpsSchema),
+  guardBusinessDayNotClosed((req) => req.body?.transactionDate),
   requirePermission(permissions.dpsClose),
   closeDpsAccount,
 );

@@ -3,6 +3,7 @@ import { Router } from "express";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 import { requirePermission } from "../../middlewares/authorization.middleware.js";
 import { validate } from "../../middlewares/validate.middleware.js";
+import { guardBusinessDayNotClosed } from "../../middlewares/business-day.guard.js";
 import { permissions } from "../../auth/authorization.js";
 
 import {
@@ -69,6 +70,7 @@ router.get(
 router.post(
   "/",
   validate(createCollectionSchema),
+  guardBusinessDayNotClosed((req) => req.body?.collectionDate),
   requirePermission(permissions.collectionsCreate),
   createCollection,
 );
@@ -86,6 +88,7 @@ router.post(
 router.post(
   "/batch",
   validate(batchCollectionSchema),
+  guardBusinessDayNotClosed((req) => req.body?.collectionDate),
   requirePermission(permissions.collectionsCreate),
   createBatchCollections,
 );

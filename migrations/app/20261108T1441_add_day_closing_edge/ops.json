@@ -1,0 +1,242 @@
+[
+  {
+    "id": "table.dayClosing",
+    "label": "Create table \"dayClosing\"",
+    "summary": "Creates table \"dayClosing\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "dayClosing"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"dayClosing\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dayClosing\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"dayClosing\"",
+        "sql": "CREATE TABLE \"public\".\"dayClosing\" (\n  \"admissionFee\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"businessDate\" timestamptz NOT NULL,\n  \"capitalReceived\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"closedAt\" timestamptz,\n  \"closedById\" int4,\n  \"closingBalance\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"dpsDeposit\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"dpsWithdrawn\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"isHoliday\" bool DEFAULT false NOT NULL,\n  \"loanCollection\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"loanDisbursed\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"notes\" text,\n  \"officeExpense\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"openedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"openingBalance\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"otherIncome\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"savingsDeposit\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"savingsWithdrawn\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"status\" text DEFAULT 'OPEN' NOT NULL,\n  \"totalCashIn\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"totalCashOut\" numeric DEFAULT '0'::numeric NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"dayClosing_status_check_32214e16\" CHECK (\"status\" IN ('OPEN', 'CLOSED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"dayClosing\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dayClosing\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.dayClosing.dayClosing_businessDate_key",
+    "label": "Add unique constraint on \"dayClosing\" (businessDate)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "dayClosing_businessDate_key",
+        "table": "dayClosing"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"dayClosing_businessDate_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dayClosing_businessDate_key",
+          "public",
+          "\"public\".\"dayClosing\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"dayClosing_businessDate_key\"",
+        "sql": "ALTER TABLE \"public\".\"dayClosing\" ADD CONSTRAINT \"dayClosing_businessDate_key\" UNIQUE (\"businessDate\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"dayClosing_businessDate_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dayClosing_businessDate_key",
+          "public",
+          "\"public\".\"dayClosing\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dayClosing.dayClosing_businessDate_idx_d7852a03",
+    "label": "Create index \"dayClosing_businessDate_idx_d7852a03\" on \"dayClosing\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dayClosing_businessDate_idx_d7852a03",
+        "table": "dayClosing"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dayClosing_businessDate_idx_d7852a03\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dayClosing_businessDate_idx_d7852a03\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dayClosing_businessDate_idx_d7852a03\"",
+        "sql": "CREATE INDEX \"dayClosing_businessDate_idx_d7852a03\" ON \"public\".\"dayClosing\" (\"businessDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dayClosing_businessDate_idx_d7852a03\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dayClosing_businessDate_idx_d7852a03\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dayClosing.dayClosing_closedById_idx_3fbe6e44",
+    "label": "Create index \"dayClosing_closedById_idx_3fbe6e44\" on \"dayClosing\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dayClosing_closedById_idx_3fbe6e44",
+        "table": "dayClosing"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dayClosing_closedById_idx_3fbe6e44\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dayClosing_closedById_idx_3fbe6e44\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dayClosing_closedById_idx_3fbe6e44\"",
+        "sql": "CREATE INDEX \"dayClosing_closedById_idx_3fbe6e44\" ON \"public\".\"dayClosing\" (\"closedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dayClosing_closedById_idx_3fbe6e44\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dayClosing_closedById_idx_3fbe6e44\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dayClosing.dayClosing_status_idx_e98638ab",
+    "label": "Create index \"dayClosing_status_idx_e98638ab\" on \"dayClosing\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dayClosing_status_idx_e98638ab",
+        "table": "dayClosing"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dayClosing_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dayClosing_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dayClosing_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"dayClosing_status_idx_e98638ab\" ON \"public\".\"dayClosing\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dayClosing_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dayClosing_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.dayClosing.dayClosing_closedById_fkey",
+    "label": "Add foreign key \"dayClosing_closedById_fkey\" on \"dayClosing\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "dayClosing_closedById_fkey",
+        "table": "dayClosing"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"dayClosing_closedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dayClosing_closedById_fkey",
+          "public",
+          "\"public\".\"dayClosing\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"dayClosing_closedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"dayClosing\"\nADD CONSTRAINT \"dayClosing_closedById_fkey\"\nFOREIGN KEY (\"closedById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"dayClosing_closedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dayClosing_closedById_fkey",
+          "public",
+          "\"public\".\"dayClosing\""
+        ]
+      }
+    ]
+  }
+]

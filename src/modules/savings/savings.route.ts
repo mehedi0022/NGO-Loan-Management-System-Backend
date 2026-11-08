@@ -4,6 +4,7 @@ import { permissions } from "../../auth/authorization.js";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 import { requirePermission } from "../../middlewares/authorization.middleware.js";
 import { validate } from "../../middlewares/validate.middleware.js";
+import { guardBusinessDayNotClosed } from "../../middlewares/business-day.guard.js";
 import {
   getMemberSavings,
   withdrawSavings,
@@ -70,6 +71,7 @@ router.get(
 router.post(
   "/withdrawals",
   validate(withdrawSavingsSchema),
+  guardBusinessDayNotClosed((req) => req.body?.transactionDate),
   requirePermission(permissions.savingsWithdraw),
   withdrawSavings,
 );
