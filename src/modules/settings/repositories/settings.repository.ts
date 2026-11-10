@@ -26,6 +26,7 @@ const mapSettings = (s: any) => ({
   latePenaltyPercentage: toNumber(s.latePenaltyPercentage),
   minGeneralSavingsDeposit: toNumber(s.minGeneralSavingsDeposit),
   minSpecialSavingsDeposit: toNumber(s.minSpecialSavingsDeposit),
+  migrationLocked: Boolean(s.migrationLocked),
   updatedAt: s.updatedAt,
 });
 
@@ -50,6 +51,7 @@ export const getSettings = async () => {
     "latePenaltyPercentage",
     "minGeneralSavingsDeposit",
     "minSpecialSavingsDeposit",
+    "migrationLocked",
     "updatedAt",
   ).first();
 
@@ -74,6 +76,7 @@ export const getSettings = async () => {
       "latePenaltyPercentage",
       "minGeneralSavingsDeposit",
       "minSpecialSavingsDeposit",
+      "migrationLocked",
       "updatedAt",
     ).create({
       orgName: "Purbasha Financial Development Organization",
@@ -149,6 +152,7 @@ export const updateSettings = async (data: OrganizationSettingsDTO) => {
     "latePenaltyPercentage",
     "minGeneralSavingsDeposit",
     "minSpecialSavingsDeposit",
+    "migrationLocked",
     "updatedAt",
   )
     .where({ id: current.id })

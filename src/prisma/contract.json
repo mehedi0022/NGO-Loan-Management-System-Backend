@@ -3730,6 +3730,13 @@
                   "kind": "scalar"
                 }
               },
+              "migrationLocked": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
               "minGeneralSavingsDeposit": {
                 "nullable": false,
                 "type": {
@@ -3842,6 +3849,9 @@
                 },
                 "logoUrl": {
                   "column": "logoUrl"
+                },
+                "migrationLocked": {
+                  "column": "migrationLocked"
                 },
                 "minGeneralSavingsDeposit": {
                   "column": "minGeneralSavingsDeposit"
@@ -8211,6 +8221,15 @@
                   "nativeType": "text",
                   "nullable": true
                 },
+                "migrationLocked": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
                 "minGeneralSavingsDeposit": {
                   "codecId": "pg/numeric@1",
                   "default": {
@@ -9557,7 +9576,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "5c93ead816eb32c0ec43246d2c89e60b7c83bb4bd59902422a7e8cfa0e0ba7d1"
+    "storageHash": "bfb3abc3b661db41e009d63755894323da542666ad9cb23dd3cf0da05fbb8fbc"
   },
   "execution": {
     "executionHash": "1c844a4d0430334d37c93a0b60bbf9bb3a711fe46f47a610a1abed00aa488541",

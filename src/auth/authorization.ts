@@ -73,6 +73,7 @@ export const permissions = {
 
   // Migration
   migrationExecute: "migration:execute",
+  migrationLock: "migration:lock",
 
   // Settings
   settingsRead: "settings:read",
@@ -155,7 +156,7 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.dayClosingRead,
     permissions.dayClosingExecute,
 
-    // Migration
+    // Migration (only permitted when Super Admin keeps Migration unlocked)
     permissions.migrationExecute,
 
     // Settings
@@ -220,9 +221,6 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     permissions.dayClosingRead,
     permissions.dayClosingExecute,
 
-    // Migration
-    permissions.migrationExecute,
-
     // Settings
     permissions.settingsRead,
   ]),
@@ -262,11 +260,7 @@ const rolePermissions: Readonly<Record<UserRole, ReadonlySet<Permission>>> = {
     // Reports
     permissions.reportsReadAny,
 
-    // Income & Expense
-    permissions.incomeExpenseReadAny,
-    permissions.incomeExpenseCreate,
-
-    // Accounts
+    // Accounts (read only for payout dropdowns & active business day banner)
     permissions.accountsReadAny,
     permissions.dayClosingRead,
 

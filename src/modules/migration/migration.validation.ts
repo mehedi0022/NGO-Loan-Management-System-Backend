@@ -104,3 +104,9 @@ export const batchMemberMigrationSchema = z.object({
     members: z.array(singleMemberMigrationSchema.shape.body).min(1, "At least one member is required for migration"),
   }),
 });
+
+export const toggleMigrationLockSchema = z.object({
+  body: z.object({
+    locked: z.boolean(),
+  }),
+});

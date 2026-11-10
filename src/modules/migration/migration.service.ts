@@ -1,4 +1,9 @@
-import { migrateSingleMember } from "./migration.repository.js";
+import {
+  assertMigrationUnlocked,
+  getMigrationStatus as fetchMigrationStatus,
+  migrateSingleMember,
+  setMigrationLocked,
+} from "./migration.repository.js";
 import type {
   MigrateBatchInput,
   MigrateBatchResult,
@@ -6,10 +11,19 @@ import type {
   MigrateSingleResult,
 } from "./migration.types.js";
 
+export const getMigrationStatus = async () => {
+  return fetchMigrationStatus();
+};
+
+export const toggleMigrationLock = async (locked: boolean) => {
+  return setMigrationLocked(locked);
+};
+
 export const migrateSingle = async (
   input: MigrateSingleMemberInput,
   userId: number,
 ): Promise<MigrateSingleResult> => {
+  await assertMigrationUnlocked();
   return migrateSingleMember(input, userId);
 };
 
@@ -17,6 +31,7 @@ export const migrateBatch = async (
   input: MigrateBatchInput,
   userId: number,
 ): Promise<MigrateBatchResult> => {
+  await assertMigrationUnlocked();
   const results: MigrateBatchResult["results"] = [];
   let successfulCount = 0;
   let failedCount = 0;

@@ -672,6 +672,9 @@ model OrganizationSetting {
   specialSavingsInterestRate Decimal              @default("7")
   savingsCompoundingInterval String               @default("QUARTERLY")
 
+  // Governance & Migration Security
+  migrationLocked            Boolean              @default(false)
+
   updatedAt                temporal.updatedAt()
 }
 

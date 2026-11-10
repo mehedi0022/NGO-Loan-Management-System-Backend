@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'5c93ead816eb32c0ec43246d2c89e60b7c83bb4bd59902422a7e8cfa0e0ba7d1'>;
+  StorageHashBase<'bfb3abc3b661db41e009d63755894323da542666ad9cb23dd3cf0da05fbb8fbc'>;
 export type ExecutionHash =
   ExecutionHashBase<'1c844a4d0430334d37c93a0b60bbf9bb3a711fe46f47a610a1abed00aa488541'>;
 export type ProfileHash =
@@ -529,6 +529,7 @@ export type FieldOutputTypes = {
       readonly generalSavingsInterestRate: CodecTypes['pg/numeric@1']['output'];
       readonly specialSavingsInterestRate: CodecTypes['pg/numeric@1']['output'];
       readonly savingsCompoundingInterval: CodecTypes['pg/text@1']['output'];
+      readonly migrationLocked: CodecTypes['pg/bool@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
     readonly SavingsAccount: {
@@ -920,6 +921,7 @@ export type FieldInputTypes = {
       readonly generalSavingsInterestRate: CodecTypes['pg/numeric@1']['input'];
       readonly specialSavingsInterestRate: CodecTypes['pg/numeric@1']['input'];
       readonly savingsCompoundingInterval: CodecTypes['pg/text@1']['input'];
+      readonly migrationLocked: CodecTypes['pg/bool@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
     readonly SavingsAccount: {
@@ -1302,6 +1304,7 @@ export type StorageColumnTypes = {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly latePenaltyPercentage: CodecTypes['pg/numeric@1']['output'];
       readonly logoUrl: CodecTypes['pg/text@1']['output'] | null;
+      readonly migrationLocked: CodecTypes['pg/bool@1']['output'];
       readonly minGeneralSavingsDeposit: CodecTypes['pg/numeric@1']['output'];
       readonly minSpecialSavingsDeposit: CodecTypes['pg/numeric@1']['output'];
       readonly orgName: CodecTypes['pg/text@1']['output'];
@@ -1693,6 +1696,7 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly latePenaltyPercentage: CodecTypes['pg/numeric@1']['input'];
       readonly logoUrl: CodecTypes['pg/text@1']['input'] | null;
+      readonly migrationLocked: CodecTypes['pg/bool@1']['input'];
       readonly minGeneralSavingsDeposit: CodecTypes['pg/numeric@1']['input'];
       readonly minSpecialSavingsDeposit: CodecTypes['pg/numeric@1']['input'];
       readonly orgName: CodecTypes['pg/text@1']['input'];
@@ -2165,6 +2169,7 @@ export namespace Models {
     generalSavingsInterestRate: CodecTypes['pg/numeric@1']['output'];
     specialSavingsInterestRate: CodecTypes['pg/numeric@1']['output'];
     savingsCompoundingInterval: CodecTypes['pg/text@1']['output'];
+    migrationLocked: CodecTypes['pg/bool@1']['output'];
     updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     readonly [RelationKeys]?: never;
   };
@@ -4723,6 +4728,15 @@ type ContractBase = Omit<
                   readonly default: {
                     readonly kind: 'literal';
                     readonly value: DefaultLiteralValue<'pg/text@1', 'QUARTERLY'>;
+                  };
+                };
+                readonly migrationLocked: {
+                  readonly nativeType: 'bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
                   };
                 };
                 readonly updatedAt: {
@@ -7709,6 +7723,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly migrationLocked: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
               readonly updatedAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -7750,6 +7768,7 @@ type ContractBase = Omit<
                 readonly savingsCompoundingInterval: {
                   readonly column: 'savingsCompoundingInterval';
                 };
+                readonly migrationLocked: { readonly column: 'migrationLocked' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };

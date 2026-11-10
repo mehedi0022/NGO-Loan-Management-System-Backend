@@ -4,6 +4,8 @@ import { ConflictError, ValidationError } from "../../errors/AppError.js";
 import { calculateLoan } from "../loan/utils/loan-calculation.util.js";
 import { generateInstallmentSchedule } from "../loan/utils/installment-schedule.util.js";
 import { calculateDpsMaturity } from "../dps/dps.repository.js";
+import { getSettings } from "../settings/repositories/settings.repository.js";
+import { getActiveBusinessDay } from "../day-closing/repositories/day-closing.repository.js";
 import type {
   MigrateSingleMemberInput,
   MigrateSingleResult,
@@ -409,4 +411,63 @@ export const migrateSingleMember = async (
       dps: dpsResult,
     };
   });
+};
+
+export const assertMigrationUnlocked = async () => {
+  const settings = await getSettings();
+  if (settings.migrationLocked) {
+    throw new ValidationError(
+      "Member Migration is currently LOCKED by Super Admin. Please contact Super Admin to temporarily unlock migration if legacy members still need to be added.",
+    );
+  }
+};
+
+export const setMigrationLocked = async (locked: boolean) => {
+  const settings = await getSettings();
+  await db.orm.public.OrganizationSetting.where({ id: settings.id }).update({
+    migrationLocked: locked,
+  });
+  return { migrationLocked: locked };
+};
+
+export const getMigrationStatus = async () => {
+  const [settings, postings, activeDay] = await Promise.all([
+    getSettings(),
+    db.orm.public.SavingsInterestPosting.select(
+      "id",
+      "postingCode",
+      "periodEndDate",
+    ).all(),
+    getActiveBusinessDay().catch(() => null),
+  ]);
+
+  let latestInterestEndDate: string | null = null;
+  let latestPostingCode: string | null = null;
+  for (const p of postings) {
+    const endIso =
+      p.periodEndDate instanceof Date
+        ? p.periodEndDate.toISOString()
+        : String(p.periodEndDate);
+    let endDhaka: string;
+    try {
+      endDhaka = Temporal.Instant.from(endIso)
+        .toZonedDateTimeISO("Asia/Dhaka")
+        .toPlainDate()
+        .toString();
+    } catch {
+      endDhaka = endIso.slice(0, 10);
+    }
+    if (!latestInterestEndDate || endDhaka > latestInterestEndDate) {
+      latestInterestEndDate = endDhaka;
+      latestPostingCode = p.postingCode || null;
+    }
+  }
+
+  return {
+    migrationLocked: Boolean(settings.migrationLocked),
+    hasPostedInterest: postings.length > 0,
+    latestInterestEndDate,
+    latestPostingCode,
+    activeBusinessDate: activeDay?.businessDate || null,
+  };
 };

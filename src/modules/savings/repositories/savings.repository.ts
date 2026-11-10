@@ -10,6 +10,36 @@ const cents = (value: string | number) => Math.round(Number(value) * 100);
 const money = (value: number) => (value / 100).toFixed(2);
 const toInstant = (date: Date) => Temporal.Instant.from(date.toISOString());
 
+const toDhakaDateStr = (val: unknown): string => {
+  if (!val) return "";
+  if (val instanceof Temporal.Instant) {
+    return val.toZonedDateTimeISO("Asia/Dhaka").toPlainDate().toString();
+  }
+  const iso = val instanceof Date ? val.toISOString() : String(val);
+  try {
+    return Temporal.Instant.from(iso)
+      .toZonedDateTimeISO("Asia/Dhaka")
+      .toPlainDate()
+      .toString();
+  } catch {
+    return iso.slice(0, 10);
+  }
+};
+
+const dhakaBoundaryInstant = (dateStr: string, endOfDay = false): Temporal.Instant => {
+  const plain = Temporal.PlainDate.from(dateStr);
+  return Temporal.ZonedDateTime.from({
+    timeZone: "Asia/Dhaka",
+    year: plain.year,
+    month: plain.month,
+    day: plain.day,
+    hour: endOfDay ? 23 : 0,
+    minute: endOfDay ? 59 : 0,
+    second: endOfDay ? 59 : 0,
+    millisecond: endOfDay ? 999 : 0,
+  }).toInstant();
+};
+
 export const findMemberSavings = async (memberId: number) => {
   const member = await db.orm.public.Member.select(
     "id",
@@ -356,7 +386,7 @@ export const checkInterestPeriodValidity = async (
   startDate: string,
   endDate: string,
 ) => {
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = Temporal.Now.zonedDateTimeISO("Asia/Dhaka").toPlainDate().toString();
 
   if (startDate > endDate) {
     return {
@@ -383,8 +413,8 @@ export const checkInterestPeriodValidity = async (
   ).all();
 
   for (const p of existingPostings) {
-    const pStart = p.periodStartDate.toString().slice(0, 10);
-    const pEnd = p.periodEndDate.toString().slice(0, 10);
+    const pStart = toDhakaDateStr(p.periodStartDate);
+    const pEnd = toDhakaDateStr(p.periodEndDate);
     // Two intervals [A, B] and [C, D] overlap if A <= D and B >= C
     if (startDate <= pEnd && endDate >= pStart) {
       return {
@@ -404,7 +434,7 @@ export const checkInterestPeriodValidity = async (
   let lastPostedEndDate: string | null = null;
   let lastPostingCode: string | null = null;
   for (const p of existingPostings) {
-    const pEnd = p.periodEndDate.toString().slice(0, 10);
+    const pEnd = toDhakaDateStr(p.periodEndDate);
     if (!lastPostedEndDate || pEnd > lastPostedEndDate) {
       lastPostedEndDate = pEnd;
       lastPostingCode = p.postingCode;
@@ -442,7 +472,7 @@ export const checkInterestPeriodValidity = async (
   for (const a of allAccounts) {
     const raw = a.openedAt || (a as any).member?.joinDate || a.createdAt;
     if (raw) {
-      const dStr = (typeof raw === "string" ? raw : raw.toString()).slice(0, 10);
+      const dStr = toDhakaDateStr(raw);
       if (!earliestOrganizationDate || dStr < earliestOrganizationDate) {
         earliestOrganizationDate = dStr;
       }
@@ -596,8 +626,6 @@ export const calculateDailyProductInterest = async (
     };
   }
 
-  const endInstant = Temporal.Instant.from(`${options.endDate}T23:59:59.999Z`);
-
   // Calculate total days inclusive: e.g. 2026-07-01 to 2026-09-30 = 92 days
   const sDateOnly = new Date(options.startDate + "T00:00:00Z");
   const eDateOnly = new Date(options.endDate + "T00:00:00Z");
@@ -646,8 +674,9 @@ export const calculateDailyProductInterest = async (
   let grandTotalSpecialInterest = 0;
 
   for (const acc of filteredAccounts) {
-    // Fetch transactions up to endInstant, ordered by transactionDate asc
-    const transactions = await db.orm.public.SavingsTransaction.select(
+    // Fetch all transactions for this account so we can accurately determine both
+    // period history and historical baseline if later transactions exist after endDate.
+    const allTransactions = await db.orm.public.SavingsTransaction.select(
       "id",
       "savingsType",
       "type",
@@ -657,45 +686,66 @@ export const calculateDailyProductInterest = async (
       "transactionDate",
     )
       .where({ savingsAccountId: acc.id })
-      .where((t: any) => t.transactionDate.lte(endInstant))
       .orderBy((t: any) => t.transactionDate.asc())
       .all();
 
-    // Group transactions by date string YYYY-MM-DD
+    // Sort chronologically with ID tie-breaker for same-timestamp transactions
+    allTransactions.sort((a: any, b: any) => {
+      const cmp = Temporal.Instant.compare(
+        Temporal.Instant.from(a.transactionDate.toString()),
+        Temporal.Instant.from(b.transactionDate.toString()),
+      );
+      return cmp !== 0 ? cmp : Number(a.id) - Number(b.id);
+    });
+
+    const transactions = allTransactions.filter(
+      (t: any) => toDhakaDateStr(t.transactionDate) <= options.endDate,
+    );
+    const futureTransactions = allTransactions.filter(
+      (t: any) => toDhakaDateStr(t.transactionDate) > options.endDate,
+    );
+
+    // Group transactions by Dhaka date string YYYY-MM-DD
     const txByDateAndType = new Map<string, { genLastAfter?: number; spcLastAfter?: number }>();
 
     // Baseline balances right before startDate
     const genTxList = transactions.filter((t: any) => t.savingsType === "GENERAL");
     const spcTxList = transactions.filter((t: any) => t.savingsType === "SPECIAL");
+    const genFutureList = futureTransactions.filter((t: any) => t.savingsType === "GENERAL");
+    const spcFutureList = futureTransactions.filter((t: any) => t.savingsType === "SPECIAL");
 
     const genBeforeList = genTxList.filter(
-      (tx: any) => tx.transactionDate.toString().slice(0, 10) < options.startDate,
+      (tx: any) => toDhakaDateStr(tx.transactionDate) < options.startDate,
     );
     let startingGenBal = 0;
     if (genBeforeList.length > 0) {
       startingGenBal = Number(genBeforeList[genBeforeList.length - 1].balanceAfter) || 0;
     } else if (genTxList.length > 0) {
       startingGenBal = Number(genTxList[0].balanceBefore) || 0;
+    } else if (genFutureList.length > 0) {
+      startingGenBal = Number(genFutureList[0].balanceBefore) || 0;
     } else {
-      // If no transaction records exist, baseline is current balance
+      // Only if zero transaction records exist in the DB at all (e.g. migrated opening balance)
       startingGenBal = Number(acc.generalSavingsBalance) || 0;
     }
 
     const spcBeforeList = spcTxList.filter(
-      (tx: any) => tx.transactionDate.toString().slice(0, 10) < options.startDate,
+      (tx: any) => toDhakaDateStr(tx.transactionDate) < options.startDate,
     );
     let startingSpcBal = 0;
     if (spcBeforeList.length > 0) {
       startingSpcBal = Number(spcBeforeList[spcBeforeList.length - 1].balanceAfter) || 0;
     } else if (spcTxList.length > 0) {
       startingSpcBal = Number(spcTxList[0].balanceBefore) || 0;
+    } else if (spcFutureList.length > 0) {
+      startingSpcBal = Number(spcFutureList[0].balanceBefore) || 0;
     } else {
-      // If no transaction records exist, baseline is current balance
+      // Only if zero transaction records exist in the DB at all
       startingSpcBal = Number(acc.specialSavingsBalance) || 0;
     }
 
     for (const tx of transactions) {
-      const txDateStr = tx.transactionDate.toString().slice(0, 10);
+      const txDateStr = toDhakaDateStr(tx.transactionDate);
       const isBeforeStart = txDateStr < options.startDate;
       const afterAmt = Number(tx.balanceAfter) || 0;
 
@@ -707,11 +757,9 @@ export const calculateDailyProductInterest = async (
       }
     }
 
-    // Member account opening date
+    // Member account opening date (Asia/Dhaka)
     const rawOpen = acc.openedAt || (acc as any).member?.joinDate || acc.createdAt;
-    const accountOpenDateStr = rawOpen
-      ? (typeof rawOpen === "string" ? rawOpen : rawOpen.toString()).slice(0, 10)
-      : null;
+    const accountOpenDateStr = rawOpen ? toDhakaDateStr(rawOpen) : null;
 
     // Check if account was already opened on or before options.startDate
     const isOpenAtStart = !accountOpenDateStr || accountOpenDateStr <= options.startDate;
@@ -886,7 +934,7 @@ export const postSavingsInterest = async (
           amount: money(cents(accData.generalInterest)),
           balanceBefore: money(cents(genBefore)),
           balanceAfter: money(cents(newGenBal)),
-          transactionDate: toInstant(new Date(options.endDate + "T23:59:59Z")),
+          transactionDate: dhakaBoundaryInstant(options.endDate, true),
           paymentMethod: "OTHER",
           reference: postingCode,
           notes: `Interest @ ${calculation.generalSavingsRate}% p.a. for ${options.startDate} to ${options.endDate} (${calculation.compoundingInterval})`,
@@ -915,7 +963,7 @@ export const postSavingsInterest = async (
           amount: money(cents(accData.specialInterest)),
           balanceBefore: money(cents(spcBefore)),
           balanceAfter: money(cents(newSpcBal)),
-          transactionDate: toInstant(new Date(options.endDate + "T23:59:59Z")),
+          transactionDate: dhakaBoundaryInstant(options.endDate, true),
           paymentMethod: "OTHER",
           reference: postingCode,
           notes: `Interest @ ${calculation.specialSavingsRate}% p.a. for ${options.startDate} to ${options.endDate} (${calculation.compoundingInterval})`,
@@ -933,8 +981,8 @@ export const postSavingsInterest = async (
     // 3. Create SavingsInterestPosting record
     const postingRecord = await tx.orm.public.SavingsInterestPosting.create({
       postingCode,
-      periodStartDate: toInstant(new Date(options.startDate + "T00:00:00Z")),
-      periodEndDate: toInstant(new Date(options.endDate + "T23:59:59Z")),
+      periodStartDate: dhakaBoundaryInstant(options.startDate, false),
+      periodEndDate: dhakaBoundaryInstant(options.endDate, true),
       compoundingInterval: calculation.compoundingInterval,
       generalSavingsRate: String(calculation.generalSavingsRate),
       specialSavingsRate: String(calculation.specialSavingsRate),

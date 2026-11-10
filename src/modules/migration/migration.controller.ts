@@ -2,6 +2,30 @@ import type { Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import * as service from "./migration.service.js";
 
+export const getMigrationStatusController = asyncHandler(
+  async (_req: Request, res: Response) => {
+    const status = await service.getMigrationStatus();
+    return res.status(200).json({
+      success: true,
+      message: "Migration status retrieved successfully",
+      data: status,
+    });
+  },
+);
+
+export const toggleMigrationLockController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await service.toggleMigrationLock(Boolean(req.body.locked));
+    return res.status(200).json({
+      success: true,
+      message: result.migrationLocked
+        ? "Member Migration has been LOCKED successfully"
+        : "Member Migration has been UNLOCKED successfully",
+      data: result,
+    });
+  },
+);
+
 export const migrateSingleMemberController = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = (req as any).auth?.userId;
