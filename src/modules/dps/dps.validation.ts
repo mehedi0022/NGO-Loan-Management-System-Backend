@@ -53,10 +53,12 @@ export const closeDpsSchema = z.object({
 export const dpsListQuerySchema = z.object({
   query: paginationQuerySchema
     .extend({
+      limit: z.coerce.number().int().positive().max(1000).default(20),
       memberId: z.coerce.number().int().positive().optional(),
       somitiId: z.coerce.number().int().positive().optional(),
       frequency: z.enum(["WEEKLY", "MONTHLY"]).optional(),
       status: z.enum(["ACTIVE", "MATURED", "CLOSED"]).optional(),
+      excludeClosed: z.coerce.boolean().optional(),
       search: z.string().trim().max(255).optional(),
       sortBy: z
         .enum(["createdAt", "startDate", "maturityDate", "installmentAmount", "id"])
@@ -76,4 +78,15 @@ export const reverseDpsTransactionSchema = z.object({
       reason: z.string().trim().min(3, "Reason must be at least 3 characters").max(500),
     })
     .strict(),
+});
+
+export const listDpsWithdrawalsSchema = z.object({
+  query: z.object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    somitiId: z.coerce.number().int().positive().optional(),
+    closeType: z.enum(["MATURITY_PAYOUT", "PREMATURE_CLOSE"]).optional(),
+    limit: z.coerce.number().int().positive().max(1000).default(500),
+  }),
 });

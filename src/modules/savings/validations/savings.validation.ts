@@ -12,6 +12,17 @@ export const memberSavingsSchema = z.object({
   params: z.object({ memberId: z.coerce.number().int().positive() }).strict(),
 });
 
+export const listSavingsWithdrawalsSchema = z.object({
+  query: z.object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    somitiId: z.coerce.number().int().positive().optional(),
+    savingsType: z.enum(["GENERAL", "SPECIAL"]).optional(),
+    limit: z.coerce.number().int().positive().max(1000).default(500),
+  }),
+});
+
 export const withdrawSavingsSchema = z.object({
   body: z
     .object({

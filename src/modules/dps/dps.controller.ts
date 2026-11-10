@@ -87,3 +87,22 @@ export const reverseDpsTransaction = asyncHandler(
       .json(successResponse("DPS transaction reversed successfully", result));
   },
 );
+
+export const getDpsWithdrawals = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await dpsService.listDpsWithdrawals({
+      date: req.query.date ? String(req.query.date) : undefined,
+      startDate: req.query.startDate ? String(req.query.startDate) : undefined,
+      endDate: req.query.endDate ? String(req.query.endDate) : undefined,
+      somitiId: req.query.somitiId ? Number(req.query.somitiId) : undefined,
+      closeType: req.query.closeType as
+        | "MATURITY_PAYOUT"
+        | "PREMATURE_CLOSE"
+        | undefined,
+      limit: req.query.limit ? Number(req.query.limit) : undefined,
+    });
+    res
+      .status(200)
+      .json(successResponse("DPS withdrawals fetched successfully", result));
+  },
+);

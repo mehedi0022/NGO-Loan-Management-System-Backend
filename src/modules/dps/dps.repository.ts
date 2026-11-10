@@ -15,6 +15,36 @@ const cents = (value: string | number) => Math.round(Number(value) * 100);
 const money = (value: number) => (value / 100).toFixed(2);
 const toInstant = (date: Date) => Temporal.Instant.from(date.toISOString());
 
+const toDhakaDateStr = (val: unknown): string => {
+  if (!val) return "";
+  if (val instanceof Temporal.Instant) {
+    return val.toZonedDateTimeISO("Asia/Dhaka").toPlainDate().toString();
+  }
+  const iso = val instanceof Date ? val.toISOString() : String(val);
+  try {
+    return Temporal.Instant.from(iso)
+      .toZonedDateTimeISO("Asia/Dhaka")
+      .toPlainDate()
+      .toString();
+  } catch {
+    return iso.slice(0, 10);
+  }
+};
+
+const dhakaBoundaryInstant = (dateStr: string, endOfDay = false): Temporal.Instant => {
+  const plain = Temporal.PlainDate.from(dateStr);
+  return Temporal.ZonedDateTime.from({
+    timeZone: "Asia/Dhaka",
+    year: plain.year,
+    month: plain.month,
+    day: plain.day,
+    hour: endOfDay ? 23 : 0,
+    minute: endOfDay ? 59 : 0,
+    second: endOfDay ? 59 : 0,
+    millisecond: endOfDay ? 999 : 0,
+  }).toInstant();
+};
+
 const addMonths = (date: Date, months: number): Date => {
   const d = new Date(date);
   d.setMonth(d.getMonth() + months);
@@ -222,6 +252,10 @@ export const findDpsAccounts = async (query: DpsListQuery) => {
 
   if (status) {
     filteredAccounts = filteredAccounts.where({ status });
+  } else if (query.excludeClosed) {
+    filteredAccounts = filteredAccounts.where((account: any) =>
+      account.status.in(["ACTIVE", "MATURED"]),
+    );
   }
 
   if (search) {
@@ -722,4 +756,160 @@ export const reverseDpsTransaction = async (
       transactionCode: txCode,
     };
   });
+};
+
+export const findDpsWithdrawals = async (filters: {
+  date?: string;
+  startDate?: string;
+  endDate?: string;
+  somitiId?: number;
+  closeType?: "MATURITY_PAYOUT" | "PREMATURE_CLOSE";
+  limit?: number;
+}) => {
+  const { date, startDate, endDate, somitiId, closeType, limit = 500 } = filters;
+
+  let query = db.orm.public.DpsTransaction.select(
+    "id",
+    "transactionId",
+    "dpsAccountId",
+    "type",
+    "amount",
+    "balanceBefore",
+    "balanceAfter",
+    "transactionDate",
+    "paymentMethod",
+    "notes",
+    "createdAt",
+  )
+    .include("dpsAccount", (acc: any) =>
+      acc
+        .select(
+          "id",
+          "dpsNumber",
+          "frequency",
+          "installmentAmount",
+          "durationMonths",
+          "interestRate",
+          "paidInstallments",
+          "totalPaidAmount",
+          "maturityAmount",
+          "startDate",
+          "maturityDate",
+          "memberId",
+        )
+        .include("member", (m: any) =>
+          m
+            .select(
+              "id",
+              "memberId",
+              "fullName",
+              "fatherName",
+              "guardianName",
+              "mobileNumber",
+              "somitiId",
+            )
+            .include("somiti", (s: any) =>
+              s.select("id", "somitiId", "name", "code"),
+            ),
+        ),
+    )
+    .include("processedBy", (u: any) => u.select("id", "fullName", "userName"));
+
+  if (closeType) {
+    query = query.where({ type: closeType });
+  } else {
+    query = query.where((t: any) => t.type.in(["MATURITY_PAYOUT", "PREMATURE_CLOSE"]));
+  }
+
+  const effectiveStart = date || startDate;
+  const effectiveEnd = date || endDate;
+  if (effectiveStart) {
+    const startInstant = dhakaBoundaryInstant(effectiveStart, false);
+    query = query.where((t: any) => t.transactionDate.gte(startInstant));
+  }
+  if (effectiveEnd) {
+    const endInstant = dhakaBoundaryInstant(effectiveEnd, true);
+    query = query.where((t: any) => t.transactionDate.lte(endInstant));
+  }
+
+  const rows = await query
+    .orderBy((t: any) => t.transactionDate.asc())
+    .all();
+
+  const filtered = rows.filter((row: any) => {
+    const txDateStr = toDhakaDateStr(row.transactionDate);
+    if (date && txDateStr !== date) return false;
+    if (startDate && txDateStr < startDate) return false;
+    if (endDate && txDateStr > endDate) return false;
+    if (somitiId && row.dpsAccount?.member?.somitiId !== somitiId) return false;
+    return true;
+  });
+
+  filtered.sort((a: any, b: any) => {
+    const cmp = Temporal.Instant.compare(
+      Temporal.Instant.from(a.transactionDate.toString()),
+      Temporal.Instant.from(b.transactionDate.toString()),
+    );
+    return cmp !== 0 ? cmp : Number(a.id) - Number(b.id);
+  });
+
+  const limited = filtered.slice(0, limit);
+
+  let totalPayoutAmount = 0;
+  let totalDepositedPrincipal = 0;
+  let maturityCount = 0;
+  let prematureCount = 0;
+
+  for (const r of limited as any[]) {
+    const amt = Number(r.amount) || 0;
+    const principal = Number(r.balanceBefore) || Number(r.dpsAccount?.totalPaidAmount) || 0;
+    totalPayoutAmount += amt;
+    totalDepositedPrincipal += principal;
+    if (r.type === "MATURITY_PAYOUT") maturityCount++;
+    else prematureCount++;
+  }
+
+  return {
+    records: limited.map((r: any) => {
+      const payoutAmount = Number(r.amount) || 0;
+      const principalPaid = Number(r.balanceBefore) || Number(r.dpsAccount?.totalPaidAmount) || 0;
+      const profitOrAdjustment = Math.round((payoutAmount - principalPaid) * 100) / 100;
+
+      return {
+        id: r.id,
+        transactionId: r.transactionId || `DTX-${String(r.id).padStart(6, "0")}`,
+        type: r.type,
+        amount: payoutAmount,
+        principalPaid,
+        profitOrAdjustment,
+        balanceAfter: Number(r.balanceAfter) || 0,
+        transactionDate: r.transactionDate,
+        dhakaDate: toDhakaDateStr(r.transactionDate),
+        paymentMethod: r.paymentMethod,
+        notes: r.notes,
+        dpsAccount: r.dpsAccount
+          ? {
+              id: r.dpsAccount.id,
+              dpsNumber: r.dpsAccount.dpsNumber || `DPS-${r.dpsAccount.id}`,
+              frequency: r.dpsAccount.frequency,
+              installmentAmount: Number(r.dpsAccount.installmentAmount) || 0,
+              durationMonths: r.dpsAccount.durationMonths,
+              interestRate: Number(r.dpsAccount.interestRate) || 0,
+              paidInstallments: r.dpsAccount.paidInstallments,
+              startDate: r.dpsAccount.startDate,
+              maturityDate: r.dpsAccount.maturityDate,
+              member: r.dpsAccount.member || null,
+            }
+          : null,
+        processedBy: r.processedBy || null,
+      };
+    }),
+    summary: {
+      totalCount: limited.length,
+      totalPayoutAmount: Math.round(totalPayoutAmount * 100) / 100,
+      totalDepositedPrincipal: Math.round(totalDepositedPrincipal * 100) / 100,
+      maturityCount,
+      prematureCount,
+    },
+  };
 };

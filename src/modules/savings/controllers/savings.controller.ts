@@ -100,3 +100,19 @@ export const getInterestPostingHistory = asyncHandler(
       .json(successResponse("Savings interest postings fetched successfully", result));
   },
 );
+
+export const getSavingsWithdrawals = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await service.listSavingsWithdrawals({
+      date: req.query.date ? String(req.query.date) : undefined,
+      startDate: req.query.startDate ? String(req.query.startDate) : undefined,
+      endDate: req.query.endDate ? String(req.query.endDate) : undefined,
+      somitiId: req.query.somitiId ? Number(req.query.somitiId) : undefined,
+      savingsType: req.query.savingsType as "GENERAL" | "SPECIAL" | undefined,
+      limit: req.query.limit ? Number(req.query.limit) : undefined,
+    });
+    res
+      .status(200)
+      .json(successResponse("Savings withdrawals fetched successfully", result));
+  },
+);

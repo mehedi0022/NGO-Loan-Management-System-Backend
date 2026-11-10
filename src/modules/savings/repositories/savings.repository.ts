@@ -1039,3 +1039,125 @@ export const getInterestPostingHistory = async (page = 1, limit = 20) => {
     },
   };
 };
+
+export const findSavingsWithdrawals = async (filters: {
+  date?: string;
+  startDate?: string;
+  endDate?: string;
+  somitiId?: number;
+  savingsType?: "GENERAL" | "SPECIAL";
+  limit?: number;
+}) => {
+  const { date, startDate, endDate, somitiId, savingsType, limit = 500 } = filters;
+
+  let query = db.orm.public.SavingsTransaction.select(
+    "id",
+    "transactionId",
+    "savingsAccountId",
+    "savingsType",
+    "type",
+    "amount",
+    "balanceBefore",
+    "balanceAfter",
+    "transactionDate",
+    "paymentMethod",
+    "reference",
+    "notes",
+    "createdAt",
+  )
+    .include("savingsAccount", (acc: any) =>
+      acc
+        .select("id", "accountId", "memberId")
+        .include("member", (m: any) =>
+          m
+            .select(
+              "id",
+              "memberId",
+              "fullName",
+              "fatherName",
+              "guardianName",
+              "mobileNumber",
+              "somitiId",
+            )
+            .include("somiti", (s: any) =>
+              s.select("id", "somitiId", "name", "code"),
+            ),
+        ),
+    )
+    .include("processedBy", (u: any) => u.select("id", "fullName", "userName"))
+    .where({ type: "WITHDRAWAL" });
+
+  if (savingsType) {
+    query = query.where({ savingsType });
+  }
+
+  const effectiveStart = date || startDate;
+  const effectiveEnd = date || endDate;
+  if (effectiveStart) {
+    const startInstant = dhakaBoundaryInstant(effectiveStart, false);
+    query = query.where((t: any) => t.transactionDate.gte(startInstant));
+  }
+  if (effectiveEnd) {
+    const endInstant = dhakaBoundaryInstant(effectiveEnd, true);
+    query = query.where((t: any) => t.transactionDate.lte(endInstant));
+  }
+
+  const rows = await query
+    .orderBy((t: any) => t.transactionDate.asc())
+    .all();
+
+  const filtered = rows.filter((row: any) => {
+    const txDateStr = toDhakaDateStr(row.transactionDate);
+    if (date && txDateStr !== date) return false;
+    if (startDate && txDateStr < startDate) return false;
+    if (endDate && txDateStr > endDate) return false;
+    if (somitiId && row.savingsAccount?.member?.somitiId !== somitiId) return false;
+    return true;
+  });
+
+  filtered.sort((a: any, b: any) => {
+    const cmp = Temporal.Instant.compare(
+      Temporal.Instant.from(a.transactionDate.toString()),
+      Temporal.Instant.from(b.transactionDate.toString()),
+    );
+    return cmp !== 0 ? cmp : Number(a.id) - Number(b.id);
+  });
+
+  const limited = filtered.slice(0, limit);
+
+  let totalAmount = 0;
+  let generalAmount = 0;
+  let specialAmount = 0;
+
+  for (const r of limited) {
+    const amt = Number(r.amount) || 0;
+    totalAmount += amt;
+    if (r.savingsType === "GENERAL") generalAmount += amt;
+    if (r.savingsType === "SPECIAL") specialAmount += amt;
+  }
+
+  return {
+    records: limited.map((r: any) => ({
+      id: r.id,
+      transactionId: r.transactionId || `STX-${String(r.id).padStart(6, "0")}`,
+      savingsType: r.savingsType,
+      amount: Number(r.amount) || 0,
+      balanceBefore: Number(r.balanceBefore) || 0,
+      balanceAfter: Number(r.balanceAfter) || 0,
+      transactionDate: r.transactionDate,
+      dhakaDate: toDhakaDateStr(r.transactionDate),
+      paymentMethod: r.paymentMethod,
+      reference: r.reference,
+      notes: r.notes,
+      accountId: r.savingsAccount?.accountId || `SAV-${r.savingsAccountId}`,
+      member: r.savingsAccount?.member || null,
+      processedBy: r.processedBy || null,
+    })),
+    summary: {
+      totalCount: limited.length,
+      totalAmount: Math.round(totalAmount * 100) / 100,
+      generalAmount: Math.round(generalAmount * 100) / 100,
+      specialAmount: Math.round(specialAmount * 100) / 100,
+    },
+  };
+};

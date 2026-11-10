@@ -263,6 +263,7 @@ export const updateMemberSchema = z.object({
 export const memberListQuerySchema = z.object({
   query: paginationQuerySchema
     .extend({
+      limit: z.coerce.number().int().positive().max(1000).default(20),
       status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]).optional(),
 
       somitiId: z.coerce.number().int().positive().optional(),

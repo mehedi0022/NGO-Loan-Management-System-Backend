@@ -8,6 +8,7 @@ import {
   createDpsAccount,
   getDpsAccounts,
   getDpsAccountById,
+  getDpsWithdrawals,
   depositDpsInstallment,
   closeDpsAccount,
   calculateDpsMaturity,
@@ -19,6 +20,7 @@ import {
   closeDpsSchema,
   dpsListQuerySchema,
   dpsIdParamsSchema,
+  listDpsWithdrawalsSchema,
   reverseDpsTransactionSchema,
 } from "./dps.validation.js";
 
@@ -50,6 +52,13 @@ router.get(
   validate(dpsListQuerySchema),
   requirePermission(permissions.dpsReadAny),
   getDpsAccounts,
+);
+
+router.get(
+  "/withdrawals",
+  validate(listDpsWithdrawalsSchema),
+  requirePermission(permissions.dpsReadAny),
+  getDpsWithdrawals,
 );
 
 router.get(

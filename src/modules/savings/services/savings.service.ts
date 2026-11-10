@@ -108,3 +108,14 @@ export const postSavingsInterest = async (
 export const getInterestPostingHistory = async (page = 1, limit = 20) => {
   return repository.getInterestPostingHistory(page, limit);
 };
+
+export const listSavingsWithdrawals = async (filters: {
+  date?: string;
+  startDate?: string;
+  endDate?: string;
+  somitiId?: number;
+  savingsType?: "GENERAL" | "SPECIAL";
+  limit?: number;
+}) => {
+  return repository.findSavingsWithdrawals(filters);
+};

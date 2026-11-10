@@ -76,3 +76,14 @@ export const reverseDpsTransaction = async (
   if (result.kind === "NO_ACCOUNT") throw new NotFoundError("DPS account not found");
   return result;
 };
+
+export const listDpsWithdrawals = async (filters: {
+  date?: string;
+  startDate?: string;
+  endDate?: string;
+  somitiId?: number;
+  closeType?: "MATURITY_PAYOUT" | "PREMATURE_CLOSE";
+  limit?: number;
+}) => {
+  return dpsRepository.findDpsWithdrawals(filters);
+};

@@ -7,6 +7,7 @@ import { validate } from "../../middlewares/validate.middleware.js";
 import { guardBusinessDayNotClosed } from "../../middlewares/business-day.guard.js";
 import {
   getMemberSavings,
+  getSavingsWithdrawals,
   withdrawSavings,
   reverseSavingsTransaction,
   getSavingsInterestSettings,
@@ -16,6 +17,7 @@ import {
   getInterestPostingHistory,
 } from "./controllers/savings.controller.js";
 import {
+  listSavingsWithdrawalsSchema,
   memberSavingsSchema,
   withdrawSavingsSchema,
   reverseSavingsTransactionSchema,
@@ -66,6 +68,13 @@ router.get(
   validate(memberSavingsSchema),
   requirePermission(permissions.savingsReadAny),
   getMemberSavings,
+);
+
+router.get(
+  "/withdrawals",
+  validate(listSavingsWithdrawalsSchema),
+  requirePermission(permissions.savingsReadAny),
+  getSavingsWithdrawals,
 );
 
 router.post(
